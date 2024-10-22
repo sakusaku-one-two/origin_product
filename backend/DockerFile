@@ -1,0 +1,18 @@
+#goのドッカーイメージをベースにして、ワークディレクトリを/appにマウントする
+FROM golang:1.23.0
+
+#ワークディレクトリを/appに設定
+WORKDIR /app
+
+#ワークディレクトリにgo.modとgo.sumをコピー
+COPY go.mod go.sum ./
+
+#ワークディレクトリにgo.modとgo.sumをコピー
+COPY go.mod go.sum ./
+
+#ワークディレクトリにmain.goをコピー
+COPY main.go ./
+
+
+#ワークディレクトリにDockerfileをコピー
+COPY Dockerfile ./
