@@ -1,5 +1,7 @@
 import React  from 'react';
 import { useState } from 'react';
+import { useRecoilState } from 'recoil';
+import { LoginDialogOpen } from '../../state/opneClose';
 import {
     Sidebar,
     SidebarContent,
@@ -22,7 +24,7 @@ import { CircleUser,
 
 import { SidebarGroupContent, SidebarGroupLabel } from '../ui/sidebar';
 import SidebarItem from './components/SidebarItem';
-import { Description } from '@radix-ui/react-dialog';
+
 
 
 
@@ -30,13 +32,26 @@ export interface Item {
     title:string,
     url:string,
     icon:any,
-    onExecute?:()=> null,
+    onExecute?:(item:Item)=> null,
     description?:string | undefined
 }
 
 
 
 const items:Item[] = [
+    {
+        title:"ログイン",
+        url:"login",
+        icon:Save,
+        onExecute:(item:Item) =>{
+            const [isLoginOpen,setIsLoginOpen] = useRecoilState(LoginDialogOpen);
+            
+            setIsLoginOpen(true);
+            return null;
+        },
+        description:"ログイン"
+    },
+
     {
         title:"社員リスト",
         url:"employeeList",
@@ -91,10 +106,11 @@ const AppSidebar:React.FC = () => {
                         ))}
                     </SidebarMenu>
                     <br />
+                    <br />
                     <SidebarFooter>
                         
                             {discription}
-                        
+                            
                     </SidebarFooter>
                 </SidebarGroupContent>
             </SidebarGroup>
