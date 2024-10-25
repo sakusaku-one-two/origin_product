@@ -7,20 +7,21 @@ import {
     HoverCard,
     HoverCardContent,
     HoverCardTrigger,
-  } from "../../ui/hover-card"
+  } from "../../ui/hover-card";
+  import { useNavigate } from 'react-router-dom';
   
 
 const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chengeDescription}) => {
     
     const [IsSpin,setIsSpin] = useState<string>("");
     const [IsBounce,setIsBounce] = useState<string>("");
-    
+    const navigate = useNavigate();
 
     const ClickHandler = () => {
         setIsBounce("");
         setIsSpin("animate-jump-out animate-once animate-ease-out animate-fill-both");
-        item?.onExecute?.(item);
-       
+        item.onExecute?.(item);
+        navigate(item.url);
     };
 
 
@@ -44,7 +45,7 @@ const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chen
                              onMouseLeave={() => HoverHandler(false)}
                              className='p-10 py-5 flex
                              items-center transition duration-500
-                             hover:shadow-xl hover:shadow-cyan-500/50
+                             hover:shadow-x hover:bg-red
                               '>
         <SidebarMenuItem>
             <SidebarMenuButton asChild />
@@ -52,14 +53,6 @@ const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chen
                 <item.icon className={iconCss} />
                 <span>{item.title}</span>
             </div>
-            
-            <HoverCard>
-                <HoverCardTrigger >         </HoverCardTrigger>
-                    <HoverCardContent>
-                        {item.description}
-                    </HoverCardContent>
-            </HoverCard>
-
         </SidebarMenuItem>
     </Card>
     </button>

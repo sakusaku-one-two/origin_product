@@ -1,7 +1,7 @@
 import React  from 'react';
 import { useState } from 'react';
 import { useRecoilState } from 'recoil';
-import { LoginDialogOpen } from '../../state/opneClose';
+import { LoginDialogOpen } from '../../state/openClose';
 import {
     Sidebar,
     SidebarContent,
@@ -32,26 +32,15 @@ export interface Item {
     title:string,
     url:string,
     icon:any,
-    onExecute?:(item:Item)=> null,
+    onExecute?:(item:Item)=> void,
     description?:string | undefined
 }
 
 
 
-const items:Item[] = [
-    {
-        title:"ログイン",
-        url:"login",
-        icon:Save,
-        onExecute:(item:Item) =>{
-            const [isLoginOpen,setIsLoginOpen] = useRecoilState(LoginDialogOpen);
-            
-            setIsLoginOpen(true);
-            return null;
-        },
-        description:"ログイン"
-    },
 
+const AppSidebar:React.FC = () => {
+    const items:Item[] = [
     {
         title:"社員リスト",
         url:"employeeList",
@@ -89,9 +78,10 @@ const items:Item[] = [
         icon:FileOutput,
         description:"CSVで打刻した実績情報を排出します。"
     }
-]
+];
 
-const AppSidebar:React.FC = () => {
+
+
     const [discription,setDescription] = useState<string>("");
 
     return (
@@ -100,7 +90,7 @@ const AppSidebar:React.FC = () => {
             <SidebarGroup>
                 <SidebarGroupLabel>報告スパルタン</SidebarGroupLabel>
                 <SidebarGroupContent>
-                    <SidebarMenu className="gap-10">
+                    <SidebarMenu className="gap-3">
                         {items.map((item:Item) =>(
                             <SidebarItem item={item} chengeDescription={setDescription} />
                         ))}

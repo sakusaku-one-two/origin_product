@@ -6,14 +6,19 @@ import (
 	"gorm.io/gorm"
 )
 
+
+type UserType struct {
+	gorm.Model
+	TypeName string 
+}
+
 type User struct {
 	gorm.Model
 	UserID   uint   `gorm:"primaryKey;index;not null"`
 	Password string `gorm:"type:varchar(255);not null"`
 	UserName string `gorm:"type:varchar(255);not null"`
-	UserType string `gorm:"type:varchar(255);not null"`
+	UserType UserType
 }
-
 
 type Employee struct {
 	gorm.Model
@@ -21,6 +26,33 @@ type Employee struct {
 	Name  string
 	Email string `gorm:"type:varchar(255)"`
 }
+
+
+type AttendanceRecord struct {
+    gorm.Model
+    ManageID int gorm:"primarykey;index not null"
+
+    EmpID int      gorm:"index not null"
+    Emp   Employee gorm:"foreignkey:EmpID"
+
+    LocationID   int    gorm:"index not null"
+    LocationName string gorm:"type:varchar(255);not null"
+
+    LocationPostID string gorm:"type:varchar(50);index;not null"
+
+    Time      time.Time gorm:"type:datetime;not null"
+    TimeStamp     time.Time
+    IsOverTimeAs      bool
+    StampByUserIDuint
+    StampByUser   *User gorm:"foreignkey:HomeDepartureStampByUserID"
+
+    Type String //homeとかが入る
+
+    EarlyOverTime      float64
+    LunchBreakWorkTime float64
+    ExtraHours         float64
+}
+
 
 type AttendanceRecord struct {
 	gorm.Model
