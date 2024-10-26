@@ -298,7 +298,7 @@ export const ReportSlice = createSlice({
         
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchAttendanceRecords.fulfilled, (_, action) => {//サーバーから管制実績の取得に成功したケース
+        builder.addCase(fetchAttendanceRecords.fulfilled, (state, action) => {//サーバーから管制実績の取得に成功したケース
             const recods:AttendanceRecord[] = action.payload;
             const {HomeDeparture, Reach, Start, Finish} = AttendanceRecordDivision(recods);
             return {// new state
@@ -316,11 +316,14 @@ export const ReportSlice = createSlice({
         .addCase(fetchAttendanceRecords.pending, (state, action) => {
             return {...state,IsLoading:true,CurrentState:"管制実績の取得中です。"}
         })
-        .addCase(updateAttendanceRecord.fulfilled,(state,action)=>{
+        .addCase(updateAttendanceRecord.fulfilled,(state,action)=>{// reportActionからAttendanceRecordを更新する。
+            //reportActionから対象となるAttendanceRecordを取得しかつ内容を更新する。
             const updatedAttndanceRecord:AttendanceRecord = UpdateAttendanceRecordByChildRecord(state.AttendanceRecords as AttendanceRecord[],action.payload as ChildRecord);
-            
+            //更新したAttendanceRecordをAttendanceRecordsに再度格納
             const targetRecordIndex = state.AttendanceRecords.findIndex((record:AttendanceRecord)=> record.ManageID === action.payload.ManageID);
-            state.AttendanceRecords[targetRecordIndex] = updateAttendanceRecord;
+            state.AttendanceRecords[targetRecordIndex] = updatedAttndanceRecord;
+            state.CurrentState="更新完了";
+            state.IsLoading = false;
 
             return {
                 ...state
@@ -328,10 +331,10 @@ export const ReportSlice = createSlice({
 
         })
         .addCase(updateAttendanceRecord.rejected,(state,action)=>{
-
+            return {...state,IsLoading:false,CurrentState:"管制実績の更新失敗しました"}
         })
         .addCase(updateAttendanceRecord.pending,(state,action)=>{
-
+            return {...state,IsLoading:true,CurrentState:"管制実績を更新中です。"}
         })
         
     }

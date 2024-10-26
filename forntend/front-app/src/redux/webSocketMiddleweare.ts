@@ -1,5 +1,6 @@
 import { Middleware} from '@reduxjs/toolkit';
-import { io, socket } from './socket';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 
 export interface WebSocketMiddlewareOptions {
     url: string;
@@ -12,31 +13,23 @@ export interface WebSocketMiddlewareOptions {
     onSend: (message: any) => void;
 };
 
-export const Optons:WebSocketMiddlewareOptions = {
-    url: "",
-    onOpen:() => {
 
-    },
+export const WEBSOCKET_CONNECT      = 'WEBSOCKET_CONNECT' as never;
+export const WEBSOCKET_CONNECTED    = 'WEBSOCKET_CONNECTED' as never;
+export const WEBSOCKET_DISCONNECT   = 'WEBSOCKET_DISCONNECT' as never;   
+export const WEBSOCKET_NEW_MESSAGE  = 'WEBSOCKET_NEW_MESSAGE' as never;
+export const WEBSOCKET_SEND_MESSAGE = 'WEBSOCKET_SEND_MESSAGE' as never;
 
-    onError: (error:Error) => {
-
-    },
-
-    onSend:(message:any) {
-
-    }
+export const useStartUpWebSocketAtEntryPoint = () => {
+    const dispatch = useDispatch();
+    useEffect(()=>{
+        dispatch({type: WEBSOCKET_CONNECT});
+    },[]);
 }
 
 
-export const WEBSOCKET_CONNECT = 'WEBSOCKET_CONNECT' as never;
-export const WEBSOCKET_CONNECTED = 'WEBSOCKET_CONNECTED' as never;
-export const WEBSOCKET_DISCONNECT = 'WEBSOCKET_DISCONNECT' as never;    
-
-
-
 export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): Middleware => {
-    let socket: Socket | null = null;
-
+    let socket: WebSocket | null = null;
     //ソケットのミドルウェアを作製　おそらく
     return store => next => action => {
         switch (action.type) {
@@ -44,33 +37,23 @@ export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): 
                 if (socket) {
                     socket.close();
                 }
-                socket = io(options.url);
+
+                socket = new WebSocket(options.url);
+                socket.onopen = () => {
+                    store.dispatch({type:WEBSOCKET_CONNECTED});
+                }
                 socket.on('open', options.onOpen);
                 socket.on('close', options.onClose);
                 socket.on('error', options.onError);
-                socket.on('message', (catch_the_message:{type:string,payload:string
-
-                })=> {
-                    store.dispatch({
-                        type:catch_the_message.type,
-                        payload:catch_the_message.payload,
-                    });
-
-                });
+                socket.on('message', options.onMessage);
                 socket.on('connect',() => {
                     store.dispatch({type: 'WEBSOCKET_CONNECTED'});
                 });
                 break;
-            
-                case 'WEBSOCKET_DISCONNECT':
+            case 'WEBSOCKET_DISCONNECT':
                 if (socket) {
                     
-                }
-
-                case ''
         }
-
-        return next(action)
         
     }
 }

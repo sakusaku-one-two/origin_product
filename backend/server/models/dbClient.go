@@ -51,6 +51,5 @@ func ServerReducer(Db *gorm.DB){
 
 	for report_action := range ReportActionChannel {
 		Db.Create(report_action ReportAction{})
-
 	} 
 }
