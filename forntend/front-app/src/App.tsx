@@ -5,6 +5,7 @@ import {BrowserRouter as Router,Routes,Route} from 'react-router-dom';
 import './App.css'
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from './state/openClose.tsx';
+import DashBord from './components/pages/dasbord/dashBord.tsx';
 
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
         <Route path="/" element={<Layout />}>
             <Route index element={<div>index</div>}/>
             <Route path='employeeList' element={<div>employeeList</div>}/>
-            <Route path='dashbord' element={<div></div>} />
+            <Route path='dashbord' element={<DashBord/>} />
             <Route path='*' element={<h1>そのようなページは存在しません</h1>}/>
         </Route>
       </Routes>

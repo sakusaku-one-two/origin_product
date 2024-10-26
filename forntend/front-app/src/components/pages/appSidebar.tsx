@@ -42,8 +42,8 @@ export interface Item {
 const AppSidebar:React.FC = () => {
     const items:Item[] = [
     {
-        title:"社員リスト",
-        url:"employeeList",
+        title:"ダッシュボード",
+        url:"dashbord",
         icon:CircleUser,
         description:"本日の勤務者一覧を表示します。"
     },
