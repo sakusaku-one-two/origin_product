@@ -1,4 +1,14 @@
-package models__
+package models
+
+/*
+このモジュールは管制実績ＣＳＶを分割したテーブル（モデル）を定義しています。
+
+・ManageRcord => 管制実績レコード　業務システムが管制と実績集計ように吐き出すCSV　おおよそ40カラムほどある
+・ReportActionRecord => 管制実績レコードを更新するreduxActionの履歴を格納するテーブル兼,構造体
+・EmployeeRecord => 管制実績の中に含まれた社員情報を抽出したテーブル　別途業務システムから社員マスタのCSVを取り込むことも可能だが、業務システムとスコープが被るので今回は管制実績から作成する。
+・LocationRecrod => 管制実績の中に含まれる勤務先の情報を抽出したテーブル
+・PostRecord=> 管制実績の中に含まれる勤務ポストの情報を抽出したテーブル
+*/
 
 import (
 	"time"
@@ -6,14 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// type User struct {
-// 	gorm.Model
-// 	UserID   uint   `gorm:"primaryKey;index;not null"`
-// 	Password string `gorm:"type:varchar(255);not null"`
-// 	UserName string `gorm:"type:varchar(255);not null"`
-// 	PermissionLevel uint `gorm:"default:1;not null"`
-// 	IsActive bool `gorm:"defalt:false;not null"`
-// }
+//--------------------------------[社員テーブル]-------------------------------------------
 
 type EmployeeRecord struct {
 	gorm.Model
@@ -22,11 +25,15 @@ type EmployeeRecord struct {
 	Email string `gorm:"type:varchar(255)"`
 }
 
+//--------------------------------[勤務地テーブル]-------------------------------------------
+
 type LocationRecord struct { //配置場所のエンティティ
 	gorm.Model
 	LocationID   uint   `gorm:"primarykey;index not null"`
 	LocationName string `gorm:"varchar(50) not null"`
 }
+
+//--------------------------------[勤務ポストテーブル]-------------------------------------------
 
 type PostRecord struct { //勤務ポストのエンティティ
 	gorm.Model
@@ -34,10 +41,38 @@ type PostRecord struct { //勤務ポストのエンティティ
 	PostName string `gorm:"varchar(255) not null"`
 }
 
-// 管制実績レコード
-type MnageRecord struct {
+//--------------------------------[時間管理テーブル]-------------------------------------------
+/*
+このレコードで時間を管理する。
+無限ループのゴルーチンでこの構造体を配列（スライス）に格納し一分おきに時間確認してする。もし内容に更新があれば、この構造体の要素を
+更新してDBのupdateに入れる。そのあと、websocektでサブスクラブを行う。
+
+発火ユーザーがredux actionを作製 => websocketでactionをサーバーに送信 => TimeRecordが格納されたsync.Mapの中から対象を取得　=> ↓
+=> TimeRecordの要素を更新　=> DB.update()でDBに更新　=> websocketに各ユーザーにactionを配信=> その他ユーザーのredux storeを更新
+
+
+
+
+*/
+
+type TimeRecord struct {
 	gorm.Model
-	ManageID uint `gorm:"primarykey;index not null"` //管制実績番号　隊員・配置先・配置ポストが一連のまとまりとなったエンティティのＩＤ
+	//親テーブルの管制実績レコードの参照
+	ManageID uint             `gorm:"index;not null"`
+	Manage   AttendanceRecord `gorm:"foreignKey:ManageID"`
+
+	PlanNo     uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
+	PlanTime   time.Time
+	ResultTime time.Time
+	IsOver     bool
+	IsIgnore   bool
+}
+
+// --------------------------------------------------------------------------------------------
+// 管制実績レコード
+type AttendanceRecord struct {
+	gorm.Model
+	ManageID uint `gorm:"primaryKey;index;not null"` //管制実績番号　隊員・配置先・配置ポストが一連のまとまりとなったエンティティのＩＤ
 
 	//対象社員
 	EmpID uint           `gorm:"index not null"`
@@ -45,20 +80,24 @@ type MnageRecord struct {
 
 	//勤務先情報
 	LocationID uint           `gorm:"index;not null"`
-	Location   LocationRecord `gorm:"foreignkey:locationRecord"`
+	Location   LocationRecord `gorm:"foreignkey:LocationID"`
 
 	//勤務ポスト
 	PostID uint       `gorm:"index;not null"`
 	Post   PostRecord `gorm:"foreignkey:PostID"`
+
+	EarlyOverTime      float64 //出勤前残業
+	LunchBreakWorkTime float64 //昼残業
+	ExtraHours         float64 //退勤時の残業
+
 }
 
-type AttendanceRecord struct {
+type AttendanceRecord_ struct {
 	gorm.Model
-	ManageID     int `gorm:"index not null"`
-	ManageRecord MnageRecord
+	ManageID uint `gorm:"primaryKey;index;not null"`
 
-	EmpID int      `gorm:"index not null"`
-	Emp   Employee `gorm:"foreignkey:EmpID"`
+	EmpID int            `gorm:"index not null"`
+	Emp   EmployeeRecord `gorm:"foreignkey:EmpID"`
 
 	LocationID   int    `gorm:"index not null"`
 	LocationName string `gorm:"type:varchar(255);not null"`

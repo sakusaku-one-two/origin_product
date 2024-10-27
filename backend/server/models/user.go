@@ -48,20 +48,20 @@ type User struct {
 }
 
 // パスワードを暗号化してUser構造体にセットする。（dbに保存までは行わない）
-func (u *User) setPassword(raw_password string) bool {
+func (u *User) setPassword(raw_password string) error {
 	HashedPassword_as_byteArray, err := hash_password_from(raw_password)
 	if err != nil {
-		return false
+		return err
 	}
 	u.password = HashedPassword_as_byteArray
-	return true
+	return nil
 }
 
 // パスワードの変更メソッド
 func (u *User) changeThePassword(db *gorm.DB, new_password string) error {
 
-	if !u.setPassword(new_password) {
-		return errors.New("パスワードの設定に失敗しました。")
+	if err := u.setPassword(new_password); err != nil {
+		return err
 	}
 
 	if err := db.Save(u).Error; err != nil {
@@ -84,7 +84,7 @@ func baseCreateUser(UserID uint, UserName string, password string) (*User, error
 		UserID:   UserID,
 		UserName: UserName,
 	}
-	if base_user.setPassword(password) == false {
+	if base_user.setPassword(password) != nil {
 		return nil, errors.New("パスワードの設定ができませんでした")
 	}
 	return base_user, nil
