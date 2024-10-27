@@ -6,23 +6,25 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
-	gorm.Model
-	UserID   uint   `gorm:"primaryKey;index;not null"`
-	Password string `gorm:"type:varchar(255);not null"`
-	UserName string `gorm:"type:varchar(255);not null"`
-}
+// type User struct {
+// 	gorm.Model
+// 	UserID   uint   `gorm:"primaryKey;index;not null"`
+// 	Password string `gorm:"type:varchar(255);not null"`
+// 	UserName string `gorm:"type:varchar(255);not null"`
+// 	PermissionLevel uint `gorm:"default:1;not null"`
+// 	IsActive bool `gorm:"defalt:false;not null"`
+// }
 
-type Employee struct {
+type EmployeeRecord struct {
 	gorm.Model
-	ID    int `gorm:"primaryKey"`
+	ID    uint `gorm:"primaryKey"`
 	Name  string
 	Email string `gorm:"type:varchar(255)"`
 }
 
 type LocationRecord struct { //配置場所のエンティティ
 	gorm.Model
-	LocationID   int    `gorm:"primarykey;index not null"`
+	LocationID   uint   `gorm:"primarykey;index not null"`
 	LocationName string `gorm:"varchar(50) not null"`
 }
 
@@ -35,9 +37,19 @@ type PostRecord struct { //勤務ポストのエンティティ
 // 管制実績レコード
 type MnageRecord struct {
 	gorm.Model
-	ManageID int      `gorm:"primarykey;index not null` //管制実績番号　隊員・配置先・配置ポストが一連のまとまりとなったエンティティのＩＤ
-	EmpID    int      `gorm:"index not null"`
-	Emp      Employee `gorm:"foreignkey:EmpId"`
+	ManageID uint `gorm:"primarykey;index not null` //管制実績番号　隊員・配置先・配置ポストが一連のまとまりとなったエンティティのＩＤ
+
+	//対象社員
+	EmpID uint     `gorm:"index not null"`
+	Emp   Employee `gorm:"foreignkey:EmpId"`
+
+	//勤務先情報
+	LocationID uint           `gorm:"index;not null"`
+	Location   LocationRecord `gorm:"foreignkey:locationRecord"`
+
+	//勤務ポスト
+	PostID uint
+	Post
 }
 
 type AttendanceRecord struct {
