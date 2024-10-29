@@ -11,9 +11,10 @@ package models
 */
 
 import (
-	"time"
 
+	"time"
 	"gorm.io/gorm"
+	"sync"
 )
 
 //--------------------------------[社員テーブル]-------------------------------------------
@@ -51,9 +52,8 @@ type PostRecord struct { //勤務ポストのエンティティ
 => TimeRecordの要素を更新　=> DB.update()でDBに更新　=> websocketに各ユーザーにactionを配信=> その他ユーザーのredux storeを更新
 
 
-
-
 */
+
 
 type TimeRecord struct {
 	gorm.Model
@@ -64,8 +64,54 @@ type TimeRecord struct {
 	PlanNo     uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
 	PlanTime   time.Time
 	ResultTime time.Time
-	IsOver     bool
-	IsIgnore   bool
+	IsAlert bool `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
+	IsOver     bool `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
+	IsIgnore   bool `gorm:"defalt:fasle"`// このフラグはアラートや無視を表す
+	IsComplete bool `gorm:"defalt:fasle"` 
+	selfMutex sync.Mutex
+}
+
+func (t *TimeRecord) CheckTime(current_time time.Time,pub_channel <- chan TimeRecord){
+	if t.IsIgnore {return} //無視する対象なら抜ける
+	
+	t.selfMutex.Lock()
+	defer t.selfMutex.Unlock()
+	const duration := current_time.Sub(t.PlanTime)
+
+	//30分を超えたら自動でアラートを切る　
+	if duration > 30*time.Minute {
+		t.IsIgnore = true //無視する対象にする。
+		pub_channel <- t
+		return 	
+	}
+
+	// 予定時間の5分前にアラートを発報する
+	if t.PlanTime.Add(-5*time.Minute).Before(current_time) && current_time.Before(t.PlanTime) {
+		t.IsArert = true
+		pub_channel <- t
+		return  
+	}
+
+	//予定時間を超えたらアラートを発報する。
+	if t.PlanTime.Before(current_time) {
+		t.IsOver = true
+		
+	}
+
+
+}
+
+func (t *TimeRecord) checkTime(current_time time.Time) bool {
+	if t.IsIgnore { return false }
+	// 30分をオーバーしたら自動でIsIgnoreを
+	defer t.selfMutex.Unlock()
+	t.selfMutex.Lock()
+	
+	duration := current_time.Sub(t.PlanTime)
+	if duration > 30* time.Minute {
+		t.IsIgnore = true
+		return true
+	}
 }
 
 // --------------------------------------------------------------------------------------------
