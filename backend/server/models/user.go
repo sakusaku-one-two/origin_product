@@ -32,8 +32,9 @@ func hash_password_from(raw_password string) ([]byte, error) {
 	}
 	hashed_password := argon2.IDKey([]byte(raw_password), password_salt, 1, 64*1024, 4, 32)
 
-	return append(hashed_password, password_salt...), err
+	return append(hashed_password, password_salt...), nil
 }
+
 
 // ----------------------------------------------[ユーザーモデル]---------------------------------
 
@@ -84,40 +85,42 @@ func baseCreateUser(UserID uint, UserName string, password string) (*User, error
 		UserID:   UserID,
 		UserName: UserName,
 	}
-	if base_user.setPassword(password) != nil {
+	if err := base_user.setPassword(password); err != nil {
 		return nil, errors.New("パスワードの設定ができませんでした")
 	}
 	return base_user, nil
 }
 
 // 通常ユーザーを作製
-func CreateUser(db *gorm.DB, UserID uint, UserName string, password string) bool {
+func CreateUser(db *gorm.DB, UserID uint, UserName string, password string) (*User,error) {
 	user, err := baseCreateUser(UserID, UserName, password)
 	if err != nil {
-		return false
+		return nil,err
 	}
 	user.PermissionLevel = 1
 	user.PermissionName = "通常ユーザー"
 	result := db.Create(&user)
 	if result.Error != nil {
-		return false
+		return nil,result.Error
 	} else {
-		return true
+		return user,nil
 	}
 }
 
 // 管理者ユーザーの作成
-func CreateAdmin(db *gorm.DB, UserID uint, UserName string, password string) bool {
+func CreateAdmin(db *gorm.DB, UserID uint, UserName string, password string) (*User,error){
+	
 	base_user, err := baseCreateUser(UserID, UserName, password)
 	if err != nil {
-		return false
+		return nil,err
 	}
 
 	base_user.PermissionLevel = 2
 	base_user.PermissionName = "管理者ユーザー"
-	if db.Create(&base_user).Error != nil {
-		return false
+	result := db.Create(&base_user)
+	if result.Error != nil {
+		return nil,result.Error
 	} else {
-		return true
+		return base_user,nil
 	}
 }
