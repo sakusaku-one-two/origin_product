@@ -1,13 +1,15 @@
 package background
 
 import (
-	"time"
+	"backend/server/models"
+	"sync"
 )
 
 var (
-	ch = make(chan time.Time)
+	tasks      sync.Map
+	tasksMutex sync.Mutex
 )
 
-go func Scheduler() {
-	
+func addTask(taskType string, task models.ManageRecord) {
+
 }

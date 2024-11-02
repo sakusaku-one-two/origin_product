@@ -1,4 +1,4 @@
-package server 
+package server
 
 import (
 	"net/http"
@@ -8,27 +8,27 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-
 type Action struct {
 	Type    string
 	Payload interface{}
 }
 
-//各ウェブソケットの受信側のゴルーチンに対して送信側で問題があれば終了のシグナルを送信するためのチャンネル
-//　clients sync.Map の　key: websocket.Conn　value : &Done{done_cahn: make(chan interface{})}
+// 各ウェブソケットの受信側のゴルーチンに対して送信側で問題があれば終了のシグナルを送信するためのチャンネル
+// 　clients sync.Map の　key: websocket.Conn　value : &Done{done_cahn: make(chan interface{})}
 type Done struct {
 	done_chan chan interface{}
 }
 
 var (
-	clients   sync.Map// 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
+	clients   sync.Map    // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
 	broadcast chan Action //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
-	to_DB     chan Action// ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
+	to_DB     chan Action // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
 )
 
 func init() {
-	broadcast = make(chan Action)
+	broadcast = make(chan Action, 100)
 	to_DB = make(chan Action, 100)
+	go ActionBroadCast()
 }
 
 var upgrader = websocket.Upgrader{
@@ -51,13 +51,16 @@ func ActionWebSocketHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+
+	done_chan := make(chan interface{}) //done_chanを定義
+	clients.Store(ws, &Done{done_chan: done_chan})
+
 	defer func() {
 		clients.Delete(ws)
 		close(done_chan)
 		ws.Close()
 	}()
-	done_chan := make(chan interface{})
-	clients.Store(ws, &Done{done_chan: done_chan})
+
 	var msgAction Action
 	// 受信のループ
 	for {
@@ -75,10 +78,12 @@ func ActionWebSocketHandler(c echo.Context) error {
 }
 
 // Actionオブジェクトをクライアントに向けて配信するgorutin
-func ActionBroadCast() error {
+func ActionBroadCast() {
+
+	//ブロードキャストのチャンネルが閉じた際の終了処理　すべてのウェブソケットコネクションの受信側のゴルーチンを閉じる。
 	defer func() {
-		clients.Range(func(key,value interface{})bool {
-			done,ok := value.(*Done)
+		clients.Range(func(key, value interface{}) bool {
+			done, ok := value.(*Done)
 			if ok {
 				done.done_chan <- struct{}{}
 			}
@@ -86,6 +91,7 @@ func ActionBroadCast() error {
 		})
 	}()
 
+	// DTOが来たら各クライアントに向けて配信
 	for msgAction := range broadcast {
 		clients.Range(func(key, value interface{}) bool {
 			ws, ok := key.(*websocket.Conn)
@@ -106,5 +112,4 @@ func ActionBroadCast() error {
 		})
 	}
 
-	return nil
 }
