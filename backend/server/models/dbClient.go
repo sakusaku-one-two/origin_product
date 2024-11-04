@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"models/types"
 	"os"
-
+	
 	"gorm.io/driver/postgress"
 	"gorm.io/gorm"
 )
 
 var (
 	DB *gorm.DB
-	ReportActionChannel chan ReportAction
-
+	ReportActionChannel chan ActionDTO
 )
 
 func init() {//初期化関数でDBにインスタンスを格納
 	DB = connectDB()
-	ReportActionChannel = make(chan ReportAction, 10)
+	ReportActionChannel = make(chan ActionDTO, 10)
 }
+
 
 
 func connectDB() *gorm.DB {
@@ -42,7 +42,9 @@ func connectDB() *gorm.DB {
 	}
 
 	return db
+
 }
+
 
 
 

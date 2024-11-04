@@ -1,17 +1,13 @@
-package server
+package controls
 
 import (
+	"backend-app/server/models"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
-
-type Action struct {
-	Type    string
-	Payload interface{}
-}
 
 // 各ウェブソケットの受信側のゴルーチンに対して送信側で問題があれば終了のシグナルを送信するためのチャンネル
 // 　clients sync.Map の　key: websocket.Conn　value : &Done{done_cahn: make(chan interface{})}
@@ -20,14 +16,14 @@ type Done struct {
 }
 
 var (
-	clients   sync.Map    // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
-	broadcast chan Action //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
-	to_DB     chan Action // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
+	clients   sync.Map              // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
+	broadcast chan models.ActionDTO //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
+	to_DB     chan models.ActionDTO // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
 )
 
 func init() {
-	broadcast = make(chan Action, 100)
-	to_DB = make(chan Action, 100)
+	broadcast = make(chan models.ActionDTO, 100)
+	to_DB = make(chan models.ActionDTO, 100)
 	go ActionBroadCast()
 }
 
@@ -61,7 +57,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 		ws.Close()
 	}()
 
-	var msgAction Action
+	var msgAction models.ActionDTO
 	// 受信のループ
 	for {
 		select {

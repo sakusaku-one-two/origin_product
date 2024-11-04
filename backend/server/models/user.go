@@ -35,7 +35,6 @@ func hash_password_from(raw_password string) ([]byte, error) {
 	return append(hashed_password, password_salt...), nil
 }
 
-
 // ----------------------------------------------[ユーザーモデル]---------------------------------
 
 type User struct {
@@ -92,35 +91,35 @@ func baseCreateUser(UserID uint, UserName string, password string) (*User, error
 }
 
 // 通常ユーザーを作製
-func CreateUser(db *gorm.DB, UserID uint, UserName string, password string) (*User,error) {
+func CreateUser(db *gorm.DB, UserID uint, UserName string, password string) (*User, error) {
 	user, err := baseCreateUser(UserID, UserName, password)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	user.PermissionLevel = 1
 	user.PermissionName = "通常ユーザー"
 	result := db.Create(&user)
 	if result.Error != nil {
-		return nil,result.Error
+		return nil, result.Error
 	} else {
-		return user,nil
+		return user, nil
 	}
 }
 
 // 管理者ユーザーの作成
-func CreateAdmin(db *gorm.DB, UserID uint, UserName string, password string) (*User,error){
-	
+func CreateAdmin(db *gorm.DB, UserID uint, UserName string, password string) (*User, error) {
+
 	base_user, err := baseCreateUser(UserID, UserName, password)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	base_user.PermissionLevel = 2
 	base_user.PermissionName = "管理者ユーザー"
 	result := db.Create(&base_user)
 	if result.Error != nil {
-		return nil,result.Error
+		return nil, result.Error
 	} else {
-		return base_user,nil
+		return base_user, nil
 	}
 }
