@@ -17,12 +17,12 @@ type Done struct {
 
 var (
 	clients   sync.Map              // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
-	broadcast chan models.ActionDTO //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
+	BROADCAST chan models.ActionDTO //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
 	to_DB     chan models.ActionDTO // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
 )
 
 func init() {
-	broadcast = make(chan models.ActionDTO, 100)
+	BROADCAST = make(chan models.ActionDTO, 100)
 	to_DB = make(chan models.ActionDTO, 100)
 	go ActionBroadCast()
 }
@@ -88,7 +88,7 @@ func ActionBroadCast() {
 	}()
 
 	// DTOが来たら各クライアントに向けて配信
-	for msgAction := range broadcast {
+	for msgAction := range BROADCAST {
 		clients.Range(func(key, value interface{}) bool {
 			ws, ok := key.(*websocket.Conn)
 			if !ok {
