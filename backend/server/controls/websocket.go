@@ -15,6 +15,7 @@ type Done struct {
 	done_chan chan interface{}
 }
 
+
 var (
 	clients   sync.Map              // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
 	BROADCAST chan models.ActionDTO //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
