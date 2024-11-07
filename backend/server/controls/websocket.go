@@ -4,9 +4,9 @@ import (
 	"backend-app/server/models"
 	"net/http"
 	"sync"
-
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo-jwt/v4"
 )
 
 // 各ウェブソケットの受信側のゴルーチンに対して送信側で問題があれば終了のシグナルを送信するためのチャンネル
@@ -38,6 +38,8 @@ var upgrader = websocket.Upgrader{
 func checkAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 認証ロジックをここに追加
+		user := c.GET("user").(*jwt.Token)
+		
 		return next(c)
 	}
 }
