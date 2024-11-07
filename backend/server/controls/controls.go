@@ -8,9 +8,10 @@ import (
 func SetupHandlers(e *echo.Echo) *echo.Echo {
 
 	//POSt
-	e.POST("/CsvImport", CsvImport) //CSV用のエンドポイント
-
+	e.POST("/CsvImport", CsvImportHandler) //CSV用のエンドポイント
+	e.POST("/login",LoginHandler)
+	
 	//GET
-	e.GET("/realtime", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
+	e.GET("/sync", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
 
 }

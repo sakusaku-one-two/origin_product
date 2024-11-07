@@ -2,21 +2,26 @@ package models
 
 import (
 	"fmt"
+	"models/types"
 	"os"
-
 	"gorm.io/driver/postgress"
 	"gorm.io/gorm"
 )
 
+
+
 var (
-	DB                  *gorm.DB
-	ReportActionChannel chan ActionDTO
+	DB *gorm.DB
+	ReportActionChannel chan TimeRecord
 )
 
-func init() { //初期化関数でDBにインスタンスを格納
+func init(){
 	DB = connectDB()
-	ReportActionChannel = make(chan ActionDTO, 10)
-}
+	go ServerReducer(DB,server.websocket.to_DB)
+
+}	
+
+
 
 func connectDB() *gorm.DB {
 
@@ -25,26 +30,22 @@ func connectDB() *gorm.DB {
 	dbPassWord := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	dbHost := os.Getenv("DB_HOST")
-
+	
 	dbPort := os.Getenv("DB_PORT")
 	dbSsl := os.Getenv("DB_SSL")
 	dbTimeZone := os.Getenv("DB_TIMEZONE")
 
 	dns := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		dbHost, dbUser, dbPassWord, dbName, dbPort, dbSsl, dbTimeZone)
+						dbHost, dbUser, dbPassWord, dbName,dbPort,dbSsl,dbTimeZone,)
 
-	db, err := gorm.Open(postgress.Open(dns), &gorm.Config{})
+	db,err := gorm.Open(postgress.Open(dns),&gorm.Config{})
 	if err != nil {
 		panic("データベースの接続に失敗しました。")
 	}
 
 	return db
-
 }
 
-func SaveStore(Db *gorm.DB) {
 
-	for report_action := range ReportActionChannel {
-		Db.Create(report_action)
-	}
-}
+
+
