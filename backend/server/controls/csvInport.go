@@ -4,18 +4,35 @@ package controls
 
 import (
 	"backend-app/server/models"
+	"github.com/labstack/echo/v4"
+	"io"
+	"net/http"
+	"fmt"
 	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
-
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
+
+/*
+	REQUIRE_COL_NAMESはCSVふぁいるの中で必須の列名を含んだ配列。
+	この要素が最低限ない場合はDBに格納できない
+*/
+
+var (
+	REQUIRE_COL_NAMES := []string {,"管制番号",
+	"支店コード","管制日付","得意先正式名称","配置先支店コード",
+	"配置先正式名称","隊員番号","勤務番号","勤務形態正式名称",
+	"基本開始時間","基本終了時間","報告開始時間","報告終了時間","得意先番号","隊員名",
+	"配置先番号"}
+)
+						
+//
 
 type CsvTable struct {//CSVをプログラムで扱いやすい形にしたもの。基本的には
 	header map[string]int //列名と列数の辞書
@@ -64,20 +81,26 @@ func CreateCsVTable(reader csv.Reader) (*CsvTable,error){
 
 
 //このCSVテーブルをDBへ登録しても問題ないか確認するメソッド
-func (ct *CsvTable)isDo() bool {
+func (ct *CsvTable)checkReqireColmuns() ([]string, bool) {
 	if len(ct.header) == 0 || len(ct.rows) == 0 {
-		return false	
+		return nil,false	
 	}
 
 	//列名の確認　（要件を満たす列名を保持しているかの確認）
+	var missingColumns []string{}
 
-	//必須列名の配列
-	reqire_col_name := []string{"","","","",""} 
-
+	for _,req_col_name := range REQUIRE_COL_NAMES {
+		if _,exists := ct.header[req_col_name];!exists {
+			missingColumns = append(missingColumns,req_col_name)
+		}
+	}
 	
-
-
-	return true	
+	if len(missingColumns) > 0 {
+		return missingColumns,false
+	}
+	
+	//成功
+	return nil,true	
 }
 
 //このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
@@ -109,19 +132,16 @@ func (ct *Csvtable) To_AttendanceRecords() ([]*models.AttendanceRecord,error) {
 //CSVファイルのインポート
 func CsvImportHandler(c echo.Context) error {
 
-	import_csv,err := c.FormValue("import_csv"); err != nil {
-		 c.String(http.StatusBadRequest, "csv file not found")
-		 return 
+	var import_csv,err := c.FormValue("import_csv"); err != nil {
+		return c.String(http.StatusBadRequest, "csv file not found")
 	}
 
 	return nil
 }
 
-
 func validateCSV(data string) (bool,string,) {
 	//csvReaderを作製
 	reader := csv.NewReader(strings.NewReader(data))
-
 	//ヘッダーを読み込む
 	headers,err := reader.Read()
 	if err != nil {
@@ -170,8 +190,10 @@ func saveCSVToDB(data string) error {
 
 }
 
+func CheckTheRecord()
+
 func To_TimeRecord(header map[string]int,data string) ([]models.TimeRecord,error) {
-	
+
 }
 
 func To_AttendanceRecord() ([]models.AttendanceRecord,error) {
