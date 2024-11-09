@@ -15,12 +15,15 @@ import (
 	"gorm.io/gorm"
 )
 
+
+//マイグレーションする関数
 func mingrate(DB *gorm.DB) error {
 	return DB.AutoMigrate(
 		&EmployeeRecord{},
 		&LocationRecord{},
 		&PostRecord{},
-		&TimeRecord{}).Error
+		&TimeRecord{},
+		&User{}).Error
 }
 
 //--------------------------------[社員テーブル]-------------------------------------------

@@ -15,15 +15,77 @@ import (
 	"strings"
 )
 
+
+type CsvTable struct {//CSVをプログラムで扱いやすい形にしたもの。基本的には
+	header map[string]int //列名と列数の辞書
+	rows []map[string]string //列名と値の辞書を配列で格納した
+}
+
+
+
+func CreateCsVTable(reader csv.Reader) (*CsvTable,error){
+	
+	//最初の行
+	headerRow,err := reader.Read()
+	if err != nil {
+		return 	nil,err
+	}
+
+	//ヘッダー（列名から列数のマップ）を生成
+	headerMap := make(map[string]int)
+	rows := make([]map[string]string)
+	//ヘッダー辞書を作製
+	for index,colName := range headerRow {
+		headerMap[colName] = index
+	}
+
+	//全体の行のデータをgoの構造体に変換する。
+	for {
+		//行ごとを読み取り。エラーであればループを抜ける
+		row,err := reader.Read()
+		if err != nil {
+			break
+		}
+
+		temp_row_map := make(map[string]string)
+
+		for key,val := range headerMap  {		
+			index := val.(int)
+			temp_row_map[key] = row[index]
+		}
+
+		rows = append(rows,temp_row_map)
+	}
+	
+	return &CsvTable{
+		header:headerMap,
+		rows: rows,
+	},nil
+
+}
+
+
 //CSVファイルのインポート
 func CsvImportHandler(c echo.Context) error {
 
-	var import_csv,err := c.FormValue("import_csv"); err != nil {
+	import_csv,err := c.FormValue("import_csv"); err != nil {
 		return c.String(http.StatusBadRequest, "csv file not found")
 	}
 
 	return nil
 }
+
+//CSVリーダを返す
+func CreateReader(data string) (any,error) {
+	reader,err := csv.NewReader(strings.NewReader(data))
+	if err != nil {
+		return nil,err
+	}
+
+	return reader,nil	
+}
+
+
 
 func validateCSV(data string) (bool,string,) {
 	//csvReaderを作製
