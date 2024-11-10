@@ -17,7 +17,6 @@ var (
 
 func init(){
 	DB = connectDB()
-	go ServerReducer(DB,server.websocket.to_DB)
 
 }	
 

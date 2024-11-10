@@ -20,19 +20,19 @@ import (
 
 
 /*
-	REQUIRE_COL_NAMESはCSVふぁいるの中で必須の列名を含んだ配列。
+	REQUIRE_COL_NAMESはCSVファイルの中で必須の列名を含んだ配列。
 	この要素が最低限ない場合はDBに格納できない
 */
 
 var (
-	REQUIRE_COL_NAMES := []string {,"管制番号",
+	REQUIRE_COL_NAMES = []string {"管制番号",
 	"支店コード","管制日付","得意先正式名称","配置先支店コード",
 	"配置先正式名称","隊員番号","勤務番号","勤務形態正式名称",
 	"基本開始時間","基本終了時間","報告開始時間","報告終了時間","得意先番号","隊員名",
 	"配置先番号"}
 )
 						
-//
+
 
 type CsvTable struct {//CSVをプログラムで扱いやすい形にしたもの。基本的には
 	header map[string]int //列名と列数の辞書
@@ -87,7 +87,7 @@ func (ct *CsvTable)checkReqireColmuns() ([]string, bool) {
 	}
 
 	//列名の確認　（要件を満たす列名を保持しているかの確認）
-	var missingColumns []string{}
+	missingColumns := []string{}
 
 	for _,req_col_name := range REQUIRE_COL_NAMES {
 		if _,exists := ct.header[req_col_name];!exists {
@@ -100,7 +100,7 @@ func (ct *CsvTable)checkReqireColmuns() ([]string, bool) {
 	}
 	
 	//成功
-	return nil,true	
+	return missingColumns,true	
 }
 
 //このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
@@ -111,7 +111,7 @@ func (ct *Csvtable) To_AttendanceRecords() ([]*models.AttendanceRecord,error) {
 
 	createToAttendacneRecord := func (row map[string]string ) *models.AttendacneRecord {
 		return &models.AttendanceRecord{
-			ManageID:row["管制実績番号"] ,
+			ManageID:row["管制実績番号"],
 			EmpID: row["社員番号"],
 			
 
@@ -124,7 +124,7 @@ func (ct *Csvtable) To_AttendanceRecords() ([]*models.AttendanceRecord,error) {
 		result_array = append(result_array, createToAttendacneRecord(row))
 	}
 
-
+	return result_array,nil
 
 }	
 
@@ -135,6 +135,15 @@ func CsvImportHandler(c echo.Context) error {
 	var import_csv,err := c.FormValue("import_csv"); err != nil {
 		return c.String(http.StatusBadRequest, "csv file not found")
 	}
+
+	//CSVを確認し、
+	missingColumns,isok := CheckReqireColumns(import_csv)
+	if !isok { //JSONで足りない列を配列で返す。
+		return c.JSON(http.StatusBadRequest,missingColumns)
+	}
+
+
+
 
 	return nil
 }
@@ -185,18 +194,8 @@ func saveCSVToDB(data string) error {
 
 	var Attendance_records []models.AttendanceRecord
 	var Time_records []models.TimeRecord
-
-
-
+	
 }
 
-func CheckTheRecord()
 
-func To_TimeRecord(header map[string]int,data string) ([]models.TimeRecord,error) {
-
-}
-
-func To_AttendanceRecord() ([]models.AttendanceRecord,error) {
-
-}
 

@@ -5,6 +5,8 @@ import (
 
 	"github.com/gorilla/websocket" //websocketのサポート
 	"github.com/labstack/echo/v4"  //エコーサーバーの構築
+	"backend/server"
+	"backend/server/models"
 )
 
 var upgrader = websocket.Upgrader{

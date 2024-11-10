@@ -301,13 +301,15 @@ export const ReportSlice = createSlice({
         builder.addCase(fetchAttendanceRecords.fulfilled, (state, action) => {//サーバーから管制実績の取得に成功したケース
             const recods:AttendanceRecord[] = action.payload;
             const {HomeDeparture, Reach, Start, Finish} = AttendanceRecordDivision(recods);
-            return {// new state
-                AttendanceRecords:recods,
-                [ReportTypeEnum.REACH]:Reach,
-                [ReportTypeEnum.HOME_DEPARTURE]:HomeDeparture,
-                [ReportTypeEnum.START]:Start,
-                [ReportTypeEnum.FINISH]:Finish,
-            }
+            
+            state.AttendanceRecords = recods;
+            state[ReportTypeEnum.REACH] = Reach;
+            state[ReportTypeEnum.HOME_DEPARTURE] = HomeDeparture;
+            state[ReportTypeEnum.START] = Start;
+            state[ReportTypeEnum.FINISH] = Finish;
+            state.IsLoading = false;
+            state.CurrentState = "配信サーバーからデータの取得完了しました。";
+
         })
         .addCase(fetchAttendanceRecords.rejected, (state, action) => {
 
@@ -318,17 +320,16 @@ export const ReportSlice = createSlice({
         })
         .addCase(updateAttendanceRecord.fulfilled,(state,action)=>{// reportActionからAttendanceRecordを更新する。
             //reportActionから対象となるAttendanceRecordを取得しかつ内容を更新する。
-            const updatedAttndanceRecord:AttendanceRecord = UpdateAttendanceRecordByChildRecord(state.AttendanceRecords as AttendanceRecord[],action.payload as ChildRecord);
+            const updatedAttndanceRecord:AttendanceRecord|undefined = UpdateAttendanceRecordByChildRecord(state.AttendanceRecords as AttendanceRecord[],action.payload as ChildRecord);
             //更新したAttendanceRecordをAttendanceRecordsに再度格納
+            if (updateAttendanceRecord === undefined) return {...state} //状態を更新しない。
+            
+            //以下更新処理
             const targetRecordIndex = state.AttendanceRecords.findIndex((record:AttendanceRecord)=> record.ManageID === action.payload.ManageID);
-            state.AttendanceRecords[targetRecordIndex] = updatedAttndanceRecord;
+            state.AttendanceRecords[targetRecordIndex] = updatedAttndanceRecord as AttendanceRecord;
             state.CurrentState="更新完了";
             state.IsLoading = false;
-
-            return {
-                ...state
-            };
-
+            
         })
         .addCase(updateAttendanceRecord.rejected,(state,action)=>{
             return {...state,IsLoading:false,CurrentState:"管制実績の更新失敗しました"}

@@ -29,7 +29,7 @@ export const useStartUpWebSocketAtEntryPoint = () => {
 
 
 export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): Middleware => {
-    let socket: WebSocket | null = null;
+    let socket: WebSocket | null = null;//このソケットを利用してリアルタイムを行う
     //ソケットのミドルウェアを作製　おそらく
     return store => next => action => {
         switch (action.type) {
@@ -37,7 +37,6 @@ export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): 
                 if (socket) {
                     socket.close();
                 }
-
                 socket = new WebSocket(options.url);
                 socket.onopen = () => {
                     store.dispatch({type:WEBSOCKET_CONNECTED});

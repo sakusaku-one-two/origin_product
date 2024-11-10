@@ -35,7 +35,7 @@ func SchduleHandler(db *gorm.DB, broadcast chan models.ActionDTO) {
 		TimeRecordを監視するゴールチン
 	*/
 	for {
-
+		
 		current_time := time.Now()
 		tasks.Range(func(key any, value interface{}) bool {
 			temp, ok := value.(models.TimeRecord)
