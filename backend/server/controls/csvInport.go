@@ -6,6 +6,7 @@ import (
 	"backend-app/server/models"
 	"encoding/csv"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -94,41 +95,25 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 
 // このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
 func (ct *Csvtable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
-	if !ct.check() {
-		return nil, nil
-	}
 
 	createToAttendacneRecord := func(row map[string]string) *models.AttendanceRecord {
 		//rowからTimeRecordを作製する
-		createToTimeRecords := func(row map[string]string) []*models.TimeRecord {
-			return []*models.TimeRecord{
 
-				&models.TimeRecord{ //出発報告時間
-					AttendanceID: row["管制番号"],
-				},
-
-				&models.TimeRecord{ //到着報告時間
-
-				},
-
-				&models.TimeRecord{ //上番報告時間
-
-				},
-
-				&models.TimeRecord{ //下番報告時間
-
-				},
+		to_int := func(number string) int {
+			num, err := strconv.Atoi(number)
+			if err != nil {
+				return 0
 			}
-
+			return num
 		}
 
 		//まだ初期値の入れる値が不確定なので、一旦保留
 		return &models.AttendanceRecord{
-			ManageID:   row["管制番号"], //これが基本となる値。
+			ManageID:   manage_id, //これが基本となる値。
 			EmpID:      row["社員番号"],
 			LocationID: row["配置先番号"], //
 
-			TimeRecords: createToTimeRecords(row),
+			TimeRecords: models.createToTimeRecords(row, manage_id),
 		}
 
 	}

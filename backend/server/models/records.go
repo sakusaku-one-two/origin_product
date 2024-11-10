@@ -11,10 +11,11 @@ package models
 */
 
 import (
+	"strconv"
 	"time"
+
 	"gorm.io/gorm"
 )
-
 
 //マイグレーションする関数
 func mingrate(DB *gorm.DB) error {
@@ -104,6 +105,31 @@ type TimeRecord struct {
 	UpdateUserID *uint  `gorm:"default null"` //ポインタ型にすることでnullを許可
 	UpdateUser   *User  `gorm:"foreignKey:UpdateUserID"` //同じくポインタ型にすることでnullを許可
 }
+
+//CSVから1行取り出しそれをTimeRecordに変換　
+ func CreateTimeRecords(row map[string]string) []*models.TimeRecord {
+	attendacne_id := strconv.Atoi(row["管制番号"])
+	
+	
+	return []*models.TimeRecord{
+
+		&models.TimeRecord{ //出発報告時間
+			AttendanceID: row["管制番号"],
+		},
+
+		&models.TimeRecord{ //到着報告時間
+
+		},
+
+		&models.TimeRecord{ //上番報告時間
+
+		},
+
+		&models.TimeRecord{ //下番報告時間
+
+		},
+	}
+
 
 func (tr *TimeRecord)Check(db *gorm.DB,broadcast chan ActionDTO,currentTime time.Time){
 	/*
@@ -236,7 +262,7 @@ func CreateTimeRecord(db *gorm.DB, record TimeRecord) error {
 }
 
 func GetTimeRecord(db *gorm.DB, id uint) (TimeRecord, error) {
-	var record 
+	var record TimeRecord
 	err := db.First(&record, id).Error
 	return record, err
 }
