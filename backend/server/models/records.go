@@ -11,13 +11,12 @@ package models
 */
 
 import (
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-//マイグレーションする関数
+// マイグレーションする関数
 func mingrate(DB *gorm.DB) error {
 	return DB.AutoMigrate(
 		&EmployeeRecord{},
@@ -53,8 +52,9 @@ type LocationRecord struct { //配置場所のエンティティ
 
 type LocationToEmployee struct {
 	gorm.Model
-	LocaitonID uint `gorm:"index;not null"`
-	EmployeeID uint `gorm:"index;not null"`
+	LocaitonID   uint      `gorm:"index;not null"`
+	EmployeeID   uint      `gorm:"index;not null"`
+	TimeDuration time.Time //指定時間
 }
 
 //--------------------------------[勤務ポストテーブル]-------------------------------------------
@@ -84,75 +84,49 @@ type PostRecord struct { //勤務ポストのエンティティ
 */
 
 type ActionDTO struct { //ウェブソケットで各クライアントのreduxとサーバーのDBをつなげるobject
-	Type    string //reducerの条件分岐で処理をStore更新処理を決めるためのキー
-	Payload interface{}// action.Payloadとなる値　各種モデルを
+	Type    string      //reducerの条件分岐で処理をStore更新処理を決めるためのキー
+	Payload interface{} // action.Payloadとなる値　各種モデルを
 }
-
 
 type TimeRecord struct {
 	gorm.Model
 	//親テーブルの管制実績レコードの参照
-	AttendanceID uint `gorm:"index;not null"`
+	AttendanceID     uint             `gorm:"index;not null"`
 	attendanceRecord AttendanceRecord `gorm:"foreignKey:AttendanceID"`
-	PlanType     string `gorm:"varchar(50);not null"`
-	PlanTime     time.Time `gorm:"not null"`
-	ResultTime   time.Time `gorm:"default:null"`
-	IsPreOver 	 bool `gorm:"default:false"`			//予備アラートの状態を表すフラグ　現在時刻が予定時刻の5分目になったら発報する。
-	IsOver       bool   `gorm:"default:fasle"`           //　アラート発報しているかのフラグ、このフラグをし真にするとクライアント側でアラート
-	IsIgnore     bool   `gorm:"default:false"`           //　30分を過ぎたまたは、意図的にアラートを終了させるためのフラグ　このフラグを真にすると、アラーム対象外になり画面から消える。
-	IsComplete   bool `gorm:"default:false"`			//　打刻が完了したかどうかのフラグ
-	Comments     string `gorm:"type:text"`               // 備考欄
-	UpdateUserID *uint  `gorm:"default null"` //ポインタ型にすることでnullを許可
-	UpdateUser   *User  `gorm:"foreignKey:UpdateUserID"` //同じくポインタ型にすることでnullを許可
+	PlanType         string           `gorm:"varchar(50);not null"`
+	PlanTime         time.Time        `gorm:"not null"`
+	ResultTime       time.Time        `gorm:"default:null"`
+	IsPreOver        bool             `gorm:"default:false"`           //予備アラートの状態を表すフラグ　現在時刻が予定時刻の5分目になったら発報する。
+	IsOver           bool             `gorm:"default:fasle"`           //　アラート発報しているかのフラグ、このフラグをし真にするとクライアント側でアラート
+	IsIgnore         bool             `gorm:"default:false"`           //　30分を過ぎたまたは、意図的にアラートを終了させるためのフラグ　このフラグを真にすると、アラーム対象外になり画面から消える。
+	IsComplete       bool             `gorm:"default:false"`           //　打刻が完了したかどうかのフラグ
+	Comments         string           `gorm:"type:text"`               // 備考欄
+	UpdateUserID     *uint            `gorm:"default null"`            //ポインタ型にすることでnullを許可
+	UpdateUser       *User            `gorm:"foreignKey:UpdateUserID"` //同じくポインタ型にすることでnullを許可
 }
 
-//CSVから1行取り出しそれをTimeRecordに変換　
- func CreateTimeRecords(row map[string]string) []*models.TimeRecord {
-	attendacne_id := strconv.Atoi(row["管制番号"])
-	
-	
-	return []*models.TimeRecord{
-
-		&models.TimeRecord{ //出発報告時間
-			AttendanceID: row["管制番号"],
-		},
-
-		&models.TimeRecord{ //到着報告時間
-
-		},
-
-		&models.TimeRecord{ //上番報告時間
-
-		},
-
-		&models.TimeRecord{ //下番報告時間
-
-		},
-	}
-
-
-func (tr *TimeRecord)Check(db *gorm.DB,broadcast chan ActionDTO,currentTime time.Time){
+func (tr *TimeRecord) Check(db *gorm.DB, broadcast chan ActionDTO, currentTime time.Time) {
 	/*
 		IsIgnoreがファルス（無視する対称ではない）でかつIsComplete(打刻完了ではない)状態で、PlanTimeの5分前に現在時刻が入っていたらIsOverを真にしてDBに保存し配信する。
 	*/
 	//完了状態　または　無視する状態であるならばスルー
 	if tr.IsComplete || tr.IsIgnore {
-		return 
+		return
 	}
 
 	PlanTime := tr.PlanTime.Add(-5 * time.Minute) //予定時間の5分前の値
 
 	//予定時間の前に現在時刻がある場合はスルー
-	if PlanTime.Before(currentTime){
-		return 
+	if PlanTime.Before(currentTime) {
+		return
 	}
 
 	//予定時間の30分を過ぎていた場合。アラートを無視したと判断
-	if tr.PlanTime.Add(30 * time.Minute).After(currentTime){
+	if tr.PlanTime.Add(30 * time.Minute).After(currentTime) {
 		tr.IsIgnore = true
-		db.Save(tr)//
+		db.Save(tr) //
 		broadcast <- tr.to_DTO("timeRecord_Ignore")
-		return 
+		return
 	}
 
 	//予定時間の5分前を過ぎていてかつ予定時間を越してない、かつ事前予告アラート状態がfalse場合。
@@ -164,14 +138,13 @@ func (tr *TimeRecord)Check(db *gorm.DB,broadcast chan ActionDTO,currentTime time
 	}
 
 	//予定時間を超える場合
-	if tr.PlanTime.After(currentTime){
+	if tr.PlanTime.After(currentTime) {
 		tr.IsOver = true
 		db.Save(tr)
 		broadcast <- tr.to_DTO("timeRecord_OverTime")
-		return 	
+		return
 	}
 }
-
 
 func (tr *TimeRecord) to_DTO(action_name string) *ActionDTO {
 	return &ActionDTO{
@@ -187,14 +160,12 @@ type AttendanceRecordDTO struct { //これをログイン後に返す。
 	TimeRecords      []TimeRecord
 }
 
-
 func CreateAttendacneRecrodDTO(atr *AttendanceRecord) *AttendanceRecordDTO {
 	return &AttendanceRecordDTO{
 		AttendanceRecord: *atr,
 		TimeRecords:      atr.TimeRecords,
 	}
 }
-
 
 type AttendanceRecord struct {
 	gorm.Model
@@ -229,28 +200,28 @@ func GetAttendanceRecord(db *gorm.DB, id uint) (AttendanceRecord, error) {
 	return record, err
 }
 
-func GetRencentAttendanceRecord(db *gorm.DB,time uint) ([]AttendanceRecord,error) {
+func GetRencentAttendanceRecord(db *gorm.DB, time uint) ([]AttendanceRecord, error) {
 	/*
 		新しくログインしたクライアントに現在管理対象となる勤務データを返す為のメソッド
 	*/
-	
+
 	//返り値となる変数
 	var return_records []AttendanceRecord
 
 	var minPlanTime time.Time
 	err := db.Model(&TimeRecord{}).
-	Select("MIN(Plan_time").Group("manage_id").Scan(&minPlanTime).Error
+		Select("MIN(Plan_time").Group("manage_id").Scan(&minPlanTime).Error
 	//最小のPlanTimeを取得
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	//現在時刻から24時間以内のAttendanceRecordを取得
 	now := time.Now()
-	twentyFourHoursAgo := now.Add(-24 *time.Hour)
+	twentyFourHoursAgo := now.Add(-24 * time.Hour)
 
 	err := db.Joins("JOIN time_records ON time_records.manage_id = attendance_records.manage_id").Find(&return_records).Error
-	return return_records,err
+	return return_records, err
 }
 
 func DeleteAttendanceRecord(db *gorm.DB, record AttendanceRecord) error {
@@ -270,8 +241,6 @@ func GetTimeRecord(db *gorm.DB, id uint) (TimeRecord, error) {
 func UpdateTimeRecord(db *gorm.DB, record TimeRecord) error {
 	return db.Save(&record).Error
 }
-
-
 
 func (adr *AttendanceRecord) to_DTO(DB *gorm.DB) *AttendanceRecordDTO {
 	return &AttendanceRecordDTO{
