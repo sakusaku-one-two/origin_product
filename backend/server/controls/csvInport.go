@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -28,7 +27,7 @@ var (
 
 type Value struct {
 	Preval    any
-	as_int    int
+	as_int    uint
 	as_string string
 	is_error  error //キャストに失敗した場合のエラーを保持
 }
@@ -52,23 +51,45 @@ func (v *Value) To_int() {
 		v.is_error = err
 		return
 	}
-	v.as_int = number
+	v.as_int =uint(number)
 }
 
 func (v *Value) To_string() {
-	if casted_string, err := v.Preval.(string); err != nil {
-		v.is_error = err
+	casted_string, ok := v.Preval.(string)
+	if !ok {
+		v.is_error = error.New("文字列に変換失敗しました。")
 		return
 	}
 	v.as_string = casted_string
 }
 
-func (v *Value) To_time(date time.)  time.Time {
+//管制日付と対象日付を独自のフォーマットに変換して
+func To_date(date string,time string) time.Time {
+	//rune型に変換することで日本語UTF8におけるマルチバイトのスライス時の失敗を防ぐ
+	string_as_runes := []rune(date)
+	year := string_as_runes[:4] //2024
+	month := string_as_runes[4:6] //02
+	day := string_as_runes[6:]//12
+
+	date_string := year + "-" month + "-" + day + " " + time
+
+	reulst,ok := time.Parse(datedate_string)
+	if !ok {
+		return nil
+	} 
+
+	return reuslt 
+} 
+
+func (v *Value) To_time(date string)  (time.Time ,bool) {
 	date_info := v.as_string
 
-	time.Parse()
+	time,err := time.Parse(date_info)
 
-	return reuslt
+	if err != nil {
+		return nil,false
+	}
+	return time,true
 }
 
 type CsvTable struct { //CSVをプログラムで扱いやすい形にしたもの。基本的には
