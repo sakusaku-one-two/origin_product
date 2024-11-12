@@ -8,7 +8,7 @@ import (
 )
 
 
-SetUpMiddlewares(e *echo.Echo) {
+func SetUpMiddlewares(e *echo.Echo) {
 	//ミドルウェアの設定を行う関数
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
