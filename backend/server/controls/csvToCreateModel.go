@@ -69,18 +69,40 @@ func CreateDepartPlanTime(row map[string]*Value) time.Time {
 	return basePlanTime.Add(duration)
 }
 
+func CreateReachPlanTime(row map[string]*Value) time.Time {
+
+}
+
 // Timeレコードを作製する。
 func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 
 	manage_id := row["管制番号"].as_int
 
-	result := []*models.TimeRecord{}
+	result := []*models.TimeRecord{
+		&models.TimeRecord{
+			AttendanceID: manage_id,
+			PlanType:     1,
+			PlanTime:     CreateDepartPlanTime(row),
+		},
 
-	result = append(result, &models.TimeRecord{
-		AttendanceID: manage_id,
-		PlanType:     "DEPART",
-		PlanTime:     CreateDepartPlanTime(row),
-	})
+		&models.TimeRecord{
+			AttendanceID: manage_id,
+			PlanType:     2,
+			PlanTime:     CreateReachPlanTime(row),
+		},
+
+		&models.TimeRecord{
+			AttendanceID: manage_id,
+			PlanType:     3,
+			PlanTime:     CreateDepartPlanTime(row),
+		},
+
+		&models.TimeRecord{
+			AttendanceID: manage_id,
+			PlanType:     4,
+			PlanTime:     CreateDepartPlanTime(row),
+		},
+	}
 
 	return result, nil
 }
