@@ -52,9 +52,10 @@ type LocationRecord struct { //配置場所のエンティティ
 
 type LocationToEmployee struct {
 	gorm.Model
-	LocaitonID   uint      `gorm:"index;not null"`
-	EmployeeID   uint      `gorm:"index;not null"`
-	TimeDuration time.Time //指定時間
+	LocaitonID   uint          `gorm:"uniqueIndex"`
+	EmployeeID   uint          `gorm:"primaryKey"`
+	TimeDuration time.Duration //指定時間
+
 }
 
 //--------------------------------[勤務ポストテーブル]-------------------------------------------
@@ -93,7 +94,7 @@ type TimeRecord struct {
 	//親テーブルの管制実績レコードの参照
 	AttendanceID     uint             `gorm:"index;not null"`
 	attendanceRecord AttendanceRecord `gorm:"foreignKey:AttendanceID"`
-	PlanType         string           `gorm:"varchar(50);not null"`
+	PlanType         int              `gorm:"not null"`
 	PlanTime         time.Time        `gorm:"not null"`
 	ResultTime       time.Time        `gorm:"default:null"`
 	IsPreOver        bool             `gorm:"default:false"`           //予備アラートの状態を表すフラグ　現在時刻が予定時刻の5分目になったら発報する。
@@ -146,8 +147,8 @@ func (tr *TimeRecord) Check(db *gorm.DB, broadcast chan ActionDTO, currentTime t
 	}
 }
 
-func (tr *TimeRecord) to_DTO(action_name string) *ActionDTO {
-	return &ActionDTO{
+func (tr *TimeRecord) to_DTO(action_name string) ActionDTO {
+	return ActionDTO{
 		Type:    action_name,
 		Payload: *tr, //デリファレンスすることで、構造体の値を格納。
 	}
