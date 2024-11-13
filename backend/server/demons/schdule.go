@@ -24,7 +24,7 @@ func init() {
 
 }
 
-func addTask(task models.TimeRecord) {
+func AddTask(task models.TimeRecord) {
 	defer tasksMutex.Unlock()
 	tasksMutex.Lock()
 	tasks.Store(task.ID, task)
@@ -35,7 +35,7 @@ func SchduleHandler(db *gorm.DB, broadcast chan models.ActionDTO) {
 		TimeRecordを監視するゴールチン
 	*/
 	for {
-		
+
 		current_time := time.Now()
 		tasks.Range(func(key any, value interface{}) bool {
 			temp, ok := value.(models.TimeRecord)

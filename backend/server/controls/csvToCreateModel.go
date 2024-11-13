@@ -3,6 +3,7 @@ package controls
 import (
 	"backend-app/server/models"
 	"strconv"
+	"time"
 )
 
 
@@ -31,22 +32,27 @@ func to_day(date_str string) int {
 	return reuslt
 }
 
-func to_hour(time_stirng string) int {
-
+func to_hour_minute(time_stirng string) (int,int) {
+	parts := strings.Split(time_stirng,":")
+	hour,err := strconv.Atoi(parts[0])
+	if err  != nil {
+		hort = 0
+	}
+	min,err := strconv.Atoi(parts[1]) 
+	if err != nil {
+		min = 0
+	}
+	return hour,min
 }
 
-func to_minute(time_stirng string) int {
-
-}
 
 func CreateDateTime(date_str string,time_string string) time.Time {
 	year := to_year(date_str)
-	month := to_month(date_str)
+	month := time.Month( to_month(date_str) )
 	day := to_day(date_str)
-	hour := to_hour(time_stirng)
-	minute := to_minute(time_stirng)
+	hour,minute :=to_hour_minute(time_stirng)
 	
-	return time.Date(year,month,day,hour,minute)
+	return time.Date(year,month,day,hour,minute,0)
 
 }
 
