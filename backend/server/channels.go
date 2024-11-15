@@ -1,8 +1,8 @@
 package server
 
 import (
-	"sync"
 	"encoding/json"
+	"sync"
 )
 
 /*
@@ -15,19 +15,19 @@ NewChannel_TypeIsでchannelは作成と登録を同時に行うの。
 
 var Store *Channels
 
-//サーバーからReduxへ向けての配信で使用する。
+// サーバーからReduxへ向けての配信で使用する。
 type ActionDTO[ModelType any] struct {
-	Action string
+	Action  string
 	Payload ModelType
 }
 
-func (adto *ActionDTO[ModelType]) ToJSON() string,error {
-
+func (adto *ActionDTO[ModelType]) ToJSON() ([]byte, error) {
+	return json.Marshal(*adto)
 }
 
-func NewActionDTO[ModelType any](action_key string,pay_load ModelType) ActionDTO[ModelType] {
+func NewActionDTO[ModelType any](action_key string, pay_load ModelType) ActionDTO[ModelType] {
 	return ActionDTO[ModelType]{
-		Action: action_key,
+		Action:  action_key,
 		Payload: pay_load,
 	}
 }
@@ -46,9 +46,9 @@ func GetChannels() *Channels {
 	return Store
 }
 
-func NewChannel_TypeIs[T any](key string, boffer_count int) chan T{
+func NewChannel_TypeIs[T any](key string, boffer_count int) chan T {
 	channels := GetChannels()
-	target_chan := make(chan T,boffer_count)
+	target_chan := make(chan T, boffer_count)
 	channels.Store.Store(key, target_chan)
 	return target_chan
 }
@@ -64,5 +64,5 @@ func FetchChannele_TypeIs[T any](key string) (chan T, bool) {
 	if !ok {
 		return nil, false
 	}
-	return typed_chan,true
+	return typed_chan, true
 }

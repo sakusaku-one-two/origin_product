@@ -40,6 +40,18 @@ func Mingrate() error {
 		&User{}).Error
 }
 
+type ActionDTO[ModleType any] struct {
+	Action  string
+	Payload ModleType
+}
+
+func NewActionDTO[ModelType any](Action_key string, Target ModelType) *ActionDTO[ModelType] {
+	return &ActionDTO[ModelType]{
+		Action:  Action_key,
+		Payload: Target,
+	}
+}
+
 //--------------------------------[社員テーブル]-------------------------------------------
 
 type EmployeeRecord struct {
@@ -78,10 +90,10 @@ func NewLocationRecord(
 	Client_Name string,
 ) *LocationRecord {
 	return &LocationRecord{
-		LocationID:    Location_ID,
-		ClientID:      Client_ID,
-		Location_Name: Location_Name,
-		Client_Name:   Client_Name,
+		LocationID:   Location_ID,
+		ClientID:     Client_ID,
+		LocationName: Location_Name,
+		ClientName:   Client_Name,
 	}
 }
 
