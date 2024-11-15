@@ -11,7 +11,7 @@ package models
 */
 
 import (
-	"backend-app/server/channels"
+	"backend-app/server"
 	"sync"
 	"time"
 
@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	TIME_UPDATE_BROADCAST = channels.NewChannel_TypeIs[TimeRecord]("TIME_UPDATE_BROADCAST", 200)
+	TIME_UPDATE_BROADCAST = channe.NewChannel_TypeIs[TimeRecord]("TIME_UPDATE_BROADCAST", 200)
 	ATTENDANCE_UPDATE_BROADCAST = channels.NewChannel_TypeIs[AttendanceRecord]("ATTENDANCE_UPDATE_BROADCAST", 200)
 
 }

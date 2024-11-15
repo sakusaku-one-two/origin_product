@@ -18,14 +18,14 @@ var Store *Channels
 // サーバーからReduxへ向けての配信で使用する。
 type ActionDTO[ModelType any] struct {
 	Action  string
-	Payload ModelType
+	Payload *ModelType
 }
 
 func (adto *ActionDTO[ModelType]) ToJSON() ([]byte, error) {
 	return json.Marshal(*adto)
 }
 
-func NewActionDTO[ModelType any](action_key string, pay_load ModelType) ActionDTO[ModelType] {
+func NewActionDTO[ModelType any](action_key string, pay_load *ModelType) ActionDTO[ModelType] {
 	return ActionDTO[ModelType]{
 		Action:  action_key,
 		Payload: pay_load,

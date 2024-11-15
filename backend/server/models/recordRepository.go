@@ -1,7 +1,7 @@
 package models
 
 import (
-	"backend-app/server/channels"
+	"backend-app/server"
 	"errors"
 	"sync"
 	"gorm.io/gorm"
