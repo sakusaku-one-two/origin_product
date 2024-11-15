@@ -69,7 +69,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 }
 
 // Actionオブジェクトをクライアントに向けて配信するgorutin
-func ActionBroadCast(ActionBroadCast chan<- server.ActionDTO[models.TimeRecord]) {
+func ActionBroadCast(ActionBroadCast chan <- server.ActionDTO[models.TimeRecord]) {
 
 	//ブロードキャストのチャンネルが閉じた際の終了処理　すべてのウェブソケットコネクションの受信側のゴルーチンを閉じる。
 	defer func() {

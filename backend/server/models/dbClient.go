@@ -27,6 +27,12 @@ func GetDB() *gorm.DB {
 	return DB
 }
 
+func NewQuerySession() *gorm.DB {
+	return GetDB().Session(gorm.Session())
+}
+
+
+
 func connectDB() *gorm.DB {
 
 	//環境変数を参照してDBクライアントを作製

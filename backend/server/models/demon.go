@@ -5,14 +5,16 @@ import (
 )
 
 func init() {
-	go ActionCatcher()
+	go TimeActionCatcher()
 }
 
-func ActionCatcher() {
+func TimeActionCatcher() {
 
-	CLIENT_ACTION_TO_DB := server.NewChannel_TypeIs[server.ActionDTO[TimeRecord]]("CLIENT_ACTION_TO_DB", 100)
+	defer close(ACTION_DTO_FROM_CLIENT)
+	
+	var ACTION_DTO_FROM_CLIENT chan server.ActionDTO[TimeRecord] = server.NewChannel_TypeIs[server.ActionDTO[TimeRecord]]("CLIENT_ACTION_TO_DB", 100)
 
-	for time_record := range CLIENT_ACTION_TO_DB {
+	for time_record := range ACTION_DTO_FROM_CLIENT {
 
 	}
 
