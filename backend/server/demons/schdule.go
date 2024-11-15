@@ -5,40 +5,44 @@ TimeRecordの予定時刻を監視するループを保持したデーモンゴ�
 
 */
 import (
-	"backend-app/server/controls"
+	"backend-app/server/channels"
 	"backend-app/server/models"
 	"sync"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 var (
-	tasks      sync.Map
-	tasksMutex sync.Mutex
+	tasks              sync.Map
+	TIMERECORD_FROM_DB chan channels.ActionDTO[models.TimeRecord]
+	BROADCAST          chan channels.ActionDTO[models.AttendanceRecord]
 )
 
-func init() {
-	var broadcast chan models.ActionDTO = controls.BROADCAST
-	go SchduleHandler(models.DB, broadcast)
+func StartUP() {
 
+	ATTENDANCERECROD_FROM_DB = channels.FetchChannele_TypeIs[channels.ActionDTO[models.AttendanceRecord]]("ATTENDANCERECROD_FROM_DB")
+	go TaskAppendHandler()
+
+	go SchduleHandler(BROADCAST)
 }
 
-func AddTask(task models.TimeRecord) {
-	defer tasksMutex.Unlock()
-	tasksMutex.Lock()
-	tasks.Store(task.ID, task)
+func TaskAppendHandler() {
+	TIMERECORD_FROM_DB = channels.FetchChannele_TypeIs[channels.ActionDTO[models.TimeRecord]]("TIMERECORD_FROM_DB")
+	for time_record := range TIMERECORD_FROM_DB {
+		tasks.Store(time_record.ID, time_record)
+	}
 }
 
-func SchduleHandler(db *gorm.DB, broadcast chan models.ActionDTO) {
+func SchduleHandler(broadcast <-chan channels.ActionDTO[models.TimeRecord]) {
 	/*
 		TimeRecordを監視するゴールチン
 	*/
+
+	db := models.GetDB()
 	for {
 
 		current_time := time.Now()
 		tasks.Range(func(key any, value interface{}) bool {
-			temp, ok := value.(models.TimeRecord)
+			temp, ok := value.(*models.TimeRecord)
 
 			if !ok {
 				return true //アサーションに失敗したので取り合あえず次に以降
@@ -47,6 +51,11 @@ func SchduleHandler(db *gorm.DB, broadcast chan models.ActionDTO) {
 			temp.Check(db, broadcast, current_time) //予定時刻を過ぎているかの確認　メソッド内部でDBへの更新と更新した構造体をbroadcastチャンネルへ送信
 			return true
 		})
+
+		select {
+		case <-time.Tick(10 * time.Second):
+			continue
+		}
 	}
 
 }

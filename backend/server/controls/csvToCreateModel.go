@@ -50,9 +50,7 @@ func CreateDateTime(date_str string, time_string string) time.Time {
 	month := time.Month(to_month(date_str))
 	day := to_day(date_str)
 	hour, minute := to_hour_minute(time_string)
-
 	return time.Date(year, month, day, hour, minute, 0, 0, time.Local)
-
 }
 
 func CreateDepartPlanTime(row map[string]*Value) time.Time {
@@ -65,12 +63,28 @@ func CreateDepartPlanTime(row map[string]*Value) time.Time {
 
 	date_str := row["管制日付"].as_string
 	time_str := row["勤務開始時刻"].as_string
-	basePlanTime := CreateDateTime(date_str, time_str)
-	return basePlanTime.Add(duration)
+	job_start_time := CreateDateTime(date_str, time_str)
+	return job_start_time.Add(duration) //勤務開始1時間30分前に自宅を出ているか
 }
 
+// 勤務地到着時刻
 func CreateReachPlanTime(row map[string]*Value) time.Time {
+	date_str := row["管制日付"].as_string
+	time_str := row["勤務開始時刻"].as_string
+	job_start_time := CreateDateTime(date_str, time_str)
+	return job_start_time.Add(-10 * time.Minute) //勤務開始10分前に到着しているか
+}
 
+func CreateStartTime(row map[string]*Value) time.Time {
+	date_str := row["管制日付"].as_string
+	time_str := row["勤務開始時刻"].as_string
+	return CreateDateTime(date_str, time_str)
+}
+
+func CreateFinalyPlanTime(row map[string]*Value) time.Time {
+	date_str := row["管制日付"].as_string
+	time_str := row["勤務終了時刻"].as_string
+	return CreateDateTime(date_str, time_str)
 }
 
 // Timeレコードを作製する。
@@ -80,27 +94,27 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 
 	result := []*models.TimeRecord{
 		&models.TimeRecord{
-			AttendanceID: manage_id,
-			PlanType:     1,
-			PlanTime:     CreateDepartPlanTime(row),
+			ManageID: manage_id,
+			PlanNo:   1,
+			PlanTime: CreateDepartPlanTime(row),
 		},
 
 		&models.TimeRecord{
-			AttendanceID: manage_id,
-			PlanType:     2,
-			PlanTime:     CreateReachPlanTime(row),
+			ManageID: manage_id,
+			PlanNo:   2,
+			PlanTime: CreateReachPlanTime(row),
 		},
 
 		&models.TimeRecord{
-			AttendanceID: manage_id,
-			PlanType:     3,
-			PlanTime:     CreateDepartPlanTime(row),
+			ManageID: manage_id,
+			PlanNo:   3,
+			PlanTime: CreateStartTime(row),
 		},
 
 		&models.TimeRecord{
-			AttendanceID: manage_id,
-			PlanType:     4,
-			PlanTime:     CreateDepartPlanTime(row),
+			ManageID: manage_id,
+			PlanNo:   4,
+			PlanTime: CreateFinalyPlanTime(row),
 		},
 	}
 

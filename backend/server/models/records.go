@@ -11,12 +11,27 @@ package models
 */
 
 import (
-	"time"
-	"gorm.io/gorm"
+	"backend-app/server/channels"
 	"sync"
+	"time"
+
+	"gorm.io/gorm"
 )
+
+var (
+	TIME_UPDATE_BROADCAST       chan TimeRecord
+	ATTENDANCE_UPDATE_BROADCAST chan AttendanceRecord
+)
+
+func init() {
+	TIME_UPDATE_BROADCAST = channels.NewChannel_TypeIs[TimeRecord]("TIME_UPDATE_BROADCAST", 200)
+	ATTENDANCE_UPDATE_BROADCAST = channels.NewChannel_TypeIs[AttendanceRecord]("ATTENDANCE_UPDATE_BROADCAST", 200)
+
+}
+
 // マイグレーションする関数
-func mingrate(DB *gorm.DB) error {
+func Mingrate() error {
+	DB := GetDB()
 	return DB.AutoMigrate(
 		&EmployeeRecord{},
 		&LocationRecord{},
@@ -24,6 +39,7 @@ func mingrate(DB *gorm.DB) error {
 		&TimeRecord{},
 		&User{}).Error
 }
+
 //--------------------------------[社員テーブル]-------------------------------------------
 
 type EmployeeRecord struct {
@@ -35,41 +51,37 @@ type EmployeeRecord struct {
 
 func NewEmployeeRecord(
 	id uint,
-	name:string,
+	name string,
 	email string,
 ) *EmployeeRecord {
 	return &EmployeeRecord{
-		ID:id,
-		Name:name,
-		Email:email,
+		ID:    id,
+		Name:  name,
+		Email: email,
 	}
 }
-
-
-
-
 
 //--------------------------------[配置先テーブル]-------------------------------------------
 
 type LocationRecord struct { //配置場所のエンティティ
 	gorm.Model
 	LocationID   uint   `gorm:"primarykey;autoIncrement:false"` //配置先番号　（配置先）
-	ClientID uint `gorm:"primaryKey;autoIncrement:false"` //得意先番号　（会社ID）
-	ClientName string `gorm:"varchar(50) not null"` //得意先正式名称　（会社名）
-	LocationName string `gorm:"varchar(50) not null"` //配置先正式名称
+	ClientID     uint   `gorm:"primaryKey;autoIncrement:false"` //得意先番号　（会社ID）
+	ClientName   string `gorm:"varchar(50) not null"`           //得意先正式名称　（会社名）
+	LocationName string `gorm:"varchar(50) not null"`           //配置先正式名称
 }
 
 func NewLocationRecord(
 	Location_ID uint,
 	Location_Name string,
 	Client_ID uint,
-	Client_Name string
-	) *LocationRecord {
+	Client_Name string,
+) *LocationRecord {
 	return &LocationRecord{
-		LocationID:Location_ID,
-		ClientID:Client_ID,
-		Location_Name:Location_Name,
-		Client_Name:Client_Name,
+		LocationID:    Location_ID,
+		ClientID:      Client_ID,
+		Location_Name: Location_Name,
+		Client_Name:   Client_Name,
 	}
 }
 
@@ -77,20 +89,19 @@ func NewLocationRecord(
 
 type PostRecord struct { //勤務ポストのエンティティ
 	gorm.Model
-	PostID   uint    `gorm:"primarykey;autoIncrement:false"`
+	PostID   uint   `gorm:"primarykey;autoIncrement:false"`
 	PostName string `gorm:"varchar(50) not null"`
 }
 
 func NewPostRecord(
 	Post_ID uint,
-	Post_Name string
-) *PostName {
+	Post_Name string,
+) *PostRecord {
 	return &PostRecord{
-		PostID:Post_ID,
-		PostName:Post_Name,
+		PostID:   Post_ID,
+		PostName: Post_Name,
 	}
 }
-
 
 //--------------------------------[時間管理テーブル]-------------------------------------------
 /*
@@ -104,48 +115,52 @@ func NewPostRecord(
 
 */
 
-
 type TimeRecord struct {
 	gorm.Model
 	//親テーブルの管制実績レコードの参照
-	ManageID uint             `gorm:"index;not null"`
+	ManageID   uint `gorm:"index;not null"`
 	PlanNo     uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
 	PlanTime   time.Time
 	ResultTime time.Time
-	IsAlert bool `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
-	IsOver     bool `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
-	IsIgnore   bool `gorm:"defalt:fasle"`// このフラグはアラートや無視を表す
-	IsComplete bool `gorm:"defalt:fasle"`//完了フラグ
-	selfMutex sync.Mutex `gorm:"-"` //DBのスキーマからは無視
+	IsAlert    bool       `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
+	IsOver     bool       `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
+	IsIgnore   bool       `gorm:"defalt:fasle"` // このフラグはアラートや無視を表す
+	IsComplete bool       `gorm:"defalt:fasle"` //完了フラグ
+	selfMutex  sync.Mutex `gorm:"-"`            //DBのスキーマからは無視
 }
 
-func (t *TimeRecord) CheckTime(current_time time.Time,pub_channel  chan <- TimeRecord){
-	if t.IsIgnore || t.IsComplete {return} //無視する対象または完了していなら抜ける
-	
+func (t *TimeRecord) CheckTime(current_time time.Time) {
+	if t.IsIgnore || t.IsComplete {
+		return
+	} //無視する対象または完了していなら抜ける
+
 	t.selfMutex.Lock()
 	defer t.selfMutex.Unlock()
-    duration := current_time.Sub(t.PlanTime)
+	duration := current_time.Sub(t.PlanTime)
 
-	//30分を超えたら自動でアラートを切る　
+	//30分を超えたら自動でアラートを切る
 	if duration > 30*time.Minute {
 		t.IsIgnore = true //無視する対象にする。
-		pub_channel <- *t
-		return 	
+		DB.Save(t)
+		TIME_UPDATE_BROADCAST <- *t
+		return
 	}
 
-	// 予定時間の5分前にアラートを発報する 
+	// 予定時間の5分前にアラートを発報する
 	if t.PlanTime.Add(-5*time.Minute).Before(current_time) && current_time.Before(t.PlanTime) {
-		t.IsAlert= true
-		pub_channel <- *t
-		return  
+		t.IsAlert = true
+		DB.Save(t)
+		TIME_UPDATE_BROADCAST <- *t
+		return
 	}
 
 	//予定時間を超えたらアラートを発報する。
 	if t.PlanTime.Before(current_time) {
 		t.IsOver = true
 		t.IsAlert = true
-		pub_channel <- *t
-		return 
+		DB.Save(t)
+		TIME_UPDATE_BROADCAST <- *t
+		return
 	}
 
 }
@@ -162,14 +177,14 @@ type AttendanceRecord struct {
 
 	//勤務先情報
 	LocationID uint           `gorm:"index;not null"`
-	ClientID uint `gorm:"index;not null"`
+	ClientID   uint           `gorm:"index;not null"`
 	Location   LocationRecord `gorm:"foreignkey:LocationID,ClientID;references:LocationID,ClientID"`
 
 	//勤務ポスト
 	PostID uint       `gorm:"index;not null"`
 	Post   PostRecord `gorm:"foreignKey:PostID"`
 
-	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"`//リレーションの設定
+	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"` //リレーションの設定
 
 	Description string
 
@@ -182,16 +197,21 @@ type AttendanceRecord struct {
 func NewAttendanceRecord(
 	Manage_ID uint,
 	Emp_ID uint,
-	LocationID uint,
+	Location_ID uint,
 	Post_ID uint,
-	Time_Records []TimeRecord
-) *AttendacneRecord {
-	return & AttendacneRecord{
-		ManageID:Manage_ID,
-		EmpID:Emp_ID,
-		LocationID: Location_ID,
-		PostID : Post_ID,
-		TimeRecords:Time_Records,
+	Time_Records []TimeRecord,
+) *AttendanceRecord {
+	return &AttendanceRecord{
+		ManageID:    Manage_ID,
+		EmpID:       Emp_ID,
+		LocationID:  Location_ID,
+		PostID:      Post_ID,
+		TimeRecords: Time_Records,
 	}
 }
 
+func (ar *AttendanceRecord) SaveAndSend() {
+	db := GetDB()
+	db.Save(ar)
+	ATTENDANCE_UPDATE_BROADCAST <- *ar
+}

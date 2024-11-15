@@ -5,6 +5,7 @@ package controls
 import (
 	"backend-app/server/models"
 	"encoding/csv"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -58,28 +59,10 @@ func (v *Value) To_int() {
 func (v *Value) To_string() {
 	casted_string, ok := v.Preval.(string)
 	if !ok {
-		v.is_error = error.New("文字列に変換失敗しました。")
+		v.is_error = errors.New("文字列に変換失敗しました。")
 		return
 	}
 	v.as_string = casted_string
-}
-
-// 管制日付と対象日付を独自のフォーマットに変換して
-func To_date(date string, time string) time.Time {
-	//rune型に変換することで日本語UTF8におけるマルチバイトのスライス時の失敗を防ぐ
-	string_as_runes := []rune(date)
-	year := string_as_runes[:4]   //2024
-	month := string_as_runes[4:6] //02
-	day := string_as_runes[6:]    //12
-
-	date_string := year + "-" + month + "-" + day + " " + time
-
-	reulst, ok := time.Parse(datedate_string)
-	if !ok {
-		return nil
-	}
-
-	return reuslt
 }
 
 func (v *Value) To_time(date string) (time.Time, bool) {
@@ -168,13 +151,17 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 // このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
 func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 
-	createToAttendacneRecord := func(row map[string]Value) *models.AttendacneRecord {
+	createToAttendacneRecord := func(row map[string]*Value) *models.AttendacneRecord {
+		time_records, err := CreateTimeRecord(row)
+		if err != nil {
+			return nil
+		}
 		return &models.AttendanceRecord{
 			ManageID:   row["管制番号"].as_int, //これが基本となる値。
 			EmpID:      row["社員番号"].as_int,
 			LocationID: row["配置先番号"].as_int, //
 
-			TimeRecords: models.createToTimeRecords(row),
+			TimeRecords: time_records,
 		}
 
 	}
@@ -208,6 +195,7 @@ func CsvImportHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, missingColumns)
 	}
 	//以下　列名と値に問題ないと判断されたブロック
+
 }
 
 func validateCSV(data string) (bool, string) {
