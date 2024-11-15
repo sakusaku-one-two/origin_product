@@ -88,30 +88,30 @@ func CreateFinalyPlanTime(row map[string]*Value) time.Time {
 }
 
 // Timeレコードを作製する。
-func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
+func CreateTimeRecord(row map[string]*Value) ([]models.TimeRecord, error) {
 
 	manage_id := row["管制番号"].as_int
 
-	result := []*models.TimeRecord{
-		&models.TimeRecord{
+	result := []models.TimeRecord{
+		models.TimeRecord{
 			ManageID: manage_id,
 			PlanNo:   1,
 			PlanTime: CreateDepartPlanTime(row),
 		},
 
-		&models.TimeRecord{
+		models.TimeRecord{
 			ManageID: manage_id,
 			PlanNo:   2,
 			PlanTime: CreateReachPlanTime(row),
 		},
 
-		&models.TimeRecord{
+		models.TimeRecord{
 			ManageID: manage_id,
 			PlanNo:   3,
 			PlanTime: CreateStartTime(row),
 		},
 
-		&models.TimeRecord{
+		models.TimeRecord{
 			ManageID: manage_id,
 			PlanNo:   4,
 			PlanTime: CreateFinalyPlanTime(row),

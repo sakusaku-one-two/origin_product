@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -65,17 +64,6 @@ func (v *Value) To_string() {
 	v.as_string = casted_string
 }
 
-func (v *Value) To_time(date string) (time.Time, bool) {
-	date_info := v.as_string
-
-	time, err := time.Parse(date_info)
-
-	if err != nil {
-		return nil, false
-	}
-	return time, true
-}
-
 type CsvTable struct { //CSVをプログラムで扱いやすい形にしたもの。基本的には
 	header map[string]int      //列名と列数の辞書
 	rows   []map[string]*Value //列名と値の辞書を配列で格納した
@@ -104,7 +92,7 @@ func CreateCsVTable(reader *csv.Reader) (*CsvTable, error) {
 			break
 		}
 		//一時的な行を表す辞書
-		temp_row_map := make(map[string]Value)
+		temp_row_map := make(map[string]*Value)
 
 		for key, val := range headerMap {
 			index := val
@@ -151,7 +139,7 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 // このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
 func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 
-	createToAttendacneRecord := func(row map[string]*Value) *models.AttendacneRecord {
+	createToAttendacneRecord := func(row map[string]*Value) *models.AttendanceRecord {
 		time_records, err := CreateTimeRecord(row)
 		if err != nil {
 			return nil
@@ -195,7 +183,7 @@ func CsvImportHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, missingColumns)
 	}
 	//以下　列名と値に問題ないと判断されたブロック
-
+	return nil
 }
 
 func validateCSV(data string) (bool, string) {
