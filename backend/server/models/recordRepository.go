@@ -1,43 +1,7 @@
 package models
 
 import (
-	"backend-app/server"
-	"errors"
-	"sync"
-	"gorm.io/gorm"
-)
-
-func StartUP(){
-	
-}
-
-type RecordsCache[ModelType any] struct {
-	Map sync.Map
-}
-
-//キャッシュに格納
-func (rc *RecordsCache[ModelType]) Set(key any,val ModelType) {
-	rc.Map.Store(key,val)
-}
-
-func (rc *RecordsCache[ModelType]) Get(key any) (*ModelType,error) {
-	got_data,ok := rc.Map.Load(key)
-	if !ok {
-		return nil,errors.New("取得に失敗しました。")
-	}
-
-	result,ok := got_data.(ModelType)
-	if !ok {
-		return nil,errors.New("キャストに失敗しました。")
-	}
-	return &result,nil
-}
-
-func (rc *RecordsCache[ModelType]) CacheDemon(call_back func(Check_Target *ModelType)) chan interface{} {
-	
-	done_chan := make(chan interface{})
-	
-	go func(inner_func func(key any,Check_Target ModelType),
+	"backend-app/serverT(inner_func func(key any,Check_Target ModelType),
 	        data_map sync.Map,done_chan_as_inner chan <- interface{} )
 		{
 

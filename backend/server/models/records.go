@@ -19,13 +19,13 @@ import (
 )
 
 var (
-	TIME_UPDATE_BROADCAST       chan TimeRecord
-	ATTENDANCE_UPDATE_BROADCAST chan AttendanceRecord
+	TIME_UPDATE_BROADCAST       chan server.ActionDTO[TimeRecord]
+	ATTENDANCE_UPDATE_BROADCAST chan server.ActionDTO[AttendanceRecord]
 )
 
 func init() {
-	TIME_UPDATE_BROADCAST = channe.NewChannel_TypeIs[TimeRecord]("TIME_UPDATE_BROADCAST", 200)
-	ATTENDANCE_UPDATE_BROADCAST = channels.NewChannel_TypeIs[AttendanceRecord]("ATTENDANCE_UPDATE_BROADCAST", 200)
+	TIME_UPDATE_BROADCAST = server.NewChannel_TypeIs[server.ActionDTO[TimeRecord]]("TIME_UPDATE_BROADCAST", 200)
+	ATTENDANCE_UPDATE_BROADCAST = server.NewChannel_TypeIs[server.ActionDTO[AttendanceRecord]]("ATTENDANCE_UPDATE_BROADCAST", 200)
 
 }
 
@@ -38,18 +38,6 @@ func Mingrate() error {
 		&PostRecord{},
 		&TimeRecord{},
 		&User{}).Error
-}
-
-type ActionDTO[ModleType any] struct {
-	Action  string
-	Payload ModleType
-}
-
-func NewActionDTO[ModelType any](Action_key string, Target ModelType) *ActionDTO[ModelType] {
-	return &ActionDTO[ModelType]{
-		Action:  Action_key,
-		Payload: Target,
-	}
 }
 
 //--------------------------------[社員テーブル]-------------------------------------------
@@ -154,7 +142,7 @@ func (t *TimeRecord) CheckTime(current_time time.Time) {
 	if duration > 30*time.Minute {
 		t.IsIgnore = true //無視する対象にする。
 		DB.Save(t)
-		TIME_UPDATE_BROADCAST <- *t
+		TIME_UPDATE_BROADCAST <- server.NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
 		return
 	}
 
@@ -162,7 +150,7 @@ func (t *TimeRecord) CheckTime(current_time time.Time) {
 	if t.PlanTime.Add(-5*time.Minute).Before(current_time) && current_time.Before(t.PlanTime) {
 		t.IsAlert = true
 		DB.Save(t)
-		TIME_UPDATE_BROADCAST <- *t
+		TIME_UPDATE_BROADCAST <- server.NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
 		return
 	}
 
@@ -171,7 +159,7 @@ func (t *TimeRecord) CheckTime(current_time time.Time) {
 		t.IsOver = true
 		t.IsAlert = true
 		DB.Save(t)
-		TIME_UPDATE_BROADCAST <- *t
+		TIME_UPDATE_BROADCAST <- server.NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
 		return
 	}
 

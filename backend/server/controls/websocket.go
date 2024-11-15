@@ -2,7 +2,6 @@ package controls
 
 import (
 	"backend-app/server"
-	"backend-app/server"
 	"backend-app/server/models"
 	"net/http"
 	"sync"
@@ -18,29 +17,28 @@ type Done struct {
 	done_chan chan interface{}
 }
 
-
 var (
-	clients   sync.Map              // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
-	BROADCAST chan channels.ActionDTO[models.TimeRecord] //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
-	CLIENT_ACTION_TO_DB     chan channels.ActionDTO[models.TimeRecord] // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
+	clients             sync.Map                                 // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
+	BROADCAST           chan server.ActionDTO[models.TimeRecord] //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
+	CLIENT_ACTION_TO_DB chan server.ActionDTO[models.TimeRecord] // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
+	UPGREDER            websocket.Upgrader
 )
 
 func init() {
-	CLIENT_ACTION_TO_DB = server.NewChannel_TypeIs[server.ActionDTO[models.TimeRecord]]("CLIENT_ACTION_TO_DB",100)
+	CLIENT_ACTION_TO_DB = server.FetchChannele_TypeIs[server.ActionDTO[models.TimeRecord]]("CLIENT_ACTION_TO_DB")
 	TIMERECORD_FROM_DB := server.FetchChannele_TypeIs[server.ActionDTO[models.TimeRecord]]("TIME_UPDATE_BROADCAST")
 	go ActionBroadCast(TIMERECORD_FROM_DB)
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true // 一時的にすべてのオリジンを許可
-	},
+	UPGREDER = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			return true // 一時的にすべてのオリジンを許可
+		}}
 }
 
-
 func ActionWebSocketHandler(c echo.Context) error {
-	ws, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
+	ws, err := UPGREDER.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
 		return err
 	}
@@ -54,7 +52,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 		ws.Close()
 	}()
 
-	var msgAction channels.ActionDTO
+	var msgAction server.ActionDTO
 	// 受信のループ
 	for {
 		select {
@@ -71,7 +69,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 }
 
 // Actionオブジェクトをクライアントに向けて配信するgorutin
-func ActionBroadCast(BroadCast chan <- channels.ActionDTO) {
+func ActionBroadCast(ActionBroadCast chan<- server.ActionDTO[models.TimeRecord]) {
 
 	//ブロードキャストのチャンネルが閉じた際の終了処理　すべてのウェブソケットコネクションの受信側のゴルーチンを閉じる。
 	defer func() {
@@ -85,7 +83,7 @@ func ActionBroadCast(BroadCast chan <- channels.ActionDTO) {
 	}()
 
 	// DTOが来たら各クライアントに向けて配信
-	for msgAction := range BroadCast {
+	for msgAction := range ActionBroadCast {
 		clients.Range(func(key, value interface{}) bool {
 			ws, ok := key.(*websocket.Conn)
 			if !ok {

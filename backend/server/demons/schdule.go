@@ -19,7 +19,6 @@ var (
 
 func StartUP() {
 
-	ATTENDANCERECROD_FROM_DB = channels.FetchChannele_TypeIs[channels.ActionDTO[models.AttendanceRecord]]("ATTENDANCERECROD_FROM_DB")
 	go TaskAppendHandler()
 
 	go SchduleHandler(BROADCAST)
