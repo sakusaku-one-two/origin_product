@@ -5,7 +5,7 @@ TimeRecordの予定時刻を監視するループを保持したデーモンゴ�
 
 */
 import (
-	"backend-app/server/channels"
+	"backend-app/server"
 	"backend-app/server/models"
 	"sync"
 	"time"
@@ -13,7 +13,7 @@ import (
 
 var (
 	tasks              sync.Map
-	TIMERECORD_FROM_DB chan channels.ActionDTO[models.TimeRecord]
+	TIMERECORD_FROM_DB chan channe.ActionDTO[models.TimeRecord]
 	BROADCAST          chan channels.ActionDTO[models.AttendanceRecord]
 )
 
