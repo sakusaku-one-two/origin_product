@@ -5,6 +5,24 @@ import (
 	"errors"
 )
 
+/*
+	csvの取り込みフロー
+		・フロントエンドからCSVファイルをアップロード
+		・エンドポイントから直にDBに格納するのではなくて、一旦モデル構造体に変換し、既存のレコードと重複情報と一緒に返す。
+		・フロントエンド側で重複情報を確認してどちらかを選択
+		・その結果情報をmodel配列として再度サーバーに送付
+		・model配列をDBに保存と更新を行う。
+		・保存と更新の際に現在クライアント側で参照しているレコード範囲に該当している場合は、DB保存・websocketで配信。
+
+	csvの取り込み条件
+	・列名の存在確認
+	・重複がないレコードは更新する。その際
+	・追加であれ、更新であれ、破棄以外の場合でかつ現在フロントエンドに渡している範囲内であればWEBSOCKETで配信する。
+	・
+
+
+*/
+
 func UpdateAttendanceTable(csv_table *CsvTable) (*ReturnJson, error) {
 
 	min_ID, max_ID, ok := csv_table.BetweenMaxAndMin()
