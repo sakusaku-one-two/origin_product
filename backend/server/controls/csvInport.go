@@ -186,6 +186,24 @@ func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
 	return min_time, max_time
 }
 
+func (ct *CsvTable) BetweenMaxAndMin() (uint, uint) {
+	var min_val uint = ^uint(0)
+	var max_val uint = uint(0)
+	var temp_val uint
+
+	for _, row := range ct.rows {
+		temp_val = row["管制実績番号"].as_int
+
+		if temp_val < min_val {
+			min_val = temp_val
+		}
+		if temp_val > max_val {
+			max_val = temp_val
+		}
+	}
+	return min_val, max_val
+}
+
 type ReturnJson struct {
 	IsLeft           bool                      //再確認が必要かのフラグ
 	RemainingRecords []models.AttendanceRecord // 再確認用のレコード
