@@ -28,10 +28,8 @@ func GetDB() *gorm.DB {
 }
 
 func NewQuerySession() *gorm.DB {
-	return GetDB().Session(gorm.Session())
+	return GetDB().Session(&gorm.Session{})
 }
-
-
 
 func connectDB() *gorm.DB {
 
