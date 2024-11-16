@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"gorm.io/driver/postgress"
+	"gorm.io/driver/postgres"
+
 	"gorm.io/gorm"
 )
 
@@ -46,7 +47,7 @@ func connectDB() *gorm.DB {
 	dns := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
 		dbHost, dbUser, dbPassWord, dbName, dbPort, dbSsl, dbTimeZone)
 
-	db, err := gorm.Open(postgress.Open(dns), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
 		panic("データベースの接続に失敗しました。")
 	}
