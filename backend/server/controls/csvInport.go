@@ -186,7 +186,10 @@ func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
 	return min_time, max_time
 }
 
-func (ct *CsvTable) BetweenMaxAndMin() (uint, uint) {
+func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
+	if len(ct.rows) == 0 {
+		return 0, 0, false
+	}
 	var min_val uint = ^uint(0)
 	var max_val uint = uint(0)
 	var temp_val uint
@@ -201,7 +204,12 @@ func (ct *CsvTable) BetweenMaxAndMin() (uint, uint) {
 			max_val = temp_val
 		}
 	}
-	return min_val, max_val
+
+	if min_val == ^uint(0) || max_val == uint(0) {
+		return 0, 0, false
+	}
+
+	return min_val, max_val, true
 }
 
 type ReturnJson struct {
