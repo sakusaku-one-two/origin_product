@@ -9,12 +9,12 @@ func UpdateAttendanceTable(csv_table *CsvTable) (*ReturnJson, error) {
 
 	min_ID, max_ID, ok := csv_table.BetweenMaxAndMin()
 	if !ok {
-		return nil, errors.Error("csvから管制実績番号の最小値と最大値の取得ができませんでした")
+		return nil, errors.New("csvから管制実績番号の最小値と最大値の取得ができませんでした")
 	}
 
 	range_records, ok := GetRangeRecords(min_ID, max_ID) //CSV内にある管制実績IDの最小値と最大値からその範囲にあるレコードをDBから取得
 	if !ok {
-		return nil, errors.Error("DBから管制実績番号の最大値と最小値から取得できませんでした。")
+		return nil, errors.New("DBから管制実績番号の最大値と最小値から取得できませんでした。")
 	}
 
 	records_from_csv, err := csv_table.To_AttendanceRecords()
