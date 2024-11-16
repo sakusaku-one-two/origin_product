@@ -11,7 +11,6 @@ package models
 */
 
 import (
-	"backend-app/server"
 	"sync"
 	"time"
 
@@ -19,25 +18,24 @@ import (
 )
 
 var (
-	TIME_UPDATE_BROADCAST       chan server.ActionDTO[TimeRecord]
-	ATTENDANCE_UPDATE_BROADCAST chan server.ActionDTO[AttendanceRecord]
+	TIME_UPDATE_BROADCAST       chan ActionDTO[TimeRecord]
+	ATTENDANCE_UPDATE_BROADCAST chan ActionDTO[AttendanceRecord]
 )
 
 func init() {
-	TIME_UPDATE_BROADCAST = server.NewChannel_TypeIs[server.ActionDTO[TimeRecord]]("TIME_UPDATE_BROADCAST", 200)
-	ATTENDANCE_UPDATE_BROADCAST = server.NewChannel_TypeIs[server.ActionDTO[AttendanceRecord]]("ATTENDANCE_UPDATE_BROADCAST", 200)
 
 }
 
 // マイグレーションする関数
-func Mingrate() error {
+func Mingrate() string {
 	DB := GetDB()
 	return DB.AutoMigrate(
 		&EmployeeRecord{},
 		&LocationRecord{},
 		&PostRecord{},
 		&TimeRecord{},
-		&User{}).Error
+		&User{},
+	).Error()
 }
 
 //--------------------------------[社員テーブル]-------------------------------------------

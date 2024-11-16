@@ -3,13 +3,13 @@ package models
 var (
 	TIMERECORD_CLIENT_TO_DB  chan ActionDTO[TimeRecord]
 	TIMERECORD_DB_TO_CLIENTS chan ActionDTO[TimeRecord]
-
 	ATTENDANCE_CLIENT_TO_DB  chan ActionDTO[AttendanceRecord]
 	ATTENDANCE_DB_TO_CLIENTS chan ActionDTO[AttendanceRecord]
 )
 
 // model構造体と配送するチャネルを生成
 func ChannelsSetUP() {
+
 	TIME_UPDATE_BROADCAST = NewChannel_TypeIs[ActionDTO[TimeRecord]]("TIME_UPDATE_BROADCAST", 200) //ウェブソケットに向けて配信するチャネル
 
 	ATTENDANCE_DB_TO_CLIENTS = NewChannel_TypeIs[ActionDTO[AttendanceRecord]]("ATTENDANCE_DB_TO_CLIENTS", 100)
@@ -22,9 +22,9 @@ func ChannelsSetUP() {
 	TIMERECORD_DB_TO_CLIENTS = NewChannel_TypeIs[ActionDTO[TimeRecord]]("TIMERECORD_DB_TO_CLIENTS", 100) //データベースからウェブソケットコネクションへ配信用の
 
 	go TimeRecordCatcher(TIMERECORD_CLIENT_TO_DB, TIMERECORD_DB_TO_CLIENTS)
-
 }
 
+// クライアントから来たActionDTOをDBに渡す役割を担う。ACTIONDTOは2つ一つは管制実績レコード、もう一つは時間管理レコード
 func TimeRecordCatcher(from_client <-chan ActionDTO[TimeRecord], for_clients chan<- ActionDTO[TimeRecord]) {
 
 	for time_record_dto := range from_client {
