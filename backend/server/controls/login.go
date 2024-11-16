@@ -24,6 +24,7 @@ type RequestData struct {
 	Password string `json:"password"`
 }
 
+//ログインしたら本日の管制実績データが返ってくる。
 func LoginHandler(c echo.Context) error {
 	//josnからパスワードとIDを取り出す。
 	var requestData RequestData
@@ -60,15 +61,22 @@ func LoginHandler(c echo.Context) error {
 	cookie.SameSite = http.SameSiteStrictMode //クロスサイトリクエストを防ぐ
 
 	c.SetCookie(cookie)
+	attendance_records := GetAttendanceRecord()
+	if attendance_records == nil {
 
-	return c.JSON(http.StatusOK,struct {
-		Message string `json:"message"`
-		User    User   `json:"user"`
-	}{
-		Message: "successful",
-		User:    user,
-	})
-	
+		c.JSON(http.StatusOK,struct {
+			Message string `json:"message"`
+			User    User   `json:"user"`
+		}{
+			Message: "successful",
+			User:    user,
+		})
+		return 
+	}
+
+	//本日の勤怠実績を
+	C.JSON(http.StatusOK,attendance_records)
+	return 
 }
 
 
