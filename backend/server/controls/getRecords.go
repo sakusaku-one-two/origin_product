@@ -24,3 +24,16 @@ func GetRecords(c echo.Context) {
 
 	return c.JSON(http.StatusOK, attendanceRecords)
 }
+
+// 今から24時間の対称となる管制実績レコードの配信を行う。
+func GetAttendanceRecord() []models.AttendanceRecord {
+	var attendance_records []models.AttendanceRecord
+	db := models.GetDB()
+	current_time := time.Now()
+	twentyFourHoursLater := current_time.Add(24 * time.Hour)
+	if err := db.Preload("TimeRecords", "plan_time >= / AND plan_time <= ?", current_time, twentyFourHoursLater).Find(&attendance_records); err != nil {
+		return nil
+	}
+
+	return attendance_records
+}
