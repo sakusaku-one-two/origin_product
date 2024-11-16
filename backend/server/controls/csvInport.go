@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -162,6 +163,29 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 	return result_array, nil
 }
 
+// 管制日付から最小日と最大日を返す
+func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
+	var tmp_time time.Time
+	var max_time time.Time = time.Time{} //仮の初期値
+	var min_time time.Time = time.Time{} //仮の初期値
+
+	for _, row := range ct.rows {
+		tmp_time = CreateStartTime(row) //とりあえず勤務開始日時に変換したのを格納
+
+		if tmp_time.Before(max_time) {
+			max_time = tmp_time
+			continue
+		}
+
+		if tmp_time.After(min_time) {
+			min_time = tmp_time
+			continue
+		}
+	}
+
+	return min_time, max_time
+}
+
 type ReturnJson struct {
 	IsLeft           bool                      //再確認が必要かのフラグ
 	RemainingRecords []models.AttendanceRecord // 再確認用のレコード
@@ -196,20 +220,6 @@ func CsvImportHandler(c echo.Context) error {
 	reuslt := UpdateAttendanceTable(csv_table)
 	c.JSON(http.StatusOK, *reuslt)
 	return nil
-}
-
-func UpdateAttendanceTable(csv_table *CsvTable) *ReturnJson {
-	db := models.GetDB()
-
-	// 管制実績番号のリストから重複しているレコードを抽出
-
-	// 重複内容が全くの同一は無視。
-
-	//確認の必要なものを返す
-
-	//重複してないレコードは登録
-
-	//
 }
 
 // --------------------------------------[以下一旦保護]-------------------------
