@@ -5,11 +5,11 @@ import (
 	"errors"
 )
 
-func UpdateAttendanceTable(csv_table *CsvTable) *ReturnJson,err {
+func UpdateAttendanceTable(csv_table *CsvTable) (*ReturnJson, error) {
 
 	min_ID, max_ID, ok := csv_table.BetweenMaxAndMin()
 	if !ok {
-		return nil,erros.Error("csvから管制実績番号の最小値と最大値の取得ができませんでした") 
+		return nil, errors.Error("csvから管制実績番号の最小値と最大値の取得ができませんでした")
 	}
 
 	range_records, ok := GetRangeRecords(min_ID, max_ID) //CSV内にある管制実績IDの最小値と最大値からその範囲にあるレコードをDBから取得
@@ -17,13 +17,10 @@ func UpdateAttendanceTable(csv_table *CsvTable) *ReturnJson,err {
 		return nil, errors.Error("DBから管制実績番号の最大値と最小値から取得できませんでした。")
 	}
 
-	records_from_csv,err := csv_table.To_AttendanceRecords()
+	records_from_csv, err := csv_table.To_AttendanceRecords()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
-
-	
-
 
 	// 管制実績番号のリストから重複しているレコードを抽出
 
