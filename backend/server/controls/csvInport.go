@@ -162,6 +162,13 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 	return result_array, nil
 }
 
+type ReturnJson struct {
+	IsLeft           bool                      //再確認が必要かのフラグ
+	RemainingRecords []models.AttendanceRecord // 再確認用のレコード
+	DuplicateRecords []models.AttendanceRecord //重複したのと同一IDのDB内に既にあるレコード
+	MaintainRecords  []models.AttendanceRecord //フロントエンドで利用するデータ
+}
+
 // CSVファイルのインポート
 func CsvImportHandler(c echo.Context) error {
 
@@ -181,10 +188,31 @@ func CsvImportHandler(c echo.Context) error {
 	missingColumns, ok := csv_table.checkReqireColmuns()
 	if !ok { //JSONで足りない列を配列で返す。
 		return c.JSON(http.StatusBadRequest, missingColumns)
+
 	}
 	//以下　列名と値に問題ないと判断されたブロック
+
+	//この関数の返り値はReturnJson
+	reuslt := UpdateAttendanceTable(csv_table)
+	c.JSON(http.StatusOK, *reuslt)
 	return nil
 }
+
+func UpdateAttendanceTable(csv_table *CsvTable) *ReturnJson {
+	db := models.GetDB()
+
+	// 管制実績番号のリストから重複しているレコードを抽出
+
+	// 重複内容が全くの同一は無視。
+
+	//確認の必要なものを返す
+
+	//重複してないレコードは登録
+
+	//
+}
+
+// --------------------------------------[以下一旦保護]-------------------------
 
 func validateCSV(data string) (bool, string) {
 	//csvReaderを作製

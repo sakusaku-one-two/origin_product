@@ -207,9 +207,3 @@ func NewAttendanceRecord(
 		TimeRecords: Time_Records,
 	}
 }
-
-func (ar *AttendanceRecord) SaveAndSend() {
-	db := GetDB()
-	db.Save(ar)
-	ATTENDANCE_UPDATE_BROADCAST <- *ar
-}
