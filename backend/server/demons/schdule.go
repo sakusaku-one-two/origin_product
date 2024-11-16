@@ -5,7 +5,6 @@ TimeRecordの予定時刻を監視するループを保持したデーモンゴ�
 
 */
 import (
-	"backend-app/server"
 	"backend-app/server/models"
 	"sync"
 	"time"
@@ -13,8 +12,8 @@ import (
 
 var (
 	tasks              sync.Map
-	TIMERECORD_FROM_DB chan channe.ActionDTO[models.TimeRecord]
-	BROADCAST          chan channels.ActionDTO[models.AttendanceRecord]
+	TIMERECORD_FROM_DB chan models.ActionDTO[models.TimeRecord]
+	BROADCAST          chan models.ActionDTO[models.AttendanceRecord]
 )
 
 func StartUP() {
@@ -25,13 +24,18 @@ func StartUP() {
 }
 
 func TaskAppendHandler() {
-	TIMERECORD_FROM_DB = channels.FetchChannele_TypeIs[channels.ActionDTO[models.TimeRecord]]("TIMERECORD_FROM_DB")
+	TIMERECORD_FROM_DB, ok := models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("TIMERECORD_FROM_DB")
+	defer close(TIMERECORD_FROM_DB)
+	if !ok {
+		return
+	}
+
 	for time_record := range TIMERECORD_FROM_DB {
 		tasks.Store(time_record.ID, time_record)
 	}
 }
 
-func SchduleHandler(broadcast <-chan channels.ActionDTO[models.TimeRecord]) {
+func SchduleHandler(broadcast <-chan server.ActionDTO[models.TimeRecord]) {
 	/*
 		TimeRecordを監視するゴールチン
 	*/
