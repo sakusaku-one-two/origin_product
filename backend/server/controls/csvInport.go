@@ -147,7 +147,7 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 		}
 		return &models.AttendanceRecord{
 			ManageID:   row["管制番号"].as_int, //これが基本となる値。
-			EmpID:      row["社員番号"].as_int,
+			EmpID:      row["隊員番号"].as_int,
 			LocationID: row["配置先番号"].as_int, //
 
 			TimeRecords: time_records,
