@@ -140,7 +140,7 @@ func (t *TimeRecord) CheckTime(current_time time.Time) {
 	if duration > 30*time.Minute {
 		t.IsIgnore = true //無視する対象にする。
 		DB.Save(t)
-		TIME_UPDATE_BROADCAST <- server.NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
+		TIMERECORD_DB_TO_CLIENTS <- NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
 		return
 	}
 
@@ -148,7 +148,7 @@ func (t *TimeRecord) CheckTime(current_time time.Time) {
 	if t.PlanTime.Add(-5*time.Minute).Before(current_time) && current_time.Before(t.PlanTime) {
 		t.IsAlert = true
 		DB.Save(t)
-		TIME_UPDATE_BROADCAST <- server.NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
+		TIMERECORD_DB_TO_CLIENTS <- NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
 		return
 	}
 
@@ -157,7 +157,7 @@ func (t *TimeRecord) CheckTime(current_time time.Time) {
 		t.IsOver = true
 		t.IsAlert = true
 		DB.Save(t)
-		TIME_UPDATE_BROADCAST <- server.NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
+		TIMERECORD_DB_TO_CLIENTS <- NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
 		return
 	}
 
