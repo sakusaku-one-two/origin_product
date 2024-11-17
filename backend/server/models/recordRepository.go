@@ -6,49 +6,38 @@ import (
 	"gorm.io/gorm"
 )
 
-type RecordsCache[ModelType any] struct {
-	Map sync.Map
-}
+/*
+	gorｍで定義した構造体のレポジトリ、アプリケーションからは直接モデル
 
-// キャッシュに登録とDBに保存両方行う
-func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData ModelType) error {
-	_, IsLoaded := rc.Map.LoadOrStore(id, targetData)
-	if IsLoaded {
-		newQuery := NewQuerySession()
-		if err := newQuery.Save(&targetData).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (rc *RecordsCache[ModelType]) getValue(id uint) (*ModelType, bool) {
-	fetchedValue, ok := rc.Map.Load(id)
-	if !ok {
-		return nil, false
-	}
-
-	result, ok := fetchedValue.(ModelType)
-	if !ok {
-		return nil, false
-	}
-	return &result, true
-}
+*/
 
 type Repository[ModelType any] struct {
-	Cache     *RecordsCache[ModelType]
-	BroadCast chan ActionDTO[ModelType]
-	DB        *gorm.DB
+	Cache   *RecordsCache[ModelType]
+	Sender  chan ActionDTO[ModelType]
+	Reciver chan ActionDTO[ModelType]
+	DB      *gorm.DB
 }
 
 func CreateRepositry[ModelType any](channelName string, broadcastCount int) *Repository[ModelType] {
 	db := GetDB()
-	broadcastChan := NewChannel_TypeIs[ActionDTO[ModelType]](channelName, broadcastCount)
+	sender_name_as_chan := "SENDER_" + channelName //送信channelのキー
+	broadcastChan := NewChannel_TypeIs[ActionDTO[ModelType]](sender_name_as_chan, broadcastCount)
+	reciver_name_as_chan := "RECIVER_" + channelName //受信channelのキー
+	reciverChan := NewChannel_TypeIs[ActionDTO[ModelType]](reciver_name_as_chan, broadcastCount)
 	cache := &RecordsCache[ModelType]{Map: sync.Map{}}
 
-	return &Repository[ModelType]{
-		Cache:     cache,
-		BroadCast: broadcastChan,
-		DB:        db,
+	rp := &Repository[ModelType]{
+		Cache:   cache,         //threadセーフな辞書でモデルインスタンスを管理
+		Sender:  broadcastChan, //websocketでclientのreduxに向けて配信するためのchannel。
+		Reciver: reciverChan,   //クライアントからの受信を転送してもらうためのチャンネル
+		DB:      db,            //DBクライアントインスタンス。
 	}
+
+	return rp
+}
+
+type RepoGorutin[T any] func(repo *Repository[T])
+
+func (rp *Repository[ModelType]) BackgroundKicker(func_as_background RepoGorutin[ModelType]) {
+	go func_as_background(rp)
 }
