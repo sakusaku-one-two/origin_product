@@ -37,13 +37,13 @@ func (rc *RecordsCache[ModelType]) getValue(id uint) (*ModelType, bool) {
 
 type Repository[ModelType any] struct {
 	Cache     *RecordsCache[ModelType]
-	BroadCast chan ModelType
+	BroadCast chan ActionDTO[ModelType]
 	DB        *gorm.DB
 }
 
 func CreateRepositry[ModelType any](channelName string, broadcastCount int) *Repository[ModelType] {
 	db := GetDB()
-	broadcastChan := NewChannel_TypeIs[ModelType](channelName, broadcastCount)
+	broadcastChan := NewChannel_TypeIs[ActionDTO[ModelType]](channelName, broadcastCount)
 	cache := &RecordsCache[ModelType]{Map: sync.Map{}}
 
 	return &Repository[ModelType]{
