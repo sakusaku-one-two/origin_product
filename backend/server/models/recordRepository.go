@@ -1,53 +1,54 @@
 package models
 
 import (
-	"backend-app/serverT(inner_func func(key any,Check_Target ModelType),
-	        data_map sync.Map,done_chan_as_inner chan <- interface{} )
-		{
+	"sync"
 
-		defer close(done_chan_as_inner)
-		
-		for {
-			data_map.Range(func(key any,val any) bool {
-				model_type,ok := val.(ModelType)
-				if !ok {
-					return false
-				}
-				inner_func(key,model_type)
-				return true
-			})
+	"gorm.io/gorm"
+)
 
-			select {
-			case <- done_chan_as_inner:
-				return 
-			case <- time.Ticker(time.second *10):
-				continue
-			}
+type RecordsCache[ModelType any] struct {
+	Map sync.Map
+}
+
+// キャッシュに登録とDBに保存両方行う
+func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData ModelType) error {
+	_, IsLoaded := rc.Map.LoadOrStore(id, targetData)
+	if IsLoaded {
+		newQuery := NewQuerySession()
+		if err := newQuery.Save(&targetData).Error; err != nil {
+			return err
 		}
-	}(
-		call_back,
-		rc.Map,
-		done_chan,
-	)
+	}
+	return nil
+}
 
+func (rc *RecordsCache[ModelType]) getValue(id uint) (*ModelType, bool) {
+	fetchedValue, ok := rc.Map.Load(id)
+	if !ok {
+		return nil, false
+	}
 
-	return done_chan
-} 
-
+	result, ok := fetchedValue.(ModelType)
+	if !ok {
+		return nil, false
+	}
+	return &result, true
+}
 
 type Repository[ModelType any] struct {
-	Cache RecordsCache[ModelType]
+	Cache     *RecordsCache[ModelType]
 	BroadCast chan ModelType
-	Model_Type ModelType
-	DB *gorm.DB
+	DB        *gorm.DB
 }
 
-func (r *Repository[ModelType]) init(broadcast_count int) *Repository[ModelType] {
-	r.DB = GetDB()
-	r.BroadCast = make(chan ModelType,broadcast_count)
-	r.Cache = RecordsCache[ModelType]{Map: sync.Map{}}
+func CreateRepositry[ModelType any](channelName string, broadcastCount int) *Repository[ModelType] {
+	db := GetDB()
+	broadcastChan := NewChannel_TypeIs[ModelType](channelName, broadcastCount)
+	cache := &RecordsCache[ModelType]{Map: sync.Map{}}
 
-
-
+	return &Repository[ModelType]{
+		Cache:     cache,
+		BroadCast: broadcastChan,
+		DB:        db,
+	}
 }
-
