@@ -20,14 +20,21 @@ func SetUp() {
 
 }
 
+func CreateActionDTO[ModelType any](actionName string, targetModle *ModelType) ActionDTO[ModelType] {
+	return ActionDTO[ModelType]{
+		Action:  actionName,
+		Payload: targetModle,
+	}
+}
+
 // ----------------------[]-------------------------------------
 
-// リポジトリの生成とリポジトリないのバックグランドゴルーチンを定義
+// リポジトリの生成とリポジトリと関連したバックグランドゴルーチンを定義
 func SetUpRepositry() {
 
 	EMPLOYEE_RECORD_REPOSITORY = CreateRepositry[EmployeeRecord]("ACTION_EMPLOYEE_RECORD", 10)
 	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
-		//社員バックグランドで動作するごルーチン
+		//社員キャッシュに関連したバックグランドで動作するごルーチン
 
 		for action_emp_dto := range repo.Reciver {
 
@@ -48,16 +55,14 @@ func SetUpRepositry() {
 	TIME_RECORD_REPOSITORY = CreateRepositry[TimeRecord]("ACTION_TIME_RECORD", 100)
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
-
+		//全てのtimeActionDTOはこのゴルーチンに渡されてキャッシュとDBが更新と削除される
 		for time_action_dto := range repo.Reciver {
 
 			switch time_action_dto.Action {
-
 			case "TIME_UPDATE":
 				repo.Cache.loadAndSave(time_action_dto.Payload.ID, time_action_dto.Payload)
 			case "TIME_DELETE":
-				repo.DB.Delete(time_action_dto.Payload)
-				repo.Cache.Map.Delete(time_action_dto.Payload.ID)
+				repo.Cache.Delete(time_action_dto.Payload.ID)
 			default:
 				continue
 			}
@@ -69,8 +74,6 @@ func SetUpRepositry() {
 	})
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
-
-		o
 
 		//時間の管理するゴルーチン
 		for {
@@ -88,19 +91,35 @@ func SetUpRepositry() {
 					return true
 				}
 
-				//スキップ条件 無視か完了のどちらか
-				if time_record.IsIgnore || time_record.IsComplete {
+				//スキップ条件 無視か完了又はアラート対称外のどちらか
+				if time_record.IsIgnore || time_record.IsComplete || time_record.IsOver {
 					return true
 				}
 
 				current_time := time.Now()
 
 				//予定時刻の30分をオーバーしたか。オーバーしたら
-				if time_record.PlanTime.Add(30 * time.Minute)
+				if time_record.PlanTime.Add(30 * time.Minute).After(current_time) {
+					time_record.IsOver = true
+					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
+						return true //キャッシュとDBの更新が失敗したのでスキップする。
+					}
 
-				if time_record.PlanTime.Before(current_time) {
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_OVER", time_record)
+
+					return true
+				}
+
+				if time_record.PlanTime.Add(-5 * time.Minute).Before(current_time) {
 					//現在時刻の前に時刻が存在すル。.
-
+					return true
+				} else if time_record.PlanTime.Before(current_time) {
+					//予定時刻の5分前なので、予備アラートを発報
+					time_record.PreAlert = true
+					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
+						return true //キャッシュに再度更新とDBの更新が失敗した
+					}
+					repo.Sender <- CreateActionDTO[TimeRecord]("PRE_ALERT", time_record)
 				}
 
 				return true

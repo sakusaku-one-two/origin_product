@@ -121,6 +121,7 @@ type TimeRecord struct {
 	PlanTime   time.Time
 	ResultTime time.Time
 	IsAlert    bool       `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
+	PreAlert   bool       `gorm:"defalt:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
 	IsOver     bool       `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
 	IsIgnore   bool       `gorm:"defalt:fasle"` // このフラグはアラートや無視を表す
 	IsComplete bool       `gorm:"defalt:fasle"` //完了フラグ

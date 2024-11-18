@@ -38,3 +38,13 @@ func (rc *RecordsCache[ModelType]) getValue(id uint) (*ModelType, bool) {
 	}
 	return &result, true
 }
+
+func (rc *RecordsCache[ModelType]) Delete(id uint) bool {
+	targetModel, ok := rc.getValue(id)
+	if !ok {
+		return false
+	}
+	NewQuerySession().Delete(targetModel)
+	rc.Map.Delete(id)
+	return true
+}
