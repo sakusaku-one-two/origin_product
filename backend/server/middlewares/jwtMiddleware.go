@@ -52,9 +52,9 @@ func JWTMiddleware() echo.MiddlewareFunc {
 			}
 			c.Set(USER_CONTEXT_KEY, userID)
 		},
-		ErrorHandlerWithContext: func(err error, c echo.Context) error {
+		ErrorHandler: func(c echo.Context, err error) error {
 			//トークンの検証に失敗した場合のエラーハンドリング
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invaild or missing token"})
+			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		},
 	})
 }
