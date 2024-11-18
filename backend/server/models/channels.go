@@ -8,9 +8,6 @@ import (
 /*
 パッケージを横断するchannelを定義
 NewChannel_TypeIsでchannelは作成と登録を同時に行うの。
-
-
-
 */
 
 var Store *Channels

@@ -88,33 +88,53 @@ func CreateFinalyPlanTime(row map[string]*Value) time.Time {
 }
 
 // Timeレコードを作製する。
-func CreateTimeRecord(row map[string]*Value) ([]models.TimeRecord, error) {
+func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 
 	manage_id := row["管制番号"].as_int
 
-	result := []models.TimeRecord{
-		models.TimeRecord{
-			ManageID: manage_id,
-			PlanNo:   1,
-			PlanTime: CreateDepartPlanTime(row),
+	result := []*models.TimeRecord{
+		&models.TimeRecord{ //自宅出発予定時刻
+			ManageID:   manage_id,
+			PlanNo:     1,
+			PlanTime:   CreateDepartPlanTime(row),
+			IsAlert:    false,
+			PreAlert:   false,
+			IsOver:     false,
+			IsIgnore:   false,
+			IsComplete: false,
 		},
 
-		models.TimeRecord{
-			ManageID: manage_id,
-			PlanNo:   2,
-			PlanTime: CreateReachPlanTime(row),
+		&models.TimeRecord{ //現場到着予定時刻
+			ManageID:   manage_id,
+			PlanNo:     2,
+			PlanTime:   CreateReachPlanTime(row),
+			IsAlert:    false,
+			PreAlert:   false,
+			IsOver:     false,
+			IsIgnore:   false,
+			IsComplete: false,
 		},
 
-		models.TimeRecord{
-			ManageID: manage_id,
-			PlanNo:   3,
-			PlanTime: CreateStartTime(row),
+		&models.TimeRecord{ //勤務開始予定時刻
+			ManageID:   manage_id,
+			PlanNo:     3,
+			PlanTime:   CreateStartTime(row),
+			IsAlert:    false,
+			PreAlert:   false,
+			IsOver:     false,
+			IsIgnore:   false,
+			IsComplete: false,
 		},
 
-		models.TimeRecord{
-			ManageID: manage_id,
-			PlanNo:   4,
-			PlanTime: CreateFinalyPlanTime(row),
+		&models.TimeRecord{ //勤務終了予定時刻
+			ManageID:   manage_id,
+			PlanNo:     4,
+			PlanTime:   CreateFinalyPlanTime(row),
+			IsAlert:    false,
+			PreAlert:   false,
+			IsOver:     false,
+			IsIgnore:   false,
+			IsComplete: false,
 		},
 	}
 

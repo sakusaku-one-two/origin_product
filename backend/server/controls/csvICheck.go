@@ -212,13 +212,6 @@ func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
 	return min_val, max_val, true
 }
 
-type ReturnJson struct {
-	IsLeft           bool                      //再確認が必要かのフラグ
-	RemainingRecords []models.AttendanceRecord // 再確認用のレコード
-	DuplicateRecords []models.AttendanceRecord //重複したのと同一IDのDB内に既にあるレコード
-	MaintainRecords  []models.AttendanceRecord //フロントエンドで利用するデータ
-}
-
 // CSVファイルのインポート
 func CsvImportHandler(c echo.Context) error {
 
@@ -243,7 +236,10 @@ func CsvImportHandler(c echo.Context) error {
 	//以下　列名と値に問題ないと判断されたブロック
 
 	//この関数の返り値はReturnJson
-	reuslt := UpdateAttendanceTable(csv_table)
+	reuslt, err := AttendanceSorting(csv_table)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "CSVの値に問題があります。確認してくださ。")
+	}
 	c.JSON(http.StatusOK, *reuslt)
 	return nil
 }

@@ -8,7 +8,8 @@ import (
 func SetupHandlers(e *echo.Echo) *echo.Echo {
 
 	//POSt
-	e.POST("/CsvImport", CsvImportHandler) //CSV用のエンドポイント
+	e.POST("/Csvcheck", CsvImportHandler)          //CSV確認用のエンドポイント　各種構造体に変換し既存のレコード構造体と重複や相異を返却
+	e.POST("/InsertRecords", InsertRecordsHandler) //CSVのデータとDBとの相違確認が完了して、登録するJSONデータを受け取るエンドポイント
 	e.POST("/login", LoginHandler)
 
 	//GET

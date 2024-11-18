@@ -8,7 +8,17 @@ import (
 
 /*
 	gorｍで定義した構造体のレポジトリ、アプリケーションからは直接モデル
+	SENDER_
+	RECIVER_
 
+	SENDER_
+	RECIVER_
+
+	SENDER_
+	RECIVER_
+
+	SENDER_
+	RECIVER_
 */
 
 type Repository[ModelType any] struct {
