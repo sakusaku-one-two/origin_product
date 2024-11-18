@@ -43,8 +43,8 @@ func LoginHandler(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid password"})
 	}
 	//以下はパスワードの確認完了したブロック
-	user.IsActive = true
-	DB.save(&user)
+	user.IsLogin = true
+	models.NewQuerySession().Save(&user)
 	//ユーザーからJWTを生成
 	token, err := GenerateJWT(user)
 	if err != nil {
@@ -63,20 +63,19 @@ func LoginHandler(c echo.Context) error {
 	c.SetCookie(cookie)
 	attendance_records := GetAttendanceRecord()
 	if attendance_records == nil {
-
-		c.JSON(http.StatusOK, struct {
+		err := c.JSON(http.StatusOK, struct {
 			Message string `json:"message"`
 			User    User   `json:"user"`
 		}{
 			Message: "successful",
 			User:    user,
 		})
-		return
+		return err
 	}
 
 	//本日の勤怠実績を
-	C.JSON(http.StatusOK, attendance_records)
-	return
+	err = c.JSON(http.StatusOK, attendance_records)
+	return err
 }
 
 func GenerateJWT(user User) (string, error) {
