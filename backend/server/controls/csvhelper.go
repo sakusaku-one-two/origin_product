@@ -103,8 +103,8 @@ func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecor
 		if dbRecord, exists := dbRecords[manageID]; exists {
 			// レコードの内容を比較（ManageID以外の全フィールドを比較）
 			if !recordsEqual(csvRecord, dbRecord) {
-				csvDuplicates = append(csvDuplicates, csvRecord)
-				dbDuplicates = append(dbDuplicates, dbRecord)
+				csvDuplicates[manageID] = csvRecord
+				dbDuplicates[manageID] = dbRecord
 				isLeft = true
 			}
 		}
@@ -117,9 +117,9 @@ func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecor
 func recordsEqual(record1, record2 *models.AttendanceRecord) bool {
 	return record1.EmpID == record2.EmpID &&
 		record1.LocationID == record2.LocationID &&
-		recordsEqual(record1.TimeRecords, record2.TimeRecords)
+		TimerecordsEqual(record1.TimeRecords, record2.TimeRecords)
 }
 
-func recordsEqual(record1, record2 []models.TimeRecord) bool {
+func TimerecordsEqual(record1, record2 []models.TimeRecord) bool {
 	return reflect.DeepEqual(record1, record2)
 }
