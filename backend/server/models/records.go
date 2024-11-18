@@ -11,7 +11,6 @@ package models
 */
 
 import (
-	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -120,12 +119,11 @@ type TimeRecord struct {
 	PlanNo     uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
 	PlanTime   time.Time
 	ResultTime time.Time
-	IsAlert    bool       `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
-	PreAlert   bool       `gorm:"defalt:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
-	IsOver     bool       `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
-	IsIgnore   bool       `gorm:"defalt:fasle"` // このフラグはアラートや無視を表す
-	IsComplete bool       `gorm:"defalt:fasle"` //完了フラグ
-	selfMutex  sync.Mutex `gorm:"-"`            //DBのスキーマからは無視
+	IsAlert    bool `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
+	PreAlert   bool `gorm:"defalt:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
+	IsOver     bool `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
+	IsIgnore   bool `gorm:"defalt:fasle"` // このフラグはアラートや無視を表す
+	IsComplete bool `gorm:"defalt:fasle"` //完了フラグ
 }
 
 // --------------------------------------------------------------------------------------------

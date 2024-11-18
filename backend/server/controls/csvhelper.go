@@ -4,7 +4,6 @@ import (
 	"backend-app/server/models"
 	"errors"
 	"log"
-	"reflect"
 )
 
 /*
@@ -81,10 +80,10 @@ func RecordToDictionary(records []*models.AttendanceRecord) (map[uint]*models.At
 
 // CSVの管制実績番号の最小値から管制実績番号の最大値の範囲内にあるレコードをいったん取得
 func GetRangeRecords(min_id uint, max_id uint) ([]*models.AttendanceRecord, bool) {
-	new_qs := models.NewQuerySession()
+
 	var result_array []*models.AttendanceRecord
 
-	if err := new_qs.Where("ManageID >= ?", min_id).Where("ManageID <= ?", max_id).Find(&result_array).Error; err != nil {
+	if err := models.NewQuerySession().Where("ManageID >= ?", min_id).Where("ManageID <= ?", max_id).Find(&result_array).Error; err != nil {
 		log.Println(err)
 		return nil, false
 	}
@@ -120,6 +119,25 @@ func recordsEqual(record1, record2 *models.AttendanceRecord) bool {
 		TimerecordsEqual(record1.TimeRecords, record2.TimeRecords)
 }
 
-func TimerecordsEqual(record1, record2 []models.TimeRecord) bool {
-	return reflect.DeepEqual(record1, record2)
+func TimerecordsEqual(recordArray1, recordArray2 []models.TimeRecord) bool {
+	for _, item := range recordArray1 {
+		flag := false
+		for _, item2 := range recordArray2 {
+			if item.PlanNo == item2.PlanNo {
+				flag = true
+				if !TimeRecordEqual(item, item2) {
+					return false
+				}
+			}
+		}
+		if !flag {
+			return false
+		}
+	}
+	return true
+}
+
+func TimeRecordEqual(record1, record2 models.TimeRecord) bool {
+	return record1.PlanTime.Equal(record2.PlanTime) &&
+		record1.ResultTime.Equal(record2.ResultTime)
 }
