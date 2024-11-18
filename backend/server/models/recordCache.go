@@ -17,11 +17,24 @@ type RecordsCache[ModelType any] struct {
 // キャッシュに登録とDBに保存両方行う
 func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData *ModelType) error {
 	_, IsLoaded := rc.Map.LoadOrStore(id, targetData)
+	newQuery := NewQuerySession().Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			rc.Map.Delete(id)
+			newQuery.Rollback()
+		}
+	}()
+
 	if IsLoaded {
-		newQuery := NewQuerySession()
+
 		if err := newQuery.Save(targetData).Error; err != nil {
+			newQuery.Rollback()
+			rc.Map.Delete(id)
 			return err
 		}
+
+		newQuery.Commit()
 	}
 	return nil
 }
