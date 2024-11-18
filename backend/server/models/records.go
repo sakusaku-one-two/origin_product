@@ -128,42 +128,6 @@ type TimeRecord struct {
 	selfMutex  sync.Mutex `gorm:"-"`            //DBのスキーマからは無視
 }
 
-func (t *TimeRecord) CheckTime(current_time time.Time) {
-	if t.IsIgnore || t.IsComplete {
-		return
-	} //無視する対象または完了していなら抜ける
-
-	t.selfMutex.Lock()
-	defer t.selfMutex.Unlock()
-	duration := current_time.Sub(t.PlanTime)
-
-	//30分を超えたら自動でアラートを切る
-	if duration > 30*time.Minute {
-		t.IsIgnore = true //無視する対象にする。
-		DB.Save(t)
-		TIMERECORD_DB_TO_CLIENTS <- NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
-		return
-	}
-
-	// 予定時間の5分前にアラートを発報する
-	if t.PlanTime.Add(-5*time.Minute).Before(current_time) && current_time.Before(t.PlanTime) {
-		t.IsAlert = true
-		DB.Save(t)
-		TIMERECORD_DB_TO_CLIENTS <- NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
-		return
-	}
-
-	//予定時間を超えたらアラートを発報する。
-	if t.PlanTime.Before(current_time) {
-		t.IsOver = true
-		t.IsAlert = true
-		DB.Save(t)
-		TIMERECORD_DB_TO_CLIENTS <- NewActionDTO[TimeRecord]("TIME_UPDATE_BROADCAST", t)
-		return
-	}
-
-}
-
 // --------------------------------------------------------------------------------------------
 // 管制実績レコード
 type AttendanceRecord struct {

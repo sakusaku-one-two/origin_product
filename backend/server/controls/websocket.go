@@ -2,6 +2,7 @@ package controls
 
 import (
 	"backend-app/server/models"
+	"log"
 	"net/http"
 	"sync"
 
@@ -112,14 +113,16 @@ func ActionWebSocketHandler(c echo.Context) error {
 			}
 
 			switch msgAction.Action {
-			case "EMP_UPDATE", "EMP_DELETE":
+			case "EMP_RECORD_UPDATE", "EMP_RECORD_DELETE":
 				SendActionDTO[models.EmployeeRecord](ACTION_EMPLOYEE_RECORD_TO_REPO, msgAction)
-			case "ATTENDANCE_UPDATE", "ATTENDANCE_DELETE":
+			case "ATTENDANCE_RECORD_UPDATE", "ATTENDANCE_RECORD_DELETE":
 				SendActionDTO[models.AttendanceRecord](ATTENDANCE_RECORD_TO_REPO, msgAction)
-			case "TIME_UPDATE", "TIME_DELETE":
+			case "TIME_RECORD_UPDATE", "TIME_RECORD_DELETE":
 				SendActionDTO[models.TimeRecord](ACTION_TIME_RECORD_TO_REPO, msgAction)
-			case "LOCATION_UPDATE", "LOCATION_DELETE":
+			case "LOCATION_RECORD_UPDATE", "LOCATION_RECORD_DELETE":
 				SendActionDTO[models.LocationRecord](ACTION_LOCATION_RECORD_TO_REPO, msgAction)
+			default:
+				log.Printf("不明なActionDTOが送信されました。Action: %v", msgAction.Action)
 			}
 
 		}
