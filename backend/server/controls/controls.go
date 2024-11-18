@@ -14,4 +14,5 @@ func SetupHandlers(e *echo.Echo) *echo.Echo {
 	//GET
 	e.GET("/sync", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
 
+	return e
 }

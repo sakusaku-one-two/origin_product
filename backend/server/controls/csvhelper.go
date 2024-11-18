@@ -3,27 +3,35 @@ package controls
 import (
 	"backend-app/server/models"
 	"errors"
+	"log"
+	"reflect"
 )
 
 /*
-	csvの取り込みフロー
-		・フロントエンドからCSVファイルをアップロード
-		・エンドポイントから直にDBに格納するのではなくて、一旦モデル構造体に変換し、既存のレコードと重複情報と一緒に返す。
-		・フロントエンド側で重複情報を確認してどちらかを選択
-		・その結果情報をmodel配列として再度サーバーに送付
-		・model配列をDBに保存と更新を行う。
-		・保存と更新の際に現在クライアント側で参照しているレコード範囲に該当している場合は、DB保存・websocketで配信。
+csvの取り込みフロー
 
-	csvの取り込み条件
-	・列名の存在確認
-	・重複がないレコードは更新する。その際
-	・追加であれ、更新であれ、破棄以外の場合でかつ現在フロントエンドに渡している範囲内であればWEBSOCKETで配信する。
-	・
+	・フロントエンドからCSVファイルをアップロード
+	・エンドポイントから直にDBに格納するのではなくて、一旦モデル構造体に変換し、既存のレコードと重複情報と一緒に返す。
+	・フロントエンド側で重複情報を確認してどちらかを選択
+	・その結果情報をAttendanceRecord配列として再度サーバーに送付
+	・model配列をDBに保存と更新を行う。
+	・保存と更新の際に現在クライアント側で参照しているレコード範囲に該当している場合は、DB保存・websocketで配信。
 
-
+csvの取り込み条件
+・列名の存在確認
+・重複がないレコードは更新する。その際
+・追加であれ、更新であれ、破棄以外の場合でかつ現在フロントエンドに渡している範囲内であればWEBSOCKETで配信する。
+・
 */
 
-func UpdateAttendanceTable(csv_table *CsvTable) (*ReturnJson, error) {
+type ComfirmationRecords struct {
+	IsLeft  bool
+	FromCsv map[uint]*models.AttendanceRecord
+	FromDb  map[uint]*models.AttendanceRecord
+}
+
+// 確認が必要なレコードと必要ないレコードを仕分ける。
+func AttendanceSorting(csv_table *CsvTable) (*ComfirmationRecords, error) {
 
 	min_ID, max_ID, ok := csv_table.BetweenMaxAndMin()
 	if !ok {
@@ -34,31 +42,84 @@ func UpdateAttendanceTable(csv_table *CsvTable) (*ReturnJson, error) {
 	if !ok {
 		return nil, errors.New("DBから管制実績番号の最大値と最小値から取得できませんでした。")
 	}
+	// 取得したレコードを辞書に変換
+	range_records_dict, err := RecordToDictionary(range_records)
+	if err != nil {
+		return nil, err
+	}
 
 	records_from_csv, err := csv_table.To_AttendanceRecords()
 	if err != nil {
 		return nil, err
 	}
+	// 取得したレコードを辞書に変換
+	records_from_csv_dict, err := RecordToDictionary(records_from_csv)
+	if err != nil {
+		return nil, err
+	}
+	//双方のレコード構造体辞書からManageIDの重複があり、かつ構造体の各種要素に相異があるレコードの辞書をcsvからのとDBからのを返す
 
-	// 管制実績番号のリストから重複しているレコードを抽出
+	// 重複レコードの検出
+	comfirmation_records_from_csv, comfirmation_records_from_db, isLeft := findDuplicateRecords(records_from_csv_dict, range_records_dict)
 
-	// 重複内容が全くの同一は無視。
+	return &ComfirmationRecords{
+		IsLeft:  isLeft,
+		FromCsv: comfirmation_records_from_csv,
+		FromDb:  comfirmation_records_from_db,
+	}, nil
+}
 
-	//確認の必要なものを返す
+func RecordToDictionary(records []*models.AttendanceRecord) (map[uint]*models.AttendanceRecord, error) {
+	result := make(map[uint]*models.AttendanceRecord)
 
-	//重複してないレコードは登録
+	for _, record := range records {
+		result[record.ManageID] = record
+	}
 
-	//
+	return result, nil
 }
 
 // CSVの管制実績番号の最小値から管制実績番号の最大値の範囲内にあるレコードをいったん取得
-func GetRangeRecords(min_id uint, max_id uint) ([]models.AttendanceRecord, bool) {
+func GetRangeRecords(min_id uint, max_id uint) ([]*models.AttendanceRecord, bool) {
 	new_qs := models.NewQuerySession()
-	var result_array []models.AttendanceRecord
+	var result_array []*models.AttendanceRecord
 
 	if err := new_qs.Where("ManageID >= ?", min_id).Where("ManageID <= ?", max_id).Find(&result_array).Error; err != nil {
-		return result_array, false
+		log.Println(err)
+		return nil, false
 	}
 
 	return result_array, true
+}
+
+// 重複するレコードを見つけて、内容が異なるものを抽出する関数
+func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecord) (map[uint]*models.AttendanceRecord, map[uint]*models.AttendanceRecord, bool) {
+	csvDuplicates := make(map[uint]*models.AttendanceRecord)
+	dbDuplicates := make(map[uint]*models.AttendanceRecord)
+	isLeft := false
+
+	// CSVレコードをループして、DBレコードと比較
+	for manageID, csvRecord := range csvRecords {
+		if dbRecord, exists := dbRecords[manageID]; exists {
+			// レコードの内容を比較（ManageID以外の全フィールドを比較）
+			if !recordsEqual(csvRecord, dbRecord) {
+				csvDuplicates = append(csvDuplicates, csvRecord)
+				dbDuplicates = append(dbDuplicates, dbRecord)
+				isLeft = true
+			}
+		}
+	}
+
+	return csvDuplicates, dbDuplicates, isLeft
+}
+
+// 2つのレコードの内容を比較する関数
+func recordsEqual(record1, record2 *models.AttendanceRecord) bool {
+	return record1.EmpID == record2.EmpID &&
+		record1.LocationID == record2.LocationID &&
+		recordsEqual(record1.TimeRecords, record2.TimeRecords)
+}
+
+func recordsEqual(record1, record2 []models.TimeRecord) bool {
+	return reflect.DeepEqual(record1, record2)
 }
