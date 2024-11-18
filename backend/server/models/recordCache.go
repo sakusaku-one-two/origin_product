@@ -32,11 +32,11 @@ func (rc *RecordsCache[ModelType]) getValue(id uint) (*ModelType, bool) {
 		return nil, false
 	}
 
-	result, ok := fetchedValue.(ModelType)
+	result, ok := fetchedValue.(*ModelType)
 	if !ok {
 		return nil, false
 	}
-	return &result, true
+	return result, true
 }
 
 func (rc *RecordsCache[ModelType]) Delete(id uint) bool {
