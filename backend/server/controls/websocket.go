@@ -40,6 +40,9 @@ var (
 	ATTENDANCE_RECORD_TO_REPO   chan models.ActionDTO[models.AttendanceRecord]
 	BROADCAST_ATTENDANCE_RECORD chan models.ActionDTO[models.AttendanceRecord]
 
+	BROADCAST_ACTION_LOCATION_RECORD chan models.ActionDTO[models.LocationRecord]
+	ACTION_LOCATION_RECORD_TO_REPO   chan models.ActionDTO[models.LocationRecord]
+
 	UPGREDER websocket.Upgrader
 )
 
@@ -54,7 +57,10 @@ func StartUp() {
 	BROADCAST_ATTENDANCE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("SENDER_ACTION_ATTENDANCE_RECORD")
 	ATTENDANCE_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("RECIVER_ACTION_ATTENDANCE_RECORD")
 
-	go ActionBroadCastFanIn(BROADCAST_ACTION_TIME_RECORD, BROADCAST_ATTENDANCE_RECORD)
+	BROADCAST_ACTION_LOCATION_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("SENDER_ACTION_LOCATION_RECORD")
+	ACTION_LOCATION_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("RECIVER_ACTION_LOCATION_RECORD")
+
+	go ActionBroadCastFanIn(BROADCAST_ACTION_TIME_RECORD, BROADCAST_ATTENDANCE_RECORD, BROADCAST_ACTION_LOCATION_RECORD)
 
 	UPGREDER = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -64,12 +70,12 @@ func StartUp() {
 		}}
 }
 
-func SendActionDTO[ModelType any](ch chan models.ActionDTO[ModelType], actionDTO models.ActionDTO[any]) {
+func SendActionDTO[ModelType any](toRepositoryChan chan models.ActionDTO[ModelType], actionDTO models.ActionDTO[any]) {
 	// any型のPayloadをアサーションしてModelType型に変換し、ActionDTO[ModelType]型に変換する
 	// websocketのメッセージをパースしてchannelに送信
 	payload, ok := (*actionDTO.Payload).(*ModelType)
 	if ok {
-		ch <- models.ActionDTO[ModelType]{Action: actionDTO.Action, Payload: payload}
+		toRepositoryChan <- models.ActionDTO[ModelType]{Action: actionDTO.Action, Payload: payload}
 	}
 }
 
@@ -107,6 +113,8 @@ func ActionWebSocketHandler(c echo.Context) error {
 				SendActionDTO[models.AttendanceRecord](ATTENDANCE_RECORD_TO_REPO, msgAction)
 			case "TIME_UPDATE", "TIME_DELETE":
 				SendActionDTO[models.TimeRecord](ACTION_TIME_RECORD_TO_REPO, msgAction)
+			case "LOCATION_UPDATE", "LOCATION_DELETE":
+				SendActionDTO[models.LocationRecord](ACTION_LOCATION_RECORD_TO_REPO, msgAction)
 			}
 
 		}
@@ -143,6 +151,7 @@ func BroadCast[T models.TimeRecord | models.AttendanceRecord | models.EmployeeRe
 func ActionBroadCastFanIn(
 	TimeRecordActionBroadCast <-chan models.ActionDTO[models.TimeRecord],
 	AttendacneActionBroadCast <-chan models.ActionDTO[models.AttendanceRecord],
+	LocationRecordActionBroadCast <-chan models.ActionDTO[models.LocationRecord],
 ) {
 
 	//ブロードキャストのチャンネルが閉じた際の終了<処理　すべてのウェブソケットコネクションの受信側のゴルーチンを閉じる。
@@ -170,6 +179,11 @@ func ActionBroadCastFanIn(
 				continue
 			}
 			BroadCast[models.AttendanceRecord](msgAction)
+		case msgAction, ok := <-LocationRecordActionBroadCast:
+			if !ok {
+				continue
+			}
+			BroadCast[models.LocationRecord](msgAction)
 
 		}
 
