@@ -24,9 +24,10 @@ csvの取り込み条件
 */
 
 type ComfirmationRecords struct {
-	IsLeft  bool
-	FromCsv map[uint]*models.AttendanceRecord
-	FromDb  map[uint]*models.AttendanceRecord
+	IsLeft       bool
+	FromCsv      map[uint]*models.AttendanceRecord
+	FromDb       map[uint]*models.AttendanceRecord
+	UniqueRecord []*models.AttendanceRecord
 }
 
 // 確認が必要なレコードと必要ないレコードを仕分ける。
@@ -58,14 +59,7 @@ func AttendanceSorting(csv_table *CsvTable) (*ComfirmationRecords, error) {
 	}
 	//双方のレコード構造体辞書からManageIDの重複があり、かつ構造体の各種要素に相異があるレコードの辞書をcsvからのとDBからのを返す
 
-	// 重複レコードの検出
-	comfirmation_records_from_csv, comfirmation_records_from_db, isLeft := findDuplicateRecords(records_from_csv_dict, range_records_dict)
-
-	return &ComfirmationRecords{
-		IsLeft:  isLeft,
-		FromCsv: comfirmation_records_from_csv,
-		FromDb:  comfirmation_records_from_db,
-	}, nil
+	return findDuplicateRecords(records_from_csv_dict, range_records_dict), nil
 }
 
 func RecordToDictionary(records []*models.AttendanceRecord) (map[uint]*models.AttendanceRecord, error) {
@@ -92,9 +86,10 @@ func GetRangeRecords(min_id uint, max_id uint) ([]*models.AttendanceRecord, bool
 }
 
 // 重複するレコードを見つけて、内容が異なるものを抽出する関数
-func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecord) (map[uint]*models.AttendanceRecord, map[uint]*models.AttendanceRecord, bool) {
+func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecord) *ComfirmationRecords {
 	csvDuplicates := make(map[uint]*models.AttendanceRecord)
 	dbDuplicates := make(map[uint]*models.AttendanceRecord)
+	unique_records := make([]*models.AttendanceRecord, 0)
 	isLeft := false
 
 	// CSVレコードをループして、DBレコードと比較
@@ -105,11 +100,20 @@ func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecor
 				csvDuplicates[manageID] = csvRecord
 				dbDuplicates[manageID] = dbRecord
 				isLeft = true
+			} else {
+				unique_records = append(unique_records, csvRecord)
 			}
+		} else {
+			unique_records = append(unique_records, csvRecord)
 		}
 	}
 
-	return csvDuplicates, dbDuplicates, isLeft
+	return &ComfirmationRecords{
+		IsLeft:       isLeft,
+		FromCsv:      csvDuplicates,
+		FromDb:       dbDuplicates,
+		UniqueRecord: unique_records,
+	}
 }
 
 // 2つのレコードの内容を比較する関数
