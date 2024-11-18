@@ -77,7 +77,6 @@ func SetUpRepositry() {
 
 		//時間の管理するゴルーチン
 		for {
-
 			//一分待機
 			select {
 			case <-time.Tick(time.Minute): // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
@@ -111,15 +110,22 @@ func SetUpRepositry() {
 				}
 
 				if time_record.PlanTime.Add(-5 * time.Minute).Before(current_time) {
-					//現在時刻の前に時刻が存在すル。.
+					//現在時刻の前に時刻が存在するので何もしない。
 					return true
 				} else if time_record.PlanTime.Before(current_time) {
 					//予定時刻の5分前なので、予備アラートを発報
 					time_record.PreAlert = true
 					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
-						return true //キャッシュに再度更新とDBの更新が失敗した
+						return true //キャッシュに再度更新とDBの更新が失敗したので一旦　次に移行
 					}
 					repo.Sender <- CreateActionDTO[TimeRecord]("PRE_ALERT", time_record)
+					return true
+				} else {
+					time_record.IsAlert = true
+					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
+						return true
+					}
+					repo.Sender <- CreateActionDTO[TimeRecord]("ALERT", time_record)
 				}
 
 				return true
