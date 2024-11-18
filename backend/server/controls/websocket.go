@@ -43,7 +43,7 @@ var (
 	BROADCAST_ACTION_LOCATION_RECORD chan models.ActionDTO[models.LocationRecord]
 	ACTION_LOCATION_RECORD_TO_REPO   chan models.ActionDTO[models.LocationRecord]
 
-	UPGREDER websocket.Upgrader
+	UPGREDER *websocket.Upgrader
 )
 
 func StartUp() {
@@ -60,9 +60,14 @@ func StartUp() {
 	BROADCAST_ACTION_LOCATION_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("SENDER_ACTION_LOCATION_RECORD")
 	ACTION_LOCATION_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("RECIVER_ACTION_LOCATION_RECORD")
 
-	go ActionBroadCastFanIn(BROADCAST_ACTION_TIME_RECORD, BROADCAST_ATTENDANCE_RECORD, BROADCAST_ACTION_LOCATION_RECORD)
+	go ActionBroadCastFanIn(
+		BROADCAST_ACTION_TIME_RECORD,
+		BROADCAST_ATTENDANCE_RECORD,
+		BROADCAST_ACTION_LOCATION_RECORD,
+		BROADCAST_TO_ACTION_EMPLOYEE_RECORD,
+	)
 
-	UPGREDER = websocket.Upgrader{
+	UPGREDER = &websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
@@ -152,6 +157,7 @@ func ActionBroadCastFanIn(
 	TimeRecordActionBroadCast <-chan models.ActionDTO[models.TimeRecord],
 	AttendacneActionBroadCast <-chan models.ActionDTO[models.AttendanceRecord],
 	LocationRecordActionBroadCast <-chan models.ActionDTO[models.LocationRecord],
+	EmployeeRecordActionBroadCast <-chan models.ActionDTO[models.EmployeeRecord],
 ) {
 
 	//ブロードキャストのチャンネルが閉じた際の終了<処理　すべてのウェブソケットコネクションの受信側のゴルーチンを閉じる。
@@ -184,7 +190,11 @@ func ActionBroadCastFanIn(
 				continue
 			}
 			BroadCast[models.LocationRecord](msgAction)
-
+		case msgAction, ok := <-EmployeeRecordActionBroadCast:
+			if !ok {
+				continue
+			}
+			BroadCast[models.EmployeeRecord](msgAction)
 		}
 
 	}
