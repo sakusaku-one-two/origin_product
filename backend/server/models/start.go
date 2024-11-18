@@ -6,6 +6,25 @@ import (
 
 /*
 	他のモジュールから呼び出されるスタート地点
+	SENDER_ACTION_EMPLOYEE_RECORD
+	RECIVER_ACTION_EMPLOYEE_RECORD
+
+	SENDER_ACTION_TIME_RECORD
+	RECIVER_ACTION_TIME_RECORD
+
+	SENDER_ACTION_ATTENDANCE_RECORD
+	RECIVER_ACTION_ATTENDANCE_RECORD
+
+	Action名
+	EMP_UPDATE
+	EMP_DELETE
+
+	TIME_UPDATE
+	TIME_DELETE
+
+	ATTENDANCERECORD_UPDATE
+	ATTENDANCERECORD_DELETE
+
 */
 
 var (
@@ -16,10 +35,10 @@ var (
 
 // 各種設定の呼び出し
 func SetUp() {
-	SetUpRepositry()
-
+	SetUpRepository()
 }
 
+// チャネルに渡すdtoを作成する関数
 func CreateActionDTO[ModelType any](actionName string, targetModle *ModelType) ActionDTO[ModelType] {
 	return ActionDTO[ModelType]{
 		Action:  actionName,
@@ -30,7 +49,7 @@ func CreateActionDTO[ModelType any](actionName string, targetModle *ModelType) A
 // ----------------------[]-------------------------------------
 
 // リポジトリの生成とリポジトリと関連したバックグランドゴルーチンを定義
-func SetUpRepositry() {
+func SetUpRepository() {
 
 	EMPLOYEE_RECORD_REPOSITORY = CreateRepositry[EmployeeRecord]("ACTION_EMPLOYEE_RECORD", 10)
 	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
@@ -42,7 +61,7 @@ func SetUpRepositry() {
 			case "EMP_UPDATE":
 				repo.Cache.loadAndSave(action_emp_dto.Payload.ID, action_emp_dto.Payload)
 			case "EMP_DELETE":
-				repo.DB.Delete(action_emp_dto.Payload)
+				repo.Cache.Delete(action_emp_dto.Payload.ID)
 			default:
 				continue
 			}
@@ -98,7 +117,7 @@ func SetUpRepositry() {
 				current_time := time.Now()
 
 				//予定時刻の30分をオーバーしたか。オーバーしたら
-				if time_record.PlanTime.Add(30 * time.Minute).After(current_time) {
+				if time_record.PlanTime.Add(30 * time.Minute).Before(current_time) {
 					time_record.IsOver = true
 					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
 						return true //キャッシュとDBの更新が失敗したのでスキップする。
@@ -118,14 +137,14 @@ func SetUpRepositry() {
 					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
 						return true //キャッシュに再度更新とDBの更新が失敗したので一旦　次に移行
 					}
-					repo.Sender <- CreateActionDTO[TimeRecord]("PRE_ALERT", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_PRE_ALERT", time_record)
 					return true
 				} else {
 					time_record.IsAlert = true
 					if repo.Cache.loadAndSave(time_record.ID, time_record) != nil {
 						return true
 					}
-					repo.Sender <- CreateActionDTO[TimeRecord]("ALERT", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_ALERT", time_record)
 				}
 
 				return true
@@ -135,5 +154,19 @@ func SetUpRepositry() {
 	})
 
 	ATTENDANCE_RECORD_REPOSITORY = CreateRepositry[AttendanceRecord]("ACTION_ATTENDANCE_RECORD", 200)
+	ATTENDANCE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[AttendanceRecord]) {
+		//削除と更新
+		for attRecordActionDTO := range repo.Reciver {
+
+			switch attRecordActionDTO.Action {
+			case "ATTENDANCERECORD_UPDATE":
+				repo.Cache.loadAndSave(attRecordActionDTO.Payload.ManageID, attRecordActionDTO.Payload)
+			case "ATTENDANCERECORD_DELETE":
+				repo.Cache.Delete(attRecordActionDTO.Payload.ManageID)
+			}
+
+			repo.Sender <- attRecordActionDTO
+		}
+	})
 
 }

@@ -6,9 +6,20 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
-	"github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
+
+/*	レポジトリとやり取りするためのチャネルのキー
+	SENDER_ACTION_EMPLOYEE_RECORD
+	RECIVER_ACTION_EMPLOYEE_RECORD
+
+	SENDER_ACTION_TIME_RECORD
+	RECIVER_ACTION_TIME_RECORD
+
+	SENDER_ACTION_ATTENDANCE_RECORD
+	RECIVER_ACTION_ATTENDANCE_RECORD
+
+*/
 
 // 各ウェブソケットの受信側のゴルーチンに対して送信側で問題があれば終了のシグナルを送信するためのチャンネル
 // 　clients sync.Map の　key: websocket.Conn　value : &Done{done_cahn: make(chan interface{})}
@@ -18,22 +29,32 @@ type Done struct {
 }
 
 var (
-	clients                  sync.Map                                 // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
-	TIMERECORD_CLIENT_TO_DB  chan models.ActionDTO[models.TimeRecord] //ウェブソケットのコネクションに対して配信用のデータを送るチャネル
-	TIMERECORD_DB_TO_CLIENTS chan models.ActionDTO[models.TimeRecord] // ウェブソケットのコネクションに対して受信したデータをDBに送るチャンネル
-	UPGREDER                 websocket.Upgrader
+	clients sync.Map // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
+
+	ACTION_EMPLOYEE_RECORD_TO_REPO      chan models.ActionDTO[models.EmployeeRecord]
+	BROADCAST_TO_ACTION_EMPLOYEE_RECORD chan models.ActionDTO[models.EmployeeRecord]
+
+	BROADCAST_ACTION_TIME_RECORD chan models.ActionDTO[models.TimeRecord]
+	ACTION_TIME_RECORD_TO_REPO   chan models.ActionDTO[models.TimeRecord]
+
+	ATTENDANCE_RECORD_TO_REPO   chan models.ActionDTO[models.AttendanceRecord]
+	BROADCAST_ATTENDANCE_RECORD chan models.ActionDTO[models.AttendanceRecord]
+
+	UPGREDER websocket.Upgrader
 )
 
-func init() {
-	StartUp()
-}
-
 func StartUp() {
-	TIMERECORD_DB_TO_CLIENTS, _ := models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("CLIENT_ACTION_TO_DB")
-	TIMERECORD_CLIENT_TO_DB, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("TIMERECORD_CLIENT_TO_DB")
-	ATTENDANCE_DB_TO_CLIENTS, _ := models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("ATTENDANCE_DB_TO_CLIENTS")
 
-	go ActionBroadCastFanIn(TIMERECORD_DB_TO_CLIENTS, ATTENDANCE_DB_TO_CLIENTS)
+	BROADCAST_TO_ACTION_EMPLOYEE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("SENDER_ACTION_EMPLOYEE_RECORD")
+	ACTION_EMPLOYEE_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("RECIVER_ACTION_EMPLOYEE_RECORD")
+
+	BROADCAST_ACTION_TIME_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("SENDER_ACTION_TIME_RECORD")
+	ACTION_TIME_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("RECIVER_ACTION_TIME_RECORD")
+
+	BROADCAST_ATTENDANCE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("SENDER_ACTION_ATTENDANCE_RECORD")
+	ATTENDANCE_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("RECIVER_ACTION_ATTENDANCE_RECORD")
+
+	go ActionBroadCastFanIn(BROADCAST_ACTION_TIME_RECORD, BROADCAST_ATTENDANCE_RECORD)
 
 	UPGREDER = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -41,6 +62,15 @@ func StartUp() {
 		CheckOrigin: func(r *http.Request) bool {
 			return true // 一時的にすべてのオリジンを許可
 		}}
+}
+
+func SendActionDTO[ModelType any](ch chan models.ActionDTO[ModelType], actionDTO models.ActionDTO[any]) {
+	// any型のPayloadをアサーションしてModelType型に変換し、ActionDTO[ModelType]型に変換する
+	// websocketのメッセージをパースしてchannelに送信
+	payload, ok := (*actionDTO.Payload).(*ModelType)
+	if ok {
+		ch <- models.ActionDTO[ModelType]{Action: actionDTO.Action, Payload: payload}
+	}
 }
 
 func ActionWebSocketHandler(c echo.Context) error {
@@ -58,7 +88,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 		ws.Close()
 	}()
 
-	var msgAction models.ActionDTO[models.TimeRecord]
+	var msgAction models.ActionDTO[interface{}]
 	// 受信のループ
 	for {
 		select {
@@ -69,13 +99,22 @@ func ActionWebSocketHandler(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-			TIMERECORD_CLIENT_TO_DB <- msgAction
+
+			switch msgAction.Action {
+			case "EMP_UPDATE", "EMP_DELETE":
+				SendActionDTO[models.EmployeeRecord](ACTION_EMPLOYEE_RECORD_TO_REPO, msgAction)
+			case "ATTENDANCE_UPDATE", "ATTENDANCE_DELETE":
+				SendActionDTO[models.AttendanceRecord](ATTENDANCE_RECORD_TO_REPO, msgAction)
+			case "TIME_UPDATE", "TIME_DELETE":
+				SendActionDTO[models.TimeRecord](ACTION_TIME_RECORD_TO_REPO, msgAction)
+			}
+
 		}
 	}
 }
 
 // ブロードキャスト専用の関数
-func BroadCast[T models.TimeRecord | models.AttendanceRecord](msg_action_dto models.ActionDTO[T]) {
+func BroadCast[T models.TimeRecord | models.AttendanceRecord | models.EmployeeRecord | models.LocationRecord](msg_action_dto models.ActionDTO[T]) {
 	clients.Range(func(key any, value any) bool {
 
 		//key  value の型アサーション　失敗したら次のコネクションに移行
@@ -131,6 +170,7 @@ func ActionBroadCastFanIn(
 				continue
 			}
 			BroadCast[models.AttendanceRecord](msgAction)
+
 		}
 
 	}
