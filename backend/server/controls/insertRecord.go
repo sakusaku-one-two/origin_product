@@ -25,7 +25,8 @@ func InsertRecordsHandler(c echo.Context) error {
 	//キャッシュに登録するためのデータを作成
 	insert_records := []*models.AttendanceRecord{}
 	for _, target := range registoryData.InsertRecords {
-		insert_records = append(insert_records, &target)
+		temp_target := target
+		insert_records = append(insert_records, &temp_target)
 	}
 
 	err = ATTENDANCE_RECORD_REPOSITORY.Cache.InsertMany(insert_records, func(target *models.AttendanceRecord) (uint, bool) {
@@ -43,7 +44,7 @@ func InsertRecordsHandler(c echo.Context) error {
 			time.Sleep(1 * time.Second) //一秒ごとに配信
 			//キャッシュに登録したデータをクライアントに配信
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
-				Action:  "INSERT_AttendanceRecords",
+				Action:  "INSERT_ATTENDANCE_RECORD",
 				Payload: target,
 			}
 		}
