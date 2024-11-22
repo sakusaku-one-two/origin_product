@@ -52,20 +52,7 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 		for _, id := range delete_list {
 			rc.Map.Delete(id)
 		}
-	}()
-
-	for _, target_type := range payloadArray {
-		id, ok := fetchId(target_type)
-		if !ok {
-			new_tx.Rollback()
-			return errors.New("idを取得できませんでした")
-		}
-		rc.Map.Store(id, target_type)
-		delete_list = append(delete_list, id)
 	}
-
-	new_tx.Commit()
-
 	return nil
 
 }
