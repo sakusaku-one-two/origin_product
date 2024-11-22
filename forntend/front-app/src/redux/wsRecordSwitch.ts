@@ -25,8 +25,8 @@ export const OnMessageSwitch = (store:Store):((target:MessageEvent<{Action:strin
             store.dispatch({type:'TIME_RECORD_DELETE_MESSAGE',payload:<TimeRecord>target.data.Payload});
             break;
         case "EMPLOYEE_RECORD_UPDATE":
-                store.dispatch({type:'EMPLOYEE_RECORD_UPDATE_MESSAGE',payload:<EmployeeRecord>target.data.Payload});
-                break;
+            store.dispatch({type:'EMPLOYEE_RECORD_UPDATE_MESSAGE',payload:<EmployeeRecord>target.data.Payload});
+            break;
         case "EMPLOYEE_RECORD_DELETE":
             store.dispatch({type:'EMPLOYEE_RECORD_DELETE_MESSAGE',payload:<EmployeeRecord>target.data.Payload});
             break;

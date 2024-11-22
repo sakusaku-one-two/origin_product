@@ -1,4 +1,4 @@
-import { ChildRecord,AttendanceRecord,ReportTypeEnum, recodsState } from "./taskSlice";
+import { TimeRecord ,AttendanceRecord,PlanNo, recodsState,LocationRecord,EmployeeRecord } from "./taskSlice";
 
 
 
@@ -6,16 +6,16 @@ import { ChildRecord,AttendanceRecord,ReportTypeEnum, recodsState } from "./task
 // -----------------------[chiledrecordの値をattendancerecordの中に入れる]-----------------------------
 
 
-export const UpdateAttendanceRecordByChildRecord = (childRecord:ChildRecord,targetRecord:AttendanceRecord):AttendanceRecord => {
+export const UpdateAttendanceRecordByChildRecord = (childRecord:TimeRecord,targetRecord:AttendanceRecord):AttendanceRecord => {
 
-    switch (childRecord.ReportType) {
-        case ReportTypeEnum.HOME_DEPARTURE:
+    switch (childRecord.PlanNo) {
+        case PlanNo.HOME_DEPARTURE:
             return { ...targetRecord, HomeDepartureTimeStamp: childRecord.ReportTimeStamp, HomeDepartureStampByUser: childRecord.ReportByUser };
-        case ReportTypeEnum.REACH:
+        case PlanNo.REACH:
             return { ...targetRecord, ReachTimeStamp: childRecord.ReportTimeStamp, ReachStampByUser: childRecord.ReportByUser };
-        case ReportTypeEnum.START:
+        case PlanNo.START:
             return { ...targetRecord, StartTimeStamp: childRecord.ReportTimeStamp, StartStampByUser: childRecord.ReportByUser };
-        case ReportTypeEnum.FINISH:
+        case PlanNo.FINISH:
             return { ...targetRecord, FinishTimeStamp: childRecord.ReportTimeStamp, FinishStampByUser: childRecord.ReportByUser };
     }
 

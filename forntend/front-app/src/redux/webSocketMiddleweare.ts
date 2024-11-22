@@ -1,6 +1,7 @@
 import { Middleware} from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { TimeRecord,AttendanceRecord,EmployeeRecord,LocationRecord } from './taskSlice';
 
 export interface WebSocketMiddlewareOptions {
     url: string;
@@ -53,12 +54,34 @@ export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): 
             case 'WEBSOCKET_CONNECT':
                 SocketCloser();//一回ソケットがすでにあれば閉じる
                 socket = new WebSocket(options.url);
+
+                
+                //メッセージを受信した際の処理
+                socket.onmessage = (target:MessageEvent<{Action:string,Payload:unknown}>)=>{
+                    switch (target.data.Action) {
+                        case "ATTENDANCE_RECORD_UPDATE":
+                            store.dispatch({type:'ATTENDANCE_RECORD_UPDATE_MESSAGE',payload:<AttendanceRecord>target.data.Payload});
+                            break;
+                        case "TIME_RECORD_UPDATE":
+                            store.dispatch({type:'TIME_RECORD_UPDATE_MESSAGE',payload:<TimeRecord>target.data.Payload});
+                            break;
+                        case "EMPLOYEE_RECORD_UPDATE":
+                            store.dispatch({type:'EMPLOYEE_RECORD_UPDATE_MESSAGE',payload:<EmployeeRecord>target.data.Payload});
+                            break;
+                        case "LOCATION_RECORD_UPDATE":
+                            store.dispatch({type:'LOCATION_RECORD_UPDATE_MESSAGE',payload:<LocationRecord>target.data.Payload});
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 socket.onopen = () => {
                     Announce("リアルタイム処理が開始しました。");
                     store.dispatch({type:WEBSOCKET_CONNECTED,payload:{
                         Message:"リアルタイム処理が開始しました。"
                     }});
-                }
+
+                    
                 
                 break;
             case 'WEBSOCKET_DISCONNECT':
@@ -92,8 +115,20 @@ export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): 
                 break;
             default:
                 return next(action);
+        };
+
+        socket?.onmessage = (message:MessageEvent<{Action:string,Payload:unknown}>)=>{
+
+
+            switch (message.data.Action) {
+                case "ATTENDANCE_RECORD_UPDATE":
+                    store.dispatch({type:'ATTENDANCE_RECORD_UPDATE',payload:message.data.Payload});
+                    break;
+                case "TIME_RECORD_UPDATE":
+                    store.dispatch({type:'TIME_RECORD_UPDATE',payload:message.data.Payload});
+                    break;
+            }
         }
 
-        
     }
 }

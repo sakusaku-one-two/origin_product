@@ -38,9 +38,16 @@ export interface PostRecord {
 
 //----------------------------[配置先]--------------------------------------------
 //打刻のデータ PlanNo 1 =>　出発報告　2 => 到着報告　3 => 上番報告 4 => 下番報告
+export enum PlanNo {
+    HOME_DEPARTURE = 1,
+    REACH = 2,
+    START = 3,
+    FINISH = 4,
+}
+
 export interface TimeRecord {
     ManageID : number;
-    PlanNo : 1 | 2 | 3 | 4;
+    PlanNo : PlanNo;
     PlanReportTime : Date;
     ResultTime : Date|null;
     IsAlert : boolean;
@@ -54,8 +61,11 @@ export interface TimeRecord {
 
 export interface AttendanceRecord {
     ManageID:number;
+    EmpID:number;
     Emp:EmployeeRecord;
+    LocationID:number;
     Location:LocationRecord;
+    PostID:number;
     Post:PostRecord;
     TimeRecords:TimeRecord[];
     Description:string;
@@ -72,8 +82,22 @@ export interface AttendanceRecord {
 //サーバーにある管制実績CSVを基にしたAttendanceRcords を取得する
 export const ATTENDANCE_RECORD_URL = process.env.ATTENDANCE_RECORD_URL;
 
+export const  fetchAttendanceRecords = createAsyncThunk(
+    'fetchAttendanceRecords',
+    async (_,{rejectWithValue}) => {
+        try{
+            const response = await axios.get<AttendanceRecord[]>(ATTENDANCE_RECORD_URL);
+            return response.data;
+        }catch(error){
+            if (axios.isAxiosError(error as Error)){
+                return rejectWithValue("error");
+            }
+            return rejectWithValue('予期せぬエラーが発生しました。');
+        }
+    }
+)
 
-export const fetchAttendanceRecords = createAsyncThunk(
+export const fetchAttendanceRecords__ = createAsyncThunk(
     'fetchAttendanceRecords',
     async (_,{rejectWithValue}) => {
         try{
@@ -125,21 +149,6 @@ export const fetchAttendanceRecords = createAsyncThunk(
 //
 
 
-//cheildRecordをもとにAttendanceRecordを更新する
-export const updateAttendanceRecord = createAsyncThunk(
-    'updateAttendanceRecord',//typePrefix:string -> 非同期アクションの名前を定義します。redux toolkitが自動的に生成するアクションの名前に追加されます。
-    async (childRecord:ChildRecord, {rejectWithValue}) => {//{rejectWithValue}はthunkAPIが保持しているプロパティ
-        try{
-            const response = await axios.post<ChildRecord>('/api/attendanceRecords/update', childRecord);
-            return response.data;
-        }catch(error){
-            if (axios.isAxiosError(error as Error)){
-                return rejectWithValue("error");
-            }
-            return rejectWithValue('予期せぬエラーが発生しました。');
-        }
-    }
-)
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -151,29 +160,44 @@ export const updateAttendanceRecord = createAsyncThunk(
 
 export type recodsState = {
     AttendanceRecords:AttendanceRecord[],
-    [ReportTypeEnum.REACH]:ChildRecord[],
-    [ReportTypeEnum.HOME_DEPARTURE]:ChildRecord[],
-    [ReportTypeEnum.START]:ChildRecord[],
-    [ReportTypeEnum.FINISH]:ChildRecord[],
+    [PlanNo.REACH]:TimeRecord[],
+    [PlanNo.HOME_DEPARTURE]:TimeRecord[],
+    [PlanNo.START]:TimeRecord[],
+    [PlanNo.FINISH]:TimeRecord[],
     CurrentState:string,
     IsLoading:boolean,
+    IsLogin:boolean,
+    User:User,
 };
 
 const recodsInitialState:recodsState = {
     AttendanceRecords:[],
-    [ReportTypeEnum.REACH]:[],
-    [ReportTypeEnum.HOME_DEPARTURE]:[],
-    [ReportTypeEnum.START]:[],
-    [ReportTypeEnum.FINISH]:[],
+    [PlanNo.REACH]:[],
+    [PlanNo.HOME_DEPARTURE]:[],
+    [PlanNo.START]:[],
+    [PlanNo.FINISH]:[],
     CurrentState:"",
-    IsLoading:false
+    IsLoading:false,
+    IsLogin:false,
+    User:{
+        ID:"",
+        Name:"",
+    },
 }
 
-export const ReportSlice = createSlice({
+export const RecordsSlice = createSlice({
     name:'Records',  
     initialState:recodsInitialState,
     reducers:{
-        
+        login:(state,action:PayloadAction<{User:User,Message:string,Records:AttendanceRecord[]}>)=>{
+            state.IsLogin = true;
+            state.User = action.payload.User;
+            state.AttendanceRecords = action.payload.Records;
+            state.CurrentState = action.payload.Message;
+        },  
+        logout:(state,action)=>{
+            state.IsLogin = false;
+        }   
     },
     extraReducers: (builder) => {
         builder.addCase(fetchAttendanceRecords.fulfilled, (state, action) => {//サーバーから管制実績の取得に成功したケース
