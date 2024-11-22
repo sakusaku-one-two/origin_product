@@ -1,4 +1,4 @@
-import { Middleware} from '@reduxjs/toolkit';
+import { Middleware,MiddlewareAPI,Dispatch } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import type { AttendanceRecord,EmployeeRecord,LocationRecord,TimeRecord } from "./taskSlice";
@@ -66,8 +66,8 @@ export function OnSend(socket:WebSocket,action:ClientActionType):boolean {
 
 
 
-export const wsMiddleware:Middleware = (store:Store)=>(next)=>(action:ClientActionType)=>{
-    let socket:WebSocket|null = null;
+export const wsMiddleware:Middleware<{},any,Dispatch<any>> = (store:Store)=>(next:Dispatch)=>(action:ClientActionType)=>{
+    let socket:WebSocket|null = null;0
     if (action.type === WEBSOCKET_CONNECT) {
         socket = new WebSocket("ws://localhost:8080/api/sync");
         OnMessage(store,socket);
