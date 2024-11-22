@@ -140,8 +140,3 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 
 	return result, nil
 }
-
-// 勤怠レコードを生成
-func CreateAttendacneRecord(row map[string]*Value) (*models.AttendanceRecord, error) {
-
-}

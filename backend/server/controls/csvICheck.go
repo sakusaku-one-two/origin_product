@@ -146,11 +146,19 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 			return nil
 		}
 		return &models.AttendanceRecord{
-			ManageID:   row["管制番号"].as_int, //これが基本となる値。
-			EmpID:      row["隊員番号"].as_int,
-			LocationID: row["配置先番号"].as_int, //
+			ManageID:   row["管制番号"].as_int,  //これが基本となる値。
+			EmpID:      row["隊員番号"].as_int,  //社員番号
+			LocationID: row["配置先番号"].as_int, //配置先番号
+			ClientID:   row["得意先番号"].as_int, //得意先番号
 
-			TimeRecords: time_records,
+			//時間レコードを変換　（参照型から値型）
+			TimeRecords: func(time__records []*models.TimeRecord) []models.TimeRecord {
+				var new_time_records []models.TimeRecord
+				for _, target := range time__records {
+					new_time_records = append(new_time_records, *target)
+				}
+				return new_time_records
+			}(time_records),
 		}
 
 	}

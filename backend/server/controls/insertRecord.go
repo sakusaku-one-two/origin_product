@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var ATTENDANCE_RECORD_REPOSITORY models.Repository[models.AttendanceRecord] = models.ATTENDANCE_RECORD_REPOSITORY
+var ATTENDANCE_RECORD_REPOSITORY *models.Repository[models.AttendanceRecord] = models.ATTENDANCE_RECORD_REPOSITORY
 
 type RegistoryData struct {
 	InsertRecords []models.AttendanceRecord
@@ -38,8 +38,10 @@ func InsertRecordsHandler(c echo.Context) error {
 
 	//キャッシュに登録したデータをクライアントに配信
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second) //余裕をもって10秒後に配信
 		for _, target := range insert_records {
+			time.Sleep(1 * time.Second) //一秒ごとに配信
+			//キャッシュに登録したデータをクライアントに配信
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
 				Action:  "INSERT_AttendanceRecords",
 				Payload: target,
