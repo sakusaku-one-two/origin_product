@@ -3,6 +3,7 @@ package controls
 import (
 	"backend-app/server/models"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -28,13 +29,23 @@ func InsertRecordsHandler(c echo.Context) error {
 	}
 
 	err = ATTENDANCE_RECORD_REPOSITORY.Cache.InsertMany(insert_records, func(target *models.AttendanceRecord) (uint, bool) {
-		return target.ID, true
+		return target.ManageID, true
 	})
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	//jsonをパース
-	//レコード構造体に変換
-	//各種レポジトリに登録　-＞　WEBSOCKETで配信
+	//キャッシュに登録したデータをクライアントに配信
+	go func() {
+		time.Sleep(5 * time.Second)
+		for _, target := range insert_records {
+			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
+				Action:  "INSERT_AttendanceRecords",
+				Payload: target,
+			}
+		}
+	}()
+
+	return c.JSON(http.StatusOK, "OK")
 }
