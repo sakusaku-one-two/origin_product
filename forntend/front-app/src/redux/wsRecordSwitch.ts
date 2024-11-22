@@ -42,12 +42,21 @@ export const OnMessageSwitch = (store:Store):((target:MessageEvent<{Action:strin
     };  
 };
 
-const ActionTypes = ["ATTENDANCE_RECORD_UPDATE","ATTENDANCE_RECORD_DELETE","TIME_RECORD_UPDATE","TIME_RECORD_DELETE","EMPLOYEE_RECORD_UPDATE","EMPLOYEE_RECORD_DELETE","LOCATION_RECORD_UPDATE","LOCATION_RECORD_DELETE","WEBSOCKET_CLOSE"];
-//ウェブソケットの送信メッセージの処理
-export const OnSendMessageSwitch = (socket:WebSocket):(action:ActionType<type:string,payload:unknown>) => {
-    return (action:ActionType<type:string,payload:unknown>)=>{  
-        if (ActionTypes.includes(action.type)) {
-            socket.onmessage(JSON.stringify({Action:action.type,Payload:action.payload}));
+export type ActionType = {
+    type:string,
+    payload:unknown
 }
 
+export const ActionTypes = ["ATTENDANCE_RECORD_UPDATE","ATTENDANCE_RECORD_DELETE",
+                            "TIME_RECORD_UPDATE","TIME_RECORD_DELETE",
+                            "EMPLOYEE_RECORD_UPDATE","EMPLOYEE_RECORD_DELETE",
+                            "LOCATION_RECORD_UPDATE","LOCATION_RECORD_DELETE",
+                            "WEBSOCKET_CLOSE"];
+//ウェブソケットの送信メッセージの処理
+export const OnSendMessageSwitch = (socket:WebSocket):((action:ActionType)=>void) => {
+    return (action:ActionType)=>{  
+        if (ActionTypes.includes(action.type)) {
+            socket.onmessage(JSON.stringify({Action:action.type,Payload:action.payload}));
+        }
+    }
 };
