@@ -8,193 +8,71 @@ import axios from "axios";
 //----------------------------[ユーザー]--------------------------------------------
 
 export interface User {
+    //ユーザーID
     ID:string,
     Name:string,
 }
 
 //----------------------------[従業員]--------------------------------------------
 //従業員のデータ
-export interface Employee {
+export interface EmployeeRecord {
     EmpID : number;
     Name:string;
+    Email:string;
+}
+
+//----------------------------[配置先]--------------------------------------------
+//配置先場所 のデータ 例　セントラル　-　日比谷　＝　日比谷警備隊
+export interface LocationRecord {
+    LocationID : number;
+    ClientID : number;
+    ClientName : string;
+    LocationName : string;
+}
+//----------------------------[勤務ポスト]--------------------------------------------
+//勤務ポストのデータ 例　日勤　----　001
+export interface PostRecord {
+    PostID : number;
+    PostName : string;
+}
+
+//----------------------------[配置先]--------------------------------------------
+//打刻のデータ PlanNo 1 =>　出発報告　2 => 到着報告　3 => 上番報告 4 => 下番報告
+export interface TimeRecord {
+    ManageID : number;
+    PlanNo : 1 | 2 | 3 | 4;
+    PlanReportTime : Date;
+    ResultTime : Date|null;
+    IsAlert : boolean;
+    PreAlert : boolean;
+    IsOver : boolean;
+    IsIgnore : boolean;
+    IsComplete : boolean;
 }
 
 //----------------------------[勤怠実績レコード]--------------------------------------------
-//勤怠実績CSVのデータをサーバー側で読み取りその中で必要なデータを取捨選択してフロントに返したもの
-//このデータをもとに、打刻のデータを作成する(childRecordが打刻のデータ)
-export interface AttendanceRecord{//管制実績CSVのデータ
-    
+
+export interface AttendanceRecord {
     ManageID:number;
-    Emp:Employee;
-    
-    //現場名称
-    LocationID:number;
-    LocationName:string;
-
-    //勤務ポスト
-    PostID:number;
-    PostName:string;
-
-    //現場勤務ポストID
-    LocationPostID:string; //このIDで同一現場の同一ポストの一括打刻を行えるようにする。
-
-    //出発報告
-    PlanHomeDepartureTime:Date;//予定自宅出発時間
-    HomeDepartureTimeStamp:Date|null;//出発報告時間
-    IsOverTimeAsDeparture:boolean;//出発報告時間が予定時間を超えているか
-    HomeDepartureStampByUser:User|null;//出発打刻者
-    
-    //到着報告
-    PlanReachTime:Date;//予定到着時間
-    ReachTimeStamp:Date|null;//到着報告時間
-    IsOverTimeAsReach:boolean;//到着報告時間が予定時間を超えているか
-    ReachStampByUser:User|null;//到着打刻者
-
-    //上番報告
-    PlanStartTime:Date;//予定上番時間
-    StartTimeStamp:Date|null;//上番報告時間
-    IsOverTimeAsStart:boolean;//上番報告時間が予定時間を超えているか
-    StartStampByUser:User|null;//上番打刻者
-
-    //下番報告
-    PlanFinishTime:Date;//予定下番時間
-    FinishTimeStamp:Date|null;//下番報告時間
-    IsOverTimeAsFinish:boolean;//下番報告時間が予定時間を超えているか
-    FinishStampByUser:User|null;//下番報告者
-
-    //各種残業時間
-    EarlyOverTime:number;//早出時間
-    LuchBreakWorkTime:number;//昼休み勤務時間
-    ExtraHours:number;//残業時間
-
-}
-
-
-//ヘルパー関数：同一勤務ポストIDを設定する（同一現場の同一ポストの一括打刻を行えるようにするその為 代表者が報告するケースがあるので、）サーバー側で実装するのでもしかしたら不用かも。。
-export function SetUpLocationAndPostID(targetRecord:AttendanceRecord):AttendanceRecord{
-    const { LocationID, PostID } = targetRecord;
-    const locationPostID = `${LocationID}:${PostID}`;
-    return { ...targetRecord, LocationPostID: locationPostID };
-}
-
-//------------------------------------------------------------------------
-
-//************[子レコードの種別]************//
-
-
-export enum ReportTypeEnum {
-    HOME_DEPARTURE='HomeDeparture',
-    REACH='Reach',
-    START='Start',
-    FINISH='Finish',
-}
-
-export type ReportType = ReportTypeEnum.HOME_DEPARTURE | ReportTypeEnum.REACH | ReportTypeEnum.START | ReportTypeEnum.FINISH;
-
-//**************************************//
-
-
-//打刻のデータ これをもとにAttendanceRecordを更新する。つまりディスパッチャーのpyloadの型。
-export interface ChildRecord {
-    ManageID:number;//管理ID
-    ReportType:ReportType;//報告種別
-    PlanReportTime:Date;//予定報告時間
-    ReportTimeStamp:Date|null;//報告時間
-    ReportByUser:User|null;//報告者
-}
-
-
-export const UpdateAttendanceRecordByChildRecord = (state:AttendanceRecord[], childRecord:ChildRecord):AttendanceRecord|undefined => {
-    const { ManageID, ReportType } = childRecord;
-    const targetRecord = state.find(record => record.ManageID === ManageID);
-    
-    if (!targetRecord) {
-        throw new Error('指定されたManageIDが見つかりません');
-    }
-
-    switch (ReportType) {
-        case ReportTypeEnum.HOME_DEPARTURE:
-            return { ...targetRecord, HomeDepartureTimeStamp: childRecord.ReportTimeStamp, HomeDepartureStampByUser: childRecord.ReportByUser };
-        case ReportTypeEnum.REACH:
-            return { ...targetRecord, ReachTimeStamp: childRecord.ReportTimeStamp, ReachStampByUser: childRecord.ReportByUser };
-        case ReportTypeEnum.START:
-            return { ...targetRecord, StartTimeStamp: childRecord.ReportTimeStamp, StartStampByUser: childRecord.ReportByUser };
-        case ReportTypeEnum.FINISH:
-            return { ...targetRecord, FinishTimeStamp: childRecord.ReportTimeStamp, FinishStampByUser: childRecord.ReportByUser };
-    }
+    Emp:EmployeeRecord;
+    Location:LocationRecord;
+    Post:PostRecord;
+    TimeRecords:TimeRecord[];
+    Description:string;
+    EarlyOverTime:number;
+    LunchBreakWorkTime:number;
+    ExtraHours:number;  
 }
 
 
 
-
-//ヘルパー関数：管制実績CSV（AttendanceRecord）をもとに各種打刻のデータ(ChildRecord)を作成する
-export const AttendanceRecordDivision = (state:AttendanceRecord[]):{
-    HomeDeparture:ChildRecord[],
-    Reach:ChildRecord[],
-    Start:ChildRecord[],
-    Finish:ChildRecord[],
-} => {
-    
-    const HomeDeparture:ChildRecord[] = [];
-    const Reach:ChildRecord[] = [];
-    const Start:ChildRecord[] = [];
-    const Finish:ChildRecord[] = [];
-
-
-    state.forEach(record => {
-
-        const HomeDeparturechildRecord:ChildRecord = {
-            ManageID: record.ManageID,
-            ReportType: ReportTypeEnum.HOME_DEPARTURE,
-            PlanReportTime: record.PlanHomeDepartureTime,
-            ReportTimeStamp: record.HomeDepartureTimeStamp,
-            ReportByUser: record.HomeDepartureStampByUser,
-        };
-        HomeDeparture.push(HomeDeparturechildRecord);
-        
-        const ReachchildRecord:ChildRecord = {
-            ManageID: record.ManageID,
-            ReportType: ReportTypeEnum.REACH,
-            PlanReportTime: record.PlanReachTime,
-            ReportTimeStamp: record.ReachTimeStamp,
-            ReportByUser: record.ReachStampByUser,
-        };
-
-        Reach.push(ReachchildRecord);   
-        
-        const StartchildRecord:ChildRecord = {
-            ManageID: record.ManageID,
-            ReportType: ReportTypeEnum.START,
-            PlanReportTime: record.PlanStartTime,   
-            ReportTimeStamp: record.StartTimeStamp,
-            ReportByUser: record.StartStampByUser,
-        };
-        Start.push(StartchildRecord);
-
-        const FinishchildRecord:ChildRecord = {
-            ManageID: record.ManageID,
-            ReportType: ReportTypeEnum.FINISH,
-            PlanReportTime: record.PlanFinishTime,
-            ReportTimeStamp: record.FinishTimeStamp,
-            ReportByUser: record.FinishStampByUser,
-        };
-        Finish.push(FinishchildRecord);
-    });
-
-    return { HomeDeparture, Reach, Start, Finish };
-}
-
-
-
-
-
-
-//---------------------[非同期レデューサーの作成（redux thunk)]---------------------------------------------------
-
-
+//----------------------------[勤怠実績レコード]--------------------------------------------
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++
 //サーバーにある管制実績CSVを基にしたAttendanceRcords を取得する
+export const ATTENDANCE_RECORD_URL = process.env.ATTENDANCE_RECORD_URL;
+
+
 export const fetchAttendanceRecords = createAsyncThunk(
     'fetchAttendanceRecords',
     async (_,{rejectWithValue}) => {
