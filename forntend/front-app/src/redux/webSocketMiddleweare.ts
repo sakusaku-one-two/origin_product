@@ -20,6 +20,7 @@ export const WEBSOCKET_DISCONNECT   = 'WEBSOCKET_DISCONNECT' as never;
 export const WEBSOCKET_NEW_MESSAGE  = 'WEBSOCKET_NEW_MESSAGE' as never;
 export const WEBSOCKET_SEND_MESSAGE = 'WEBSOCKET_SEND_MESSAGE' as never;
 
+//エントリーポイントでソケットを開く
 export const useStartUpWebSocketAtEntryPoint = () => {
     const dispatch = useDispatch();
     useEffect(()=>{
@@ -27,32 +28,72 @@ export const useStartUpWebSocketAtEntryPoint = () => {
     },[]);
 }
 
+//ブラウザの音声合成機能を利用してメッセージを読み上げる
+function Announce(message:string) {
+    const utterance = new SpeechSynthesisUtterance(message);
+    window.speechSynthesis.speak(utterance);
+}
+
 
 export const createWebSocketMiddleware = (options: WebSocketMiddlewareOptions): Middleware => {
     let socket: WebSocket | null = null;//このソケットを利用してリアルタイムを行う
+
+    const SocketCloser = ()=>{
+        if (socket) {
+            socket.send(JSON.stringify({
+                Action:"CLOSE",
+                Payload:{}
+            }));
+        }
+    }
     //ソケットのミドルウェアを作製　おそらく
-    return store => next => action => {
-        switch (action.type) {
+    return store => next => (action : unknown) => {
+        const actionType = action as {type :string,payload:unknown};
+        switch (actionType.type) {
             case 'WEBSOCKET_CONNECT':
-                if (socket) {
-                    socket.close();
-                }
+                SocketCloser();//一回ソケットがすでにあれば閉じる
                 socket = new WebSocket(options.url);
                 socket.onopen = () => {
-                    store.dispatch({type:WEBSOCKET_CONNECTED});
+                    Announce("リアルタイム処理が開始しました。");
+                    store.dispatch({type:WEBSOCKET_CONNECTED,payload:{
+                        Message:"リアルタイム処理が開始しました。"
+                    }});
                 }
-                socket.on('open', options.onOpen);
-                socket.on('close', options.onClose);
-                socket.on('error', options.onError);
-                socket.on('message', options.onMessage);
-                socket.on('connect',() => {
-                    store.dispatch({type: 'WEBSOCKET_CONNECTED'});
-                });
+                
                 break;
             case 'WEBSOCKET_DISCONNECT':
                 if (socket) {
-                    
+                    socket.close();
+                }
+                break;
+            case 'ATTENDANCE_RECORD_UPDATE':
+                if (socket) {
+                    socket.send(JSON.stringify({
+                        Action:"ATTENDANCE_RECORD_UPDATE",
+                        Payload:actionType.payload
+                    }));
+                }
+                break;
+            case 'TIME_RECORD_UPDATE':
+                if (socket) {
+                    socket.send(JSON.stringify({
+                        Action:"TIME_RECORD_UPDATE",
+                        Payload:actionType.payload
+                    }));
+                }
+                break;
+            case 'EMPLOYEE_RECORD_UPDATE':
+                if (socket) {
+                    socket.send(JSON.stringify({
+                        Action:"EMPLOYEE_RECORD_UPDATE",
+                        Payload:actionType.payload
+                    }));
+                }
+                break;
+            default:
+                return next(action);
         }
+
         
     }
 }
