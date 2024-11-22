@@ -62,20 +62,26 @@ func LoginHandler(c echo.Context) error {
 
 	c.SetCookie(cookie)
 	attendance_records := GetAttendanceRecord()
-	if attendance_records == nil {
-		err := c.JSON(http.StatusOK, struct {
-			Message string `json:"message"`
-			User    User   `json:"user"`
+	if attendance_records != nil {
+		return c.JSON(http.StatusOK, struct {
+			Message string                    `json:"message"`
+			User    User                      `json:"user"`
+			Records []models.AttendanceRecord `json:"records"`
 		}{
 			Message: "successful",
 			User:    user,
+			Records: attendance_records,
 		})
-		return err
 	}
-
-	//本日の勤怠実績を
-	err = c.JSON(http.StatusOK, attendance_records)
-	return err
+	return c.JSON(http.StatusOK, struct {
+		Message string                    `json:"message"`
+		User    User                      `json:"user"`
+		Records []models.AttendanceRecord `json:"records"`
+	}{
+		Message: "successful",
+		User:    user,
+		Records: []models.AttendanceRecord{},
+	})
 }
 
 func GenerateJWT(user User) (string, error) {

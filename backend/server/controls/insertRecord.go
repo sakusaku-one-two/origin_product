@@ -39,7 +39,7 @@ func InsertRecordsHandler(c echo.Context) error {
 
 	//キャッシュに登録したデータをクライアントに配信
 	go func() {
-		time.Sleep(10 * time.Second) //余裕をもって10秒後に配信
+		time.Sleep(5 * time.Second) //遅延して配信する。
 		for _, target := range insert_records {
 			time.Sleep(1 * time.Second) //一秒ごとに配信
 			//キャッシュに登録したデータをクライアントに配信

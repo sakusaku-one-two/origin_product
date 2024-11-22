@@ -1,19 +1,16 @@
 package main
 
 import (
-	"net/http"
 
-	"github.com/gorilla/websocket" //websocketのサポート
-	"github.com/labstack/echo/v4"  //エコーサーバーの構築
-	"backend/server"
-	"backend/server/models"
-
+	//websocketのサポート
+	//エコーサーバーの構築
+	"backend-app/server"
+	"os"
 )
 
+//エントリーポイント　詳細はserver ディレクトリにmodelやcontrollerを集約
 
 func main() {
- 	e := server.NewServer()
-
-	e.start()
+	e := server.NewServer()
+	e.Start(os.Getenv("AllowOrigin"))
 }
-

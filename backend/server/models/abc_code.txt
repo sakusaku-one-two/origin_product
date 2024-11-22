@@ -1,0 +1,3 @@
+
+・ChannelsのActionDTOのメソッドでTO＿JSONにおいてネストした構造体が深くJSONに変換されるのか。
+・DBClientのNewQuerySession関数にトランザクションの設定を行ったセッションインスタンスをかえすべきか
