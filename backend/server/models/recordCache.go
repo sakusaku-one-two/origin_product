@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"sync"
 )
 
@@ -52,7 +51,8 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 		for _, id := range delete_list {
 			rc.Map.Delete(id)
 		}
-	}
+	}()
+
 	return nil
 
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Logout(c echo.Context) error {
+func LogoutHandler(c echo.Context) error {
 
 	//クッキーを削除
 	cookie := new(http.Cookie)
