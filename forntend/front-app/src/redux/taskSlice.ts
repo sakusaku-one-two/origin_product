@@ -11,6 +11,7 @@ export interface User {
     //ユーザーID
     ID:string,
     Name:string,
+    Email:string,
 }
 
 //----------------------------[従業員]--------------------------------------------
@@ -24,6 +25,7 @@ export interface EmployeeRecord {
 //----------------------------[配置先]--------------------------------------------
 //配置先場所 のデータ 例　セントラル　-　日比谷　＝　日比谷警備隊
 export interface LocationRecord {
+    ID : number;
     LocationID : number;
     ClientID : number;
     ClientName : string;
@@ -32,6 +34,7 @@ export interface LocationRecord {
 //----------------------------[勤務ポスト]--------------------------------------------
 //勤務ポストのデータ 例　日勤　----　001
 export interface PostRecord {
+    ID : number;
     PostID : number;
     PostName : string;
 }
@@ -46,6 +49,7 @@ export enum PlanNo {
 }
 
 export interface TimeRecord {
+    ID : number;
     ManageID : number;
     PlanNo : PlanNo;
     PlanReportTime : Date;
