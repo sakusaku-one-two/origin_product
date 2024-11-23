@@ -4,7 +4,7 @@ import { AttendanceRecord } from "../taskSlice";
 export const fetchAttendanceRecords = createAsyncThunk("fetchAttendanceRecords",async()=>{
     const response = await fetch("http://localhost:3000/attendance");
     return response.json();
-}); 
+});
 
 
 
@@ -38,5 +38,5 @@ const AttendanceSlice = createSlice({
     
 })
 
-export const {UPDATE_MESSAGE,DELETE_MESSAGE} = AttendanceSlice.actions;
+export const {UPDATE_MESSAGE,DELETE_MESSAGE,INSERT_SETUP} = AttendanceSlice.actions;
 export default AttendanceSlice.reducer;
