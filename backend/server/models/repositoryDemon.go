@@ -73,12 +73,12 @@ func SetUpRepository() {
 		for time_action_dto := range repo.Reciver {
 
 			switch time_action_dto.Action {
-			case "TIME_RECORD_UPDATE":
+			case "TIME_RECORD/UPDATE":
 				if err := repo.Cache.loadAndSave(time_action_dto.Payload.ID, time_action_dto.Payload); err != nil {
 					log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_action_dto.Payload.ID, err)
 					continue
 				}
-			case "TIME_RECORD_DELETE":
+			case "TIME_RECORD/DELETE":
 				if ok := repo.Cache.Delete(time_action_dto.Payload.ID); !ok {
 					log.Printf("Failed to delete cache for TimeRecord ID %v: %v", time_action_dto.Payload.ID, ok)
 					continue
@@ -128,7 +128,7 @@ func SetUpRepository() {
 						return true //キャッシュとDBの更新が失敗したのでスキップする。
 					}
 
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_OVER", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/TIME_OVER", time_record)
 					return true
 				}
 
@@ -143,7 +143,7 @@ func SetUpRepository() {
 						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
 						return true //キャッシュに再度更新とDBの更新が失敗したので一旦　次に移行
 					}
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_PRE_ALERT", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/TIME_PRE_ALERT", time_record)
 					return true
 
 				} else {
@@ -152,7 +152,7 @@ func SetUpRepository() {
 						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
 						return true
 					}
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_ALERT", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/TIME_ALERT", time_record)
 				}
 
 				return true
@@ -167,12 +167,12 @@ func SetUpRepository() {
 		for attRecordActionDTO := range repo.Reciver {
 
 			switch attRecordActionDTO.Action {
-			case "ATTENDANCE_RECORD_UPDATE":
+			case "ATTENDANCE_RECORD/UPDATE":
 				if err := repo.Cache.loadAndSave(attRecordActionDTO.Payload.ManageID, attRecordActionDTO.Payload); err != nil {
 					log.Printf("Failed to update cache and DB for AttendanceRecord ID %v: %v", attRecordActionDTO.Payload.ManageID, err)
 					continue
 				}
-			case "ATTENDANCE_RECORD_DELETE":
+			case "ATTENDANCE_RECORD/DELETE":
 				if ok := repo.Cache.Delete(attRecordActionDTO.Payload.ManageID); !ok {
 					log.Printf("Failed to delete cache for AttendanceRecord ID %v: %v", attRecordActionDTO.Payload.ManageID, ok)
 					continue
@@ -190,12 +190,12 @@ func SetUpRepository() {
 		//削除と更新
 		for locationRecordActionDTO := range repo.Reciver {
 			switch locationRecordActionDTO.Action {
-			case "LOCATION_RECORD_UPDATE":
+			case "LOCATION_RECORD/UPDATE":
 				if err := repo.Cache.loadAndSave(locationRecordActionDTO.Payload.ID, locationRecordActionDTO.Payload); err != nil {
 					log.Printf("Failed to update cache and DB for LocationRecord ID %v: %v", locationRecordActionDTO.Payload.ID, err)
 					continue
 				}
-			case "LOCATION_RECORD_DELETE":
+			case "LOCATION_RECORD/DELETE":
 				if ok := repo.Cache.Delete(locationRecordActionDTO.Payload.ID); !ok {
 					log.Printf("Failed to delete cache for LocationRecord ID %v: %v", locationRecordActionDTO.Payload.ID, ok)
 					continue

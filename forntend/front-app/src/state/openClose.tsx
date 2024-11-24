@@ -14,7 +14,7 @@ export const LoginDialogOpen:RecoilState<boolean> = atom({
     key:'LoginDialog',
     default:false
 });
-
+//検索モーダルを表示するかどうかのフラグ
 export const FindDialogOpen:RecoilState<boolean> = atom({
     key:"FindDialogOpen",
     default:false

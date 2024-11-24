@@ -7,7 +7,7 @@ import { createWebSocketMiddleware } from "./wsRecordMidlleware";
 
 const WsMiddleware:Middleware = createWebSocketMiddleware();
 
-const store = configureStore({
+const RecordStore = configureStore({
   reducer: {
       ATTENDANCE_RECORDS:attendanceReducer,
       EMPLOYEE_RECORDS:employeeReducer,
@@ -18,7 +18,7 @@ const store = configureStore({
   devTools:process.env.NODE_ENV !== "production",
 });
 
-export default store;
+export default RecordStore;
 
 /*
 `configureStore`は、Redux ToolkitでReduxストアを簡単に設定するための関数です。
