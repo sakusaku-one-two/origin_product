@@ -1,19 +1,23 @@
 import { createAsyncThunk, createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { AttendanceRecord } from "../recordType";
 
+
+const GetAttendanceRecordsURL = import.meta.env.BASE_URL + '/update'
 export const fetchAttendanceRecords = createAsyncThunk("fetchAttendanceRecords",async()=>{
-    const response = await fetch("http://localhost:3000/attendance");
+    const response = await fetch(GetAttendanceRecordsURL);
     return response.json();
 });
 
 
 
-
+//---------------------------[初期値]----------------------------
 export const initialAttendanceState = {
     isLoading:false as boolean,
     AttendanceRecords:[] as AttendanceRecord[],
 };
 
+
+//---------------------------[スライス]----------------------------
 export const AttendanceSlice = createSlice({
     name:"ATTENDANCE_RECORD",
     initialState:initialAttendanceState,
@@ -37,7 +41,7 @@ export const AttendanceSlice = createSlice({
             state.AttendanceRecords = [...state.AttendanceRecords,...action.payload];
         }
     },
-})
+});
 
 export const {UPDATE_MESSAGE,DELETE_MESSAGE,INSERT_SETUP} = AttendanceSlice.actions;
 export default AttendanceSlice.reducer;

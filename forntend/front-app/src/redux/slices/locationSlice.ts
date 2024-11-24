@@ -8,15 +8,23 @@ export const initialLocationState = {
     locationList:[] as LocationRecord[],
 };
 
+//--------------------------[重複を削除]----------------------------------------
+function UniqueLocationRecords(locationRecords:LocationRecord[]):LocationRecord[]{
+    return locationRecords.filter((record,index,self)=>self.findIndex((t)=>t.LocationID === record.LocationID && t.ClientID === record.ClientID) === index);
+}
+
 // -----------------------[LocationRecordの更新]-----------------------------
-function updateLocationRecords(state:LocationRecord[],updateLocationRecords:LocationRecord[]){
-    return state.map((record)=>{
-        const targetRecord = updateLocationRecords.find((updateRecord)=>updateRecord.LocationID === record.LocationID);
+function updateLocationRecords(state:LocationRecord[],updateLocationRecords:LocationRecord[]):LocationRecord[]{
+    const newReplacedRecords:LocationRecord[] = state.map((record)=>{
+        const targetRecord = updateLocationRecords.find((updateRecord)=>updateRecord.LocationID === record.LocationID && updateRecord.ClientID === record.ClientID);
         if(targetRecord){
             return targetRecord;
         }
         return record;
-    })
+    });
+
+    // 重複を削除してソート 
+    return UniqueLocationRecords([...newReplacedRecords,...updateLocationRecords]).sort((a,b)=>a.LocationID - b.LocationID);
 }   
 
 // -----------------------[LocationRecordの削除]-----------------------------
@@ -30,7 +38,7 @@ export const LocationSlice = createSlice({
     initialState:initialLocationState,
     reducers:{
         INSERT_SETUP:(state,action:PayloadAction<LocationRecord[]>)=>{
-            state.locationList = [...state.locationList,...action.payload];
+            state.locationList = UniqueLocationRecords([...state.locationList,...action.payload]);
         },
         UPDATE_MESSAGE:(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = updateLocationRecords(state.locationList,[action.payload.Location]);
@@ -40,14 +48,15 @@ export const LocationSlice = createSlice({
         }   
     },
     extraReducers:(builder)=>{
-        builder.addCase(ATTENDANCE_RECORD_UPDATE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        builder
+        .addCase(ATTENDANCE_RECORD_UPDATE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = updateLocationRecords(state.locationList,[action.payload.Location]);
         })
         .addCase(ATTENDANCE_RECORD_DELETE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = deleteLocationRecords(state.locationList,[action.payload.Location]);
         })
         .addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
-            state.locationList = [...state.locationList,...action.payload.map((record)=>record.Location)];
+            state.locationList =updateLocationRecords( state.locationList,UniqueLocationRecords(action.payload.map((record)=>record.Location)));
         })
     }
 });

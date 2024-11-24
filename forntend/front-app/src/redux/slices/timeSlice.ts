@@ -13,22 +13,30 @@ const initialTimeState = {
     isUpdate:false as boolean,
 };
 
-// -----------------------[TimeRecordの更新と追加]-----------------------------   
-function updateAndInsertTimeRecords(oldState:TimeRecord[],updateTimeRecords:TimeRecord[]){
-    const updatedArray:TimeRecord[] = oldState.map((record)=>{
-        const targetRecord = updateTimeRecords.find((updateRecord)=>updateRecord.ID === record.ID);
-        if(targetRecord){
-            return targetRecord;
-        }
-
-        return record;
-    });
-
-    const nonUpdatedArray:TimeRecord[] = oldState.filter((record)=>!updateTimeRecords.includes(record));
-
-    return [...nonUpdatedArray,...updatedArray].sort((a,b)=>a.PlanTime.getTime() - b.PlanTime.getTime());
+//--------------------------[重複を削除]----------------------------------------
+function UniqueTimeRecords(timeRecords:TimeRecord[]):TimeRecord[]{
+    return timeRecords.filter((record,index,self)=>self.findIndex((t)=>t.ID === record.ID) === index);
 }
 
+// -----------------------[TimeRecordの更新と追加]-----------------------------   
+function updateAndInsertTimeRecords(oldState:TimeRecord[],updateTimeRecords:TimeRecord[]){
+    // 既存のTimeRecordから更新用のTimeRecordに置換
+    const newReplacedRecords:TimeRecord[] = oldState.map((oldRecord)=>{
+        const newRecord = updateTimeRecords.find((updateRecord)=>updateRecord.ID === oldRecord.ID);
+        if(newRecord){
+            return newRecord;
+        }
+
+        return oldRecord;
+    });
+    // 更新用のTimeRecordから既存のTimeRecordに置換されていないTimeRecordを取得
+    const nonReplacedRecordsFromUpdate:TimeRecord[] = updateTimeRecords.filter((record)=>!newReplacedRecords.includes(record));
+    // 重複を削除してソート
+    return UniqueTimeRecords([...nonReplacedRecordsFromUpdate,...newReplacedRecords]).sort((a,b)=>a.PlanTime.getTime() - b.PlanTime.getTime());
+}
+
+
+//--------------------------[TimeRecordの分類]----------------------------------------
 function separateTimeRecords(state:{
     completedTimeRecords:TimeRecord[],
     waitingTimeRecords:TimeRecord[],
