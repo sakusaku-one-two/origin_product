@@ -46,6 +46,8 @@ func CreateActionDTO[ModelType any](actionName string, targetModle *ModelType) A
 // リポジトリの生成とリポジトリと関連したバックグランドゴルーチンを定義
 func SetUpRepository() {
 
+	// --------------------[社員記録のリポジトリ]--------------------------------
+
 	EMPLOYEE_RECORD_REPOSITORY = CreateRepositry[EmployeeRecord]("ACTION_EMPLOYEE_RECORD", 10)
 	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
 		//社員キャッシュに関連したバックグランドで動作するごルーチン
@@ -53,9 +55,9 @@ func SetUpRepository() {
 		for action_emp_dto := range repo.Reciver {
 
 			switch action_emp_dto.Action {
-			case "EMP_RECORD_UPDATE":
+			case "EMPLOYEE_RECORD/UPDATE":
 				repo.Cache.loadAndSave(action_emp_dto.Payload.ID, action_emp_dto.Payload)
-			case "EMP_RECORD_DELETE":
+			case "EMPLOYEE_RECORD/DELETE":
 				repo.Cache.Delete(action_emp_dto.Payload.ID)
 			default:
 				continue
@@ -65,6 +67,8 @@ func SetUpRepository() {
 		}
 
 	})
+
+	// --------------------[時間記録のリポジトリ]--------------------------------
 
 	TIME_RECORD_REPOSITORY = CreateRepositry[TimeRecord]("ACTION_TIME_RECORD", 100)
 
@@ -92,6 +96,8 @@ func SetUpRepository() {
 		}
 
 	})
+
+	// --------------------[時間記録のリポジトリ]--------------------------------
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 
@@ -128,7 +134,7 @@ func SetUpRepository() {
 						return true //キャッシュとDBの更新が失敗したのでスキップする。
 					}
 
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/TIME_OVER", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
 				}
 
@@ -143,7 +149,7 @@ func SetUpRepository() {
 						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
 						return true //キャッシュに再度更新とDBの更新が失敗したので一旦　次に移行
 					}
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/TIME_PRE_ALERT", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
 
 				} else {
@@ -152,7 +158,7 @@ func SetUpRepository() {
 						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
 						return true
 					}
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/TIME_ALERT", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 				}
 
 				return true
@@ -161,7 +167,9 @@ func SetUpRepository() {
 		}
 	})
 
-	ATTENDANCE_RECORD_REPOSITORY = CreateRepositry[AttendanceRecord]("ACTION_ATTENDANCE_RECORD", 200)
+	// --------------------[勤怠記録のリポジトリ]--------------------------------
+
+	ATTENDANCE_RECORD_REPOSITORY = CreateRepositry[AttendanceRecord]("ACTION_ATTENDANCE_RECORD", 500)
 	ATTENDANCE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[AttendanceRecord]) {
 		//削除と更新
 		for attRecordActionDTO := range repo.Reciver {

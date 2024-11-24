@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"sync"
 )
 
@@ -41,14 +42,23 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 		return err
 	}
 
-	delete_list := []uint{}
+	insert_id_list := []uint{}
+	for _, payload := range payloadArray {
+		id, ok := fetchId(payload)
+		if !ok {
+			log.Printf("Failed to fetch ID for payload: %v", payload)
+			continue
+		}
+		insert_id_list = append(insert_id_list, id)
+		rc.Map.Store(id, payload)
+	}
 
 	defer func() {
 		if err := recover(); err != nil {
 			new_tx.Rollback()
 		}
 
-		for _, id := range delete_list {
+		for _, id := range insert_id_list {
 			rc.Map.Delete(id)
 		}
 	}()
