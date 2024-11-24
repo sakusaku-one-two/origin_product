@@ -1,4 +1,4 @@
-import { TimeRecord ,AttendanceRecord,PlanNo, recodsState,LocationRecord,EmployeeRecord } from "./taskSlice";
+import { TimeRecord ,AttendanceRecord,PlanNo, recodsState,LocationRecord,EmployeeRecord } from "./recordType";
 
 
 

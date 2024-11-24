@@ -1,12 +1,14 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
-import { LocationRecord,AttendanceRecord } from "../taskSlice";
-import { UPDATE_MESSAGE as ATTENDANCE_RECORD_UPDATE_MESSAGE,DELETE_MESSAGE as ATTENDANCE_RECORD_DELETE_MESSAGE,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP } from "./AttendanceSlice";
+import { LocationRecord,AttendanceRecord } from "../recordType";
+import { UPDATE_MESSAGE as ATTENDANCE_RECORD_UPDATE_MESSAGE,DELETE_MESSAGE as ATTENDANCE_RECORD_DELETE_MESSAGE,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP } from "./attendanceSlice";
 
+// -----------------------[LocationRecordの初期値]-----------------------------
 export const initialLocationState = {
     isLoading:false as boolean,
     locationList:[] as LocationRecord[],
 };
 
+// -----------------------[LocationRecordの更新]-----------------------------
 function updateLocationRecords(state:LocationRecord[],updateLocationRecords:LocationRecord[]){
     return state.map((record)=>{
         const targetRecord = updateLocationRecords.find((updateRecord)=>updateRecord.LocationID === record.LocationID);
@@ -17,11 +19,13 @@ function updateLocationRecords(state:LocationRecord[],updateLocationRecords:Loca
     })
 }   
 
+// -----------------------[LocationRecordの削除]-----------------------------
 function deleteLocationRecords(state:LocationRecord[],deleteLocationRecords:LocationRecord[]){
     return state.filter((record)=>!deleteLocationRecords.includes(record));
 }
 
-const locationSlice = createSlice({
+// -----------------------[LocationRecordのスライス]-----------------------------
+export const LocationSlice = createSlice({
     name:"LOCATION_RECORD",
     initialState:initialLocationState,
     reducers:{
@@ -48,8 +52,8 @@ const locationSlice = createSlice({
     }
 });
 
-export const {INSERT_SETUP,UPDATE_MESSAGE,DELETE_MESSAGE} = locationSlice.actions;
-export default locationSlice.reducer;
+export const {INSERT_SETUP,UPDATE_MESSAGE,DELETE_MESSAGE} = LocationSlice.actions;
+export default LocationSlice.reducer;
 
 
 

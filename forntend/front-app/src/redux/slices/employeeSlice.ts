@@ -1,12 +1,16 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
-import { EmployeeRecord ,AttendanceRecord} from "../taskSlice";
-import { UPDATE_MESSAGE as EMPLOYEE_RECORD_UPDATE_MESSAGE,DELETE_MESSAGE as EMPLOYEE_RECORD_DELETE_MESSAGE ,INSERT_SETUP as EMPLOYEE_RECORD_INSERT_SETUP} from "./AttendanceSlice";
+import { EmployeeRecord ,AttendanceRecord} from "../recordType";
+import { UPDATE_MESSAGE as EMPLOYEE_RECORD_UPDATE_MESSAGE,
+         DELETE_MESSAGE as EMPLOYEE_RECORD_DELETE_MESSAGE ,
+        INSERT_SETUP as EMPLOYEE_RECORD_INSERT_SETUP} from "./attendanceSlice";
 
+// -----------------------[EmployeeRecordの初期値]-----------------------------
 export const initialEmployeeState = {
     isLoading:false as boolean,
     employeeList:[] as EmployeeRecord[],
 };
 
+// -----------------------[EmployeeRecordの更新]-----------------------------
 function updateEmployeeRecords(state:EmployeeRecord[],updateEmployeeRecords:EmployeeRecord[]){
     return state.map((record)=>{
         const targetRecord = updateEmployeeRecords.find((updateRecord)=>updateRecord.EmpID === record.EmpID);
@@ -17,11 +21,13 @@ function updateEmployeeRecords(state:EmployeeRecord[],updateEmployeeRecords:Empl
     })
 }   
 
+// -----------------------[EmployeeRecordの削除]-----------------------------
 function deleteEmployeeRecords(state:EmployeeRecord[],deleteEmployeeRecords:EmployeeRecord[]){
     return state.filter((record)=>!deleteEmployeeRecords.includes(record));
 }
 
-const employeeSlice = createSlice({
+// -----------------------[EmployeeRecordのスライス]-----------------------------
+export const EmployeeSlice = createSlice({
     name:"EMPLOYEE_RECORD",
     initialState:initialEmployeeState,
     reducers:{
@@ -48,5 +54,5 @@ const employeeSlice = createSlice({
     }
 });
 
-export const {INSERT_SETUP,UPDATE_MESSAGE,DELETE_MESSAGE} = employeeSlice.actions;
-export default employeeSlice.reducer;
+export const {INSERT_SETUP,UPDATE_MESSAGE,DELETE_MESSAGE} = EmployeeSlice.actions;
+export default EmployeeSlice.reducer;
