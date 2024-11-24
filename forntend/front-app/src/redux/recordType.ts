@@ -45,15 +45,15 @@ export enum PlanNo {
 
 export interface TimeRecord {
     ID : number;
-    ManageID : number;
-    PlanNo : PlanNo;
-    PlanReportTime : Date;
-    ResultTime : Date|null;
-    IsAlert : boolean;
-    PreAlert : boolean;
-    IsOver : boolean;
-    IsIgnore : boolean;
-    IsComplete : boolean;
+    ManageID: number; // gorm:"index;not null"
+    PlanNo: PlanNo; // 1=> 出発報告2=>到着報告 3=>上番報告 4=>下番報告
+    PlanTime: Date;
+    ResultTime: Date;
+    IsAlert: boolean; // gorm:"default:false" // このフラグでクライアント側でアラートを発報する。
+    PreAlert: boolean; // gorm:"default:false" //このフラグは予定時刻の5分前に予備アラートの発報フラグ
+    IsOver: boolean; // gorm:"default:false" //このフラグは予定時刻を超えた事を表す
+    IsIgnore: boolean; // gorm:"default:false" // このフラグはアラートや無視を表す
+    IsComplete: boolean; // gorm:"default:false" //完了フラグ
 }
 
 //----------------------------[勤怠実績レコード]--------------------------------------------
@@ -78,45 +78,4 @@ export interface AttendanceRecord {
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-//createAsyncThunkのオプションと解説
-//
-//    createAsyncThunk(typePrefix:string,
-//                      thunk:AsyncThunkActionCreator<Returned,
-//                      ThunkArg,
-//                      ThunkApiConfig>)
-//
-//typePrefix:string -> 非同期アクションの名前を定義します。redux toolkitが自動的に生成するアクションの名前に追加されます。
-//      ・pending:非同期アクションが実行されているときに生成されるアクション   -> ${typePrefix}/pending
-//      ・fulfilled:非同期アクションが成功したときに生成されるアクション      -> ${typePrefix}/fulfilled
-//      ・rejected:非同期アクションが失敗したときに生成されるアクション       -> ${typePrefix}/rejected
-//payloadCreater:AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> -> 非同期アクションを定義する関数
-//  二つの引数を受け取ります。
-//  第一引数:ディスパッチ時に渡されるパレメーター    
-//  第二引数:thnkAPIオブジェクト
-//     （以下のプロパティをふくみます）
-//          ・dispathc:Reduxストアのディスパッチ関数
-//          ・getState:現在のReduxステートを取得する関数
-//
-//
-//Returned -> thunkが返す値の型
-//ThunkArg -> thunkに渡される引数の型
-//ThunkApiConfig -> thunkのAPI設定
-//
-//
-//
-//
-//
-//
-//
-//
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-//------------------------------------------------------------------------
 

@@ -15,7 +15,7 @@ const RecordStore = configureStore({
       LOCATION_RECORDS:locationReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(WsMiddleware),
-  devTools:process.env.NODE_ENV !== "production",
+  devTools: import.meta.env.VITE_NODE_ENV !== "production",
 });
 
 export default RecordStore;

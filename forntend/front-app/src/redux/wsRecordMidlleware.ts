@@ -15,7 +15,6 @@ export type CaseType = {
 export class CasePattern<T> {
     type:string;
     Action:string;
-    ModelType!:T;
     constructor(type:string,Action:string){
         this.type = type;
         this.Action = Action;
@@ -64,9 +63,9 @@ export function OnSend(socket:WebSocket,action:ClientActionType):boolean {
 };
 
 let WEBSOCKET : WebSocket | undefined = undefined;
-const WEB_SOCKET_URL = process.env.REACT_APP_WEBSOCKET_URL as string;
+const WEB_SOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL;
 
-export const getWebSocket = (store:Store)=>{
+export const getWebSocket = (store:Store):WebSocket=>{
     if (typeof WEBSOCKET === "undefined") {
         try {
             WEBSOCKET = new WebSocket(WEB_SOCKET_URL as string);
