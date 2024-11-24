@@ -1,6 +1,9 @@
-import {FC,useState,useEffect} from 'react'
+import {FC,useState} from 'react'
+import { useRecoilState } from 'recoil';  
+import { FindDialogOpen } from '../../../state/openClose';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
+import FindTask from '../find/find';
 import {
   ResizableHandle,
   ResizablePanel,
@@ -12,9 +15,16 @@ import { motion, AnimatePresence } from "framer-motion";
 
 
 const DashBord:FC=() => {
+  const [FindOpen,setFindOpen] = useRecoilState(FindDialogOpen);
+
   const [isSelected, setSelected] = useState<boolean>(false);
   const [target,setTarget] = useState(null);
   
+
+  const FindDailogHandler = () => {
+    setFindOpen(!FindOpen);
+  };
+
   const ClickHandler = (item:any) => {
     if(target === null && isSelected === false){
       setTarget(item);
@@ -138,20 +148,30 @@ const DashBord:FC=() => {
       </ResizablePanel >
       <ResizableHandle />
       <ResizablePanel defaultSize={30}>
+      <Button className='inline-flex items-center gap-2 whitespace-nowrap transition-colors
+                         focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring 
+                         disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none 
+                         [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:bg-accent 
+                         hover:text-accent-foreground px-4 py-2 relative h-8 w-full 
+                         justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal 
+                         text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64'
+                         onClick={FindDailogHandler}>
+                        打刻の検索 {<FindTask/>}
+        </Button>
         <ScrollArea className='h-[500px] bg-slate-100'>
           <ScrollBar orientation='horizontal' />
-          {items.map(item => (
-            
-        <motion.div layoutId={item.id} onClick={() => ClickHandler(item)}>
+              
+              {items.map(item => (
+                <motion.div layoutId={item.id} onClick={() => ClickHandler(item)}>
           
-          <Card  className='hover:cursor-pointer hover:bg-slate-200'>
-            <motion.h5>{item.subtitle}</motion.h5>
-            <motion.h2>{item.title}</motion.h2>
-          </Card>
-          
-        </motion.div>
+                <Card  className='hover:cursor-pointer hover:bg-slate-200'>
+                  <motion.h5>{item.subtitle}</motion.h5>
+                  <motion.h2>{item.title}</motion.h2>
+                </Card>
+                
+                </motion.div>
         
-        ))}
+              ))}
 
         </ScrollArea>
       </ResizablePanel>
