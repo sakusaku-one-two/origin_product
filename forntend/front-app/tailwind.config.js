@@ -78,15 +78,19 @@ export default {
   						height: '0'
   					}
   				},
-				"caret-blink": {
-					"0%,70%,100%": { opacity: "1" },
-					"20%,50%": { opacity: "0" },
-				},
+  				'caret-blink': {
+  					'0%,70%,100%': {
+  						opacity: '1'
+  					},
+  					'20%,50%': {
+  						opacity: '0'
+  					}
+  				}
   			},
   			animation: {
   				'accordion-down': 'accordion-down 0.2s ease-out',
   				'accordion-up': 'accordion-up 0.2s ease-out',
-				"caret-blink": "caret-blink 1.25s ease-out infinite",
+  				'caret-blink': 'caret-blink 1.25s ease-out infinite'
   			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',
@@ -104,17 +108,20 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+			maxWidth: {
+				'3/2-screen': '150vw',
+			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
-		  transitionTimingFunction: {
-			'in-expo': 'cubic-bezier(0.95, 0.05, 0.795, 0.035)',
-			'out-expo': 'cubic-bezier(0.19, 1, 0.22, 1)',
-		},
+  		transitionTimingFunction: {
+  			'in-expo': 'cubic-bezier(0.95, 0.05, 0.795, 0.035)',
+  			'out-expo': 'cubic-bezier(0.19, 1, 0.22, 1)'
+  		}
   	},
   	plugins: [require("tailwindcss-animate")]
   },
