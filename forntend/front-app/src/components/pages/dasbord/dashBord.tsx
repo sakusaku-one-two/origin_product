@@ -1,7 +1,6 @@
-import {FC,useState} from 'react'
+import {FC,useEffect,useState} from 'react'
 import { useRecoilState } from 'recoil';  
 import { FindDialogOpen } from '../../../state/openClose';
-import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import FindTask from '../find/find';
 import {
@@ -10,101 +9,36 @@ import {
   ResizablePanelGroup
 } from '../../ui/resizable';
 import { ScrollArea,ScrollBar } from "../../ui/scroll-area"
-
+import { TimeRecordWithOtherRecord, useGetWaitingTimeRecordsWithOtherRecord } from '../../../hooks';
 import { motion, AnimatePresence } from "framer-motion";
+import TimeCard from './timeCard';
+import { SelectedRecord } from '../../../state/selectedRecord';
+import SubTimeRecord from './subTimeRecord';
+import { GetGroupMemberRecord } from './helper';
 
 
 const DashBord:FC=() => {
   const [FindOpen,setFindOpen] = useRecoilState(FindDialogOpen);
+  const [targetRecord,setTargetRecord] = useRecoilState(SelectedRecord);
+  const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
+  const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records);
+  const [
+    groupMemberRecordsState,
+    setGroupMemberRecordsState
+    ] = useState<TimeRecordWithOtherRecord[]>(groupMemberRecords);
 
-  const [isSelected, setSelected] = useState<boolean>(false);
-  const [target,setTarget] = useState(null);
-  
+  useEffect(()=>{
+    setGroupMemberRecordsState(groupMemberRecords);
+  },[targetRecord.record]);
+
+
+  console.log("DashBord",groupMemberRecords,targetRecord.record);
 
   const FindDailogHandler = () => {
     setFindOpen(!FindOpen);
   };
 
-  const ClickHandler = (item:any) => {
-    if(target === null && isSelected === false){
-      setTarget(item);
-      setSelected(true);
-    } else {
-      unregiter()
-      setTimeout(() => {  
-        setSelected(true);
-        setTarget(item);
-      }, 600);
-    }
-  };
 
-  const unregiter = () =>{
-    setSelected(false);
-    setTarget(null);
-  };
-
-  const items = [
-    {
-      id:"1",
-      subtitle:"sabtitle",
-      title:"title",
-    },
-    {
-      id:"2",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"3",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"4",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"5",
-      subtitle:"sabtitle",
-      title:"title",
-    },
-    {
-      id:"6",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"7",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"8",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"9",
-      subtitle:"sabtitle",
-      title:"title",
-    },
-    {
-      id:"10",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-        id:"11",
-      subtitle:"sample",
-      title:"sample title",
-    },
-    {
-      id:"12",
-      subtitle:"sample",
-      title:"sample title",
-    },
-  ];
   
   return (
     <ResizablePanelGroup
@@ -117,21 +51,15 @@ const DashBord:FC=() => {
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={30} className='bg-slate-100'>
                 <AnimatePresence >
-                  {target && (
-                  
-                    <motion.div layoutId={target.id}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.8, opacity: 0 }}
-                      transition={{ type: "" }}
-                      className='h-full'
-                    >
-                      <motion.button onClick={() => unregiter()} className='w-full h-full'> 
-                      <Card className='flex flex-col justify-center items-center h-full hover:cursor-pointer hover:bg-slate-200'>
-                        {/* <motion.h5>{target.subtitle}</motion.h5> */}
-                        <motion.h2>{target.title}</motion.h2>
-                        </Card> 
-                      </motion.button>
-                    </motion.div>
+                  {targetRecord.record && (
+                    // <motion.div layoutId={targetRecord.record.timeRecord.ID.toString()}
+                    //   animate={{ scale: 1, opacity: 1 }}
+                    //   exit={{ scale: 0.8, opacity: 0 }}
+                    //   transition={{ type: "" }}
+                    //   className='h-full'
+                    // >
+                      <TimeCard record={targetRecord.record}/>
+                    // </motion.div>
                   
                 )}
                 </AnimatePresence>
@@ -140,9 +68,11 @@ const DashBord:FC=() => {
                 <ResizablePanel
                   defaultSize={50}
                 >
-                  <Card>
-                    <h2>{target?.title}</h2>
-                  </Card>
+                  {
+                    groupMemberRecordsState.map((record:TimeRecordWithOtherRecord)=>(
+                      <SubTimeRecord record={record}/>
+                    ))
+                  }
                 </ResizablePanel>
             </ResizablePanelGroup>
       </ResizablePanel >
@@ -163,17 +93,14 @@ const DashBord:FC=() => {
         <ScrollArea className='h-[500px] bg-slate-100'>
           <ScrollBar orientation='horizontal' />
               
-              {items.map(item => (
-                <motion.div layoutId={item.id} onClick={() => ClickHandler(item)}>
-          
-                <Card  className='hover:cursor-pointer transition duration-100
-                             hover:shadow-md hover:bg-slate-200'>
-                  <motion.h5>{item.subtitle}</motion.h5>
-                  <motion.h2>{item.title}</motion.h2>
-                </Card>
-                
-                </motion.div>
-        
+              {records.map((record :TimeRecordWithOtherRecord) => (
+                // <motion.div layoutId={record.timeRecord.ID.toString()}  
+                //   // animate={{ scale: 1, opacity: 1 }}
+                //   // exit={{ scale: 0.8, opacity: 0 }}
+                //   // transition={{ type: "" }}
+                // >
+                  <TimeCard record={record}/>  
+                // </motion.div>
               ))}
 
         </ScrollArea>

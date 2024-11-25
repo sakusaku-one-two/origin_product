@@ -1,6 +1,8 @@
 import {createSlice,PayloadAction} from "@reduxjs/toolkit";
 import { TimeRecord,AttendanceRecord } from "../recordType";
-import { UPDATE_MESSAGE as ATTENDANCE_RECORD_UPDATE_MESSAGE,DELETE_MESSAGE as ATTENDANCE_RECORD_DELETE_MESSAGE ,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP} from "./attendanceSlice";
+import { UPDATE as ATTENDANCE_RECORD_UPDATE,
+        DELETE as ATTENDANCE_RECORD_DELETE,
+        INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP} from "./attendanceSlice";
 
 // -----------------------[TimeRecordの初期値]-----------------------------
 const initialTimeState = {
@@ -65,19 +67,19 @@ export const TimeSlice = createSlice({
     name:"TIME_RECORD",
     initialState:initialTimeState,
     reducers:{
-        UPDATE_MESSAGE:(state,action:PayloadAction<TimeRecord>)=>{
+        UPDATE:(state,action:PayloadAction<TimeRecord>)=>{
             state.TimeRecords = updateAndInsertTimeRecords(state.TimeRecords,[action.payload]);
             separateTimeRecords(state,state.TimeRecords);
             state.isUpdate = true;
         },
-        DELETE_MESSAGE:(state,action:PayloadAction<TimeRecord>)=>{
+        DELETE:(state,action:PayloadAction<TimeRecord>)=>{
             state.TimeRecords = deleteTimeRecords(state.TimeRecords,[action.payload]);
             separateTimeRecords(state,state.TimeRecords);
             state.isUpdate = true;
         }
     },
     extraReducers:(builder)=>{
-        builder.addCase(ATTENDANCE_RECORD_UPDATE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        builder.addCase(ATTENDANCE_RECORD_UPDATE,(state,action:PayloadAction<AttendanceRecord>)=>{
             //timeRecordを取り出す
             const updateTimeRecordArray:TimeRecord[] = action.payload.TimeRecords;
             //timeRecordを更新する
@@ -85,7 +87,7 @@ export const TimeSlice = createSlice({
             separateTimeRecords(state,state.TimeRecords);
             state.isUpdate = true;
         })
-        .addCase(ATTENDANCE_RECORD_DELETE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        .addCase(ATTENDANCE_RECORD_DELETE,(state,action:PayloadAction<AttendanceRecord>)=>{
             state.TimeRecords = deleteTimeRecords(state.TimeRecords,action.payload.TimeRecords);
             separateTimeRecords(state,state.TimeRecords);
             state.isUpdate = true;
@@ -100,5 +102,5 @@ export const TimeSlice = createSlice({
     
 }); 
 
-export const {UPDATE_MESSAGE,DELETE_MESSAGE} = TimeSlice.actions;
+export const {UPDATE,DELETE} = TimeSlice.actions;
 export default TimeSlice.reducer;

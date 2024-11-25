@@ -48,7 +48,7 @@ export interface TimeRecord {
     ManageID: number; // gorm:"index;not null"
     PlanNo: PlanNo; // 1=> 出発報告2=>到着報告 3=>上番報告 4=>下番報告
     PlanTime: Date;
-    ResultTime: Date;
+    ResultTime: Date | null;
     IsAlert: boolean; // gorm:"default:false" // このフラグでクライアント側でアラートを発報する。
     PreAlert: boolean; // gorm:"default:false" //このフラグは予定時刻の5分前に予備アラートの発報フラグ
     IsOver: boolean; // gorm:"default:false" //このフラグは予定時刻を超えた事を表す
