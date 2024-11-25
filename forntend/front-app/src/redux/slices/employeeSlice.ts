@@ -1,8 +1,8 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { EmployeeRecord ,AttendanceRecord} from "../recordType";
-import { UPDATE_MESSAGE as EMPLOYEE_RECORD_UPDATE_MESSAGE,
-         DELETE_MESSAGE as EMPLOYEE_RECORD_DELETE_MESSAGE ,
-        INSERT_SETUP as EMPLOYEE_RECORD_INSERT_SETUP} from "./attendanceSlice";
+import { UPDATE as ATTENDANCE_RECORD_UPDATE,
+         DELETE as ATTENDANCE_RECORD_DELETE ,
+        INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP} from "./attendanceSlice";
 
 // -----------------------[EmployeeRecordの初期値]-----------------------------
 export const initialEmployeeState = {
@@ -43,25 +43,25 @@ export const EmployeeSlice = createSlice({
         INSERT_SETUP:(state,action:PayloadAction<EmployeeRecord[]>)=>{
             state.employeeList = updateAndInsertEmployeeRecords(state.employeeList,UniqueEmployeeRecords(action.payload));
         },
-        UPDATE_MESSAGE:(state,action:PayloadAction<EmployeeRecord>)=>{
+        UPDATE:(state,action:PayloadAction<EmployeeRecord>)=>{
             state.employeeList = updateAndInsertEmployeeRecords(state.employeeList,[action.payload]);
         },
-        DELETE_MESSAGE:(state,action:PayloadAction<EmployeeRecord>)=>{
+        DELETE:(state,action:PayloadAction<EmployeeRecord>)=>{
             state.employeeList = deleteEmployeeRecords(state.employeeList,[action.payload]);
         }
     },
     extraReducers:(builder)=>{
-        builder.addCase(EMPLOYEE_RECORD_UPDATE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        builder.addCase(ATTENDANCE_RECORD_UPDATE,(state,action:PayloadAction<AttendanceRecord>)=>{
                 state.employeeList = updateAndInsertEmployeeRecords(state.employeeList,[action.payload.Emp]);
         })
-        .addCase(EMPLOYEE_RECORD_DELETE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        .addCase(ATTENDANCE_RECORD_DELETE,(state,action:PayloadAction<AttendanceRecord>)=>{
             state.employeeList = deleteEmployeeRecords(state.employeeList,[action.payload.Emp]);
         })
-        .addCase(EMPLOYEE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
+        .addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
             state.employeeList = updateAndInsertEmployeeRecords(state.employeeList,UniqueEmployeeRecords(action.payload.map((record)=>record.Emp)));
         })  
     }
 });
 
-export const {INSERT_SETUP,UPDATE_MESSAGE,DELETE_MESSAGE} = EmployeeSlice.actions;
+export const {INSERT_SETUP,UPDATE,DELETE} = EmployeeSlice.actions;
 export default EmployeeSlice.reducer;

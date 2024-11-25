@@ -1,6 +1,6 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { LocationRecord,AttendanceRecord } from "../recordType";
-import { UPDATE_MESSAGE as ATTENDANCE_RECORD_UPDATE_MESSAGE,DELETE_MESSAGE as ATTENDANCE_RECORD_DELETE_MESSAGE,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP } from "./attendanceSlice";
+import { UPDATE as ATTENDANCE_RECORD_UPDATE,DELETE as ATTENDANCE_RECORD_DELETE,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP } from "./attendanceSlice";
 
 // -----------------------[LocationRecordの初期値]-----------------------------
 export const initialLocationState = {
@@ -40,19 +40,19 @@ export const LocationSlice = createSlice({
         INSERT_SETUP:(state,action:PayloadAction<LocationRecord[]>)=>{
             state.locationList = UniqueLocationRecords([...state.locationList,...action.payload]);
         },
-        UPDATE_MESSAGE:(state,action:PayloadAction<AttendanceRecord>)=>{
+        UPDATE:(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = updateLocationRecords(state.locationList,[action.payload.Location]);
         },
-        DELETE_MESSAGE:(state,action:PayloadAction<AttendanceRecord>)=>{
+        DELETE:(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = deleteLocationRecords(state.locationList,[action.payload.Location]);
         }   
     },
     extraReducers:(builder)=>{
         builder
-        .addCase(ATTENDANCE_RECORD_UPDATE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        .addCase(ATTENDANCE_RECORD_UPDATE,(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = updateLocationRecords(state.locationList,[action.payload.Location]);
         })
-        .addCase(ATTENDANCE_RECORD_DELETE_MESSAGE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        .addCase(ATTENDANCE_RECORD_DELETE,(state,action:PayloadAction<AttendanceRecord>)=>{
             state.locationList = deleteLocationRecords(state.locationList,[action.payload.Location]);
         })
         .addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
@@ -61,7 +61,7 @@ export const LocationSlice = createSlice({
     }
 });
 
-export const {INSERT_SETUP,UPDATE_MESSAGE,DELETE_MESSAGE} = LocationSlice.actions;
+export const {INSERT_SETUP,UPDATE,DELETE} = LocationSlice.actions;
 export default LocationSlice.reducer;
 
 

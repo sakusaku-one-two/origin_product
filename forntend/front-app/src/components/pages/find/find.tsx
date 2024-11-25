@@ -19,13 +19,21 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@/components/ui/command";
+} from "../../ui/command";
 
 import { FindDialogOpen } from "../../../state/openClose";
 import { useRecoilState } from "recoil";
+import { TimeRecordWithOtherRecord } from "../../../hooks";
+import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
+import TimeCard from "../dasbord/timeCard";
+import { SelectedRecord } from "../../../state/selectedRecord";
+
 
 const FindTask:FC =() => {
+  const [targetRecord,setTargetRecord] = useRecoilState(SelectedRecord);
   const [open,setIsOpen] = useRecoilState(FindDialogOpen);
+  const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
+
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -52,15 +60,18 @@ const FindTask:FC =() => {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Suggestions">
-            <CommandItem>
-              <Calendar />
-              <span>Calendar</span>
-            </CommandItem>
-            <CommandItem>
-              <Smile />
-              <span>Search Emoji</span>
-            </CommandItem>
-            <CommandItem>
+            {records.map((record)=>(
+              <CommandItem key={record.timeRecord.ID} onSelect={()=>{
+                setTargetRecord({record:record,isSelected:true});
+                setIsOpen(false);
+              }}>
+                <TimeCard record={record}/>
+              </CommandItem>
+            ))}
+            <CommandItem onSelect={()=>{
+              setTargetRecord({record:null,isSelected:false});
+              setIsOpen(false);
+            }}>
               <Calculator />
               <span>Calculator</span>
             </CommandItem>

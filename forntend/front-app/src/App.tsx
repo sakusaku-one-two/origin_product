@@ -6,13 +6,18 @@ import './App.css'
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from './state/openClose.tsx';
 import DashBord from './components/pages/dasbord/dashBord.tsx';
-
+import { useAttendanceDispatch } from './hooks.ts';
+import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from './redux/slices/attendanceSlice';
+import { sampleAttendanceRecords } from './redux/slices/sampleRecords';
 
 function App() {
   const [isloign,setLogin] = useRecoilState(LoginDialogOpen);
+  const dispatch = useAttendanceDispatch();
   useEffect(()=>{
     setLogin(!isloign);
-  },[])
+    
+    dispatch(INSERT_ATTENDANCE_MESSAGE(sampleAttendanceRecords));
+  },[dispatch])
 
   return (
     <Router>

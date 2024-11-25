@@ -107,9 +107,7 @@ func SetUpRepository() {
 		//時間の管理するゴルーチン
 		for {
 
-			select {
-			case <-ticker.C: // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
-			}
+			<-ticker.C // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
 
 			currentTime := time.Now()
 

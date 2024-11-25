@@ -54,10 +54,10 @@ const AppSidebar:React.FC = () => {
         description:"出発報告のための自宅から現場までの移動時間を入力。初期値は1:30前"
     },
     {
-        title:"打刻検索",
-        url:"opneFind",
+        title:"打刻履歴",
+        url:"attendanceRecordLog",
         icon:Crosshair,
-        description:"打刻対象者を氏名で検索"
+        description:"打刻履歴を表示します。"
     },
     {
         title:"CSVインポート",
