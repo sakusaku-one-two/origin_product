@@ -3,12 +3,7 @@ import { useState } from 'react';
 import { Item } from '../appSidebar';
 import { SidebarMenuButton, SidebarMenuItem } from '../../ui/sidebar';
 import { Card } from '../../ui/card';
-import {
-    HoverCard,
-    HoverCardContent,
-    HoverCardTrigger,
-  } from "../../ui/hover-card";
-  import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
   
 
 const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chengeDescription}) => {
@@ -45,8 +40,7 @@ const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chen
                              onMouseLeave={() => HoverHandler(false)}
                              className='p-10 py-5 flex
                              items-center transition duration-500
-                             hover:shadow-x hover:bg-red
-                              '>
+                             hover:shadow-md hover:bg-slate-200'>
         <SidebarMenuItem>
             <SidebarMenuButton asChild />
             <div className='flex gap-5 flex items-center'>

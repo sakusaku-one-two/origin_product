@@ -126,7 +126,7 @@ const DashBord:FC=() => {
                       className='h-full'
                     >
                       <motion.button onClick={() => unregiter()} className='w-full h-full'> 
-                      <Card className='flex flex-col justify-center items-center h-full'>
+                      <Card className='flex flex-col justify-center items-center h-full hover:cursor-pointer hover:bg-slate-200'>
                         {/* <motion.h5>{target.subtitle}</motion.h5> */}
                         <motion.h2>{target.title}</motion.h2>
                         </Card> 
@@ -148,6 +148,7 @@ const DashBord:FC=() => {
       </ResizablePanel >
       <ResizableHandle />
       <ResizablePanel defaultSize={30}>
+        <div className='p-2'>
       <Button className='inline-flex items-center gap-2 whitespace-nowrap transition-colors
                          focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring 
                          disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none 
@@ -158,13 +159,15 @@ const DashBord:FC=() => {
                          onClick={FindDailogHandler}>
                         打刻の検索 {<FindTask/>}
         </Button>
+        </div>
         <ScrollArea className='h-[500px] bg-slate-100'>
           <ScrollBar orientation='horizontal' />
               
               {items.map(item => (
                 <motion.div layoutId={item.id} onClick={() => ClickHandler(item)}>
           
-                <Card  className='hover:cursor-pointer hover:bg-slate-200'>
+                <Card  className='hover:cursor-pointer transition duration-100
+                             hover:shadow-md hover:bg-slate-200'>
                   <motion.h5>{item.subtitle}</motion.h5>
                   <motion.h2>{item.title}</motion.h2>
                 </Card>
