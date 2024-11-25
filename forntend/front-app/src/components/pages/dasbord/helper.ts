@@ -1,5 +1,6 @@
-import { TimeRecordWithOtherRecord } from "../../../hooks";
-import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
+import { TimeRecordMergeOtherRecord, TimeRecordWithOtherRecord } from "../../../hooks";
+
+
 
 export const PlanNames: Map<number,string> = new Map();
 
@@ -18,20 +19,20 @@ export function GetGroupMemberRecord(record:TimeRecordWithOtherRecord | null,rec
   const PlanTime:Date|null = record.timeRecord.PlanTime;
   const LocationID:number = record.locationRecord?.LocationID ?? 0;
   const EmployeeID:number = record.employeeRecord?.EmpID ?? 0;
-  console.log("empid,panno,plantime,location",EmployeeID,PlanNo,PlanTime,LocationID);
-  const result = records.filter(item =>{
-    console.log("GetGroupMemberRecord in function",item.timeRecord.PlanNo,item.timeRecord.PlanTime,item.locationRecord?.LocationID,item.employeeRecord?.EmpID);
+  
+  const result = records.filter((item:TimeRecordWithOtherRecord)=>{
+    // if (item.employeeRecord?.EmpID === EmployeeID) return false;
+    console.log(EmployeeID,item.employeeRecord?.EmpID,":::",LocationID,item.locationRecord?.LocationID);
     if (item.timeRecord.PlanNo !== PlanNo) return false;
-    console.log("GetGroupMemberRecord in function",item.timeRecord.PlanTime,PlanTime);
+    // console.log("GetGroupMemberRecord in function",item.timeRecord.PlanTime,PlanTime);
     if (item.timeRecord.PlanTime !== PlanTime) return false;
-    console.log("GetGroupMemberRecord in function",item.locationRecord?.LocationID,LocationID);
-    if (item.locationRecord?.LocationID !== LocationID) return false;
-    console.log("GetGroupMemberRecord in function",item.employeeRecord?.EmpID,EmployeeID);
-    if (item.employeeRecord?.EmpID === EmployeeID) return false;
+    // console.log("GetGroupMemberRecord in function",item.locationRecord?.LocationID,LocationID);
+    // if (item.locationRecord?.LocationID !== LocationID) return false;
+    // console.log("GetGroupMemberRecord in function",item.employeeRecord?.EmpID,EmployeeID);
+    
     return true;
   }) 
-  console.log("GetGroupMemberRecord in function",result);
-  return result;
+    return result;
                     // && item.timeRecord.PlanTime === PlanTime 
                     // && item.locationRecord?.LocationID === LocationID 
                     // && item.employeeRecord?.EmpID !== EmployeeID);

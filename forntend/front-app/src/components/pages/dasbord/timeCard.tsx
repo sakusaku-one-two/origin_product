@@ -32,7 +32,7 @@ const TimeCard:React.FC<{record:TimeRecordWithOtherRecord}> = ({record})=>{
         setSelectedRecord({record:null,isSelected:false});
         setTimeout(()=>{
             setSelectedRecord({record:record,isSelected:true});
-        },100);
+        },10);
         
     }
     
