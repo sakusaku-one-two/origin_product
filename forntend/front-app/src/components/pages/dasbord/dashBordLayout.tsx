@@ -29,7 +29,6 @@ function DashBordLayout(){
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </ResizablePanel>
-
         </ResizablePanelGroup>
     );
 };

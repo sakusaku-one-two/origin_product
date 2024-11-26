@@ -113,13 +113,13 @@ func ActionWebSocketHandler(c echo.Context) error {
 			}
 
 			switch msgAction.Action {
-			case "EMPLOYEE_RECORD/UPDATE", "EMPLOYEE_RECORD/DELETE":
+			case "EMPLOYEE_RECORD_UPDATE", "EMPLOYEE_RECORD_DELETE":
 				SendActionDTO[models.EmployeeRecord](ACTION_EMPLOYEE_RECORD_TO_REPO, msgAction)
-			case "ATTENDANCE_RECORD/UPDATE", "ATTENDANCE_RECORD/DELETE":
+			case "ATTENDANCE_RECORD_UPDATE", "ATTENDANCE_RECORD_DELETE":
 				SendActionDTO[models.AttendanceRecord](ATTENDANCE_RECORD_TO_REPO, msgAction)
-			case "TIME_RECORD/UPDATE", "TIME_RECORD/DELETE":
+			case "TIME_RECORD_UPDATE", "TIME_RECORD_DELETE":
 				SendActionDTO[models.TimeRecord](ACTION_TIME_RECORD_TO_REPO, msgAction)
-			case "LOCATION_RECORD/UPDATE", "LOCATION_RECORD/DELETE":
+			case "LOCATION_RECORD_UPDATE", "LOCATION_RECORD_DELETE":
 				SendActionDTO[models.LocationRecord](ACTION_LOCATION_RECORD_TO_REPO, msgAction)
 			default:
 				log.Printf("不明なActionDTOが送信されました。Action: %v", msgAction.Action)

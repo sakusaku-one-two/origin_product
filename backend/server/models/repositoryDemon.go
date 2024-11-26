@@ -107,7 +107,9 @@ func SetUpRepository() {
 		//時間の管理するゴルーチン
 		for {
 
-			<-ticker.C // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
+			select {
+			case <-ticker.C: // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
+			}
 
 			currentTime := time.Now()
 
@@ -161,6 +163,50 @@ func SetUpRepository() {
 
 				return true
 			})
+
+		}
+	})
+
+	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
+
+		//timeRecordの監視範囲を1時間おきに更新する。
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+
+		//1時間おきに動作するゴルーチン
+		for {
+
+			<-ticker.C
+
+			currentTime := time.Now()
+			before_time := currentTime.Add(-40 * time.Minute)
+			after_time := currentTime.Add(8 * time.Hour)
+			deleted_keys := []any{}
+
+			repo.Cache.Map.Range(func(key any, value any) bool {
+				time_record, ok := value.(*TimeRecord)
+				if !ok {
+					log.Printf("Failed to convert to *TimeRecord for key %v", key)
+					return true
+				}
+				if time_record.PlanTime.Before(before_time) || time_record.PlanTime.After(after_time) {
+					deleted_keys = append(deleted_keys, key) //画面と監視対象から外すtime_recordのIDを配列に格納
+					repo.Cache.Map.Delete(key)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/DELETE", time_record) //実施際にDB内のデータを削除するわけではないが、クライアント側のredux-reducerに削除するというアクションを送信する
+				}
+				return true
+			})
+
+			new_query := NewQuerySession()
+			time_records := []TimeRecord{}
+			new_query.Where("plan_time >= ? AND plan_time <= ?", before_time, after_time).Find(&time_records)
+
+			for _, time_record := range time_records {
+				if _, ok := repo.Cache.Map.Load(time_record.ID); !ok {
+					repo.Cache.Map.Store(time_record.ID, &time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", &time_record)
+				}
+			}
 
 		}
 	})
