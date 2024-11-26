@@ -36,11 +36,11 @@ export const useTimeDispatch = () => useDispatch<AppDispatch>();
 export const useTimeSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 //TimeRecordの更新と削除のディスパッチ(ミドルウェアを通ってwebsocketでサーバーに送信される)
-export const useTimeRecordDispatch = () => {
+export const useTimeRecordDispatch = ():{updateTimeDispatch:(updatedTimeRecord:TimeRecord)=>void,deleteTimeDispatch:(deletedTimeRecord:TimeRecord)=>void} => {
     const dispatch = useTimeDispatch();
-    const updateTime = useCallback((updatedTimeRecord:TimeRecord) => dispatch(UPDATE_TIME_MESSAGE(updatedTimeRecord)),[dispatch]);
-    const deleteTime = useCallback((deletedTimeRecord:TimeRecord) => dispatch(DELETE_TIME_MESSAGE (deletedTimeRecord)),[dispatch]);
-    return {updateTime,deleteTime};
+    const updateTimeDispatch = useCallback((updatedTimeRecord:TimeRecord) => dispatch(UPDATE_TIME_MESSAGE(updatedTimeRecord)),[dispatch]);
+    const deleteTimeDispatch = useCallback((deletedTimeRecord:TimeRecord) => dispatch(DELETE_TIME_MESSAGE (deletedTimeRecord)),[dispatch]);
+    return {updateTimeDispatch,deleteTimeDispatch};
 };
 
 export type TimeRecordWithOtherRecord = {

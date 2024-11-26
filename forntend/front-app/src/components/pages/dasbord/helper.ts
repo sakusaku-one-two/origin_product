@@ -1,5 +1,5 @@
-import { circIn } from "framer-motion";
-import { TimeRecordMergeOtherRecord, TimeRecordWithOtherRecord } from "../../../hooks";
+  import { TimeRecordWithOtherRecord } from "../../../hooks";
+import { TimeRecord } from "../../../redux/recordType";
 
 
 
@@ -37,6 +37,13 @@ export function GetGroupMemberRecord(record:TimeRecordWithOtherRecord | null,rec
     if (itemPlanTime.getTime() !== PlanTime.getTime()) return false;//同一計画時刻は無視しない、
     return true;
   });
-  console.log(result);
   return result;
 }
+
+export const NewCompleteTimeRecord  = (oldRecord:TimeRecord,CompletedTime :Date):TimeRecord => {
+  return {
+    ...oldRecord,
+    IsComplete:true,
+    ResultTime:CompletedTime
+  };
+};

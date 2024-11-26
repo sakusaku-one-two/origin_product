@@ -71,6 +71,7 @@ export const TimeSlice = createSlice({
             state.TimeRecords = updateAndInsertTimeRecords(state.TimeRecords,[action.payload]);
             separateTimeRecords(state,state.TimeRecords);
             state.isUpdate = true;
+
         },
         DELETE:(state,action:PayloadAction<TimeRecord>)=>{
             state.TimeRecords = deleteTimeRecords(state.TimeRecords,[action.payload]);

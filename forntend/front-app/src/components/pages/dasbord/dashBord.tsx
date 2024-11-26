@@ -1,4 +1,5 @@
 import {FC,useEffect,useState} from 'react'
+
 import { useRecoilState } from 'recoil';  
 import { FindDialogOpen } from '../../../state/openClose';
 import { Button } from '../../ui/button';
@@ -9,7 +10,14 @@ import {
   ResizablePanelGroup
 } from '../../ui/resizable';
 import { ScrollArea,ScrollBar } from "../../ui/scroll-area"
-import { TimeRecordWithOtherRecord, useGetWaitingTimeRecordsWithOtherRecord } from '../../../hooks';
+import { UPDATE as UPDATE_TIME_RECORD } from '../../../redux/slices/timeSlice';
+
+import { TimeRecordWithOtherRecord,
+         useGetWaitingTimeRecordsWithOtherRecord,
+         useGetPreAlertTimeRecordsWithOtherRecord,
+         useGetAlertTimeRecordsWithOtherRecord,
+         useTimeDispatch } from '../../../hooks';
+
 import { motion, AnimatePresence } from "framer-motion";
 import TimeCard from './timeCard';
 import { SelectedRecord } from '../../../state/selectedRecord';
@@ -18,26 +26,54 @@ import { GetGroupMemberRecord } from './helper';
 
 
 const DashBord:FC=() => {
+
+
   const [FindOpen,setFindOpen] = useRecoilState(FindDialogOpen);
   const [targetRecord,setTargetRecord] = useRecoilState(SelectedRecord);
   const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
-  const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records);
+  const alertRecords:TimeRecordWithOtherRecord[] = useGetAlertTimeRecordsWithOtherRecord();
+  const preAlertRecords:TimeRecordWithOtherRecord[] = useGetPreAlertTimeRecordsWithOtherRecord();
+  const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records.concat(alertRecords,preAlertRecords));
   const [
     groupMemberRecordsState,
     setGroupMemberRecordsState
     ] = useState<TimeRecordWithOtherRecord[]>(groupMemberRecords);
+
+  const dispatch = useTimeDispatch();
 
   useEffect(()=>{
     setGroupMemberRecordsState(groupMemberRecords);
   },[targetRecord.record]);
 
 
-  console.log("DashBord",groupMemberRecords,targetRecord.record);
-
   const FindDailogHandler = () => {
     setFindOpen(!FindOpen);
   };
 
+  const GroupTimeRegistory = () => {
+  
+    groupMemberRecordsState.forEach((record:TimeRecordWithOtherRecord)=>{
+      const new_time = {
+        ...record.timeRecord,
+        IsComplete:true,
+        ResultTime:record.timeRecord.PlanTime
+      };
+      dispatch(UPDATE_TIME_RECORD(new_time));
+    }); 
+    if(targetRecord.record){
+        const timeRecord = targetRecord.record.timeRecord;
+        const new_time = {    
+          ...timeRecord,
+          IsComplete:true,
+          ResultTime:timeRecord.PlanTime
+        };
+        dispatch(UPDATE_TIME_RECORD(new_time));
+        setTargetRecord({
+          isSelected:false,
+          record:null
+        });
+    }
+  };
 
   
   return (
@@ -52,22 +88,35 @@ const DashBord:FC=() => {
             <ResizablePanel defaultSize={30} className='bg-slate-100'>
                 <AnimatePresence >
                   {targetRecord.record && (
-                    // <motion.div layoutId={targetRecord.record.timeRecord.ID.toString()}
-                    //   animate={{ scale: 1, opacity: 1 }}
-                    //   exit={{ scale: 0.8, opacity: 0 }}
-                    //   transition={{ type: "" }}
-                    //   className='h-full'
-                    // >
                       <TimeCard record={targetRecord.record}/>
-                    // </motion.div>
                   
                 )}
                 </AnimatePresence>
             </ResizablePanel>
+
+            <ResizableHandle />
+                <ResizablePanel
+                  defaultSize={10}
+                  className='flex items-center justify-center h-full'
+                >
+                  <div className='flex-col justify-between px-10 '>
+                  <Button onClick={() =>GroupTimeRegistory()} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                    <span>同一勤務対象者を一括で打刻（予定時刻）</span>
+                  </Button>
+                  <span className='px-5'></span>
+                  <Button onClick={() =>GroupTimeRegistory()} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                    <span>同一勤務対象者を一括で打刻（打刻時刻）</span>
+                  </Button>
+
+                  </div>
+                </ResizablePanel>
+
+
                 <ResizableHandle />
                 <ResizablePanel
                   defaultSize={50}
                 >
+
                   {
                     groupMemberRecordsState.map((record:TimeRecordWithOtherRecord)=>(
                       <SubTimeRecord record={record}/>
@@ -92,21 +141,36 @@ const DashBord:FC=() => {
         </div>
         <ScrollArea className='h-[500px] bg-slate-100'>
           <ScrollBar orientation='horizontal' />
-              
-              {records.map((record :TimeRecordWithOtherRecord) => (
-                // <motion.div layoutId={record.timeRecord.ID.toString()}  
-                //   // animate={{ scale: 1, opacity: 1 }}
-                //   // exit={{ scale: 0.8, opacity: 0 }}
-                //   // transition={{ type: "" }}
-                // >
-                  <TimeCard record={record}/>  
-                // </motion.div>
-              ))}
 
+          <h1 className='text-lg font-bold'>アラート</h1>
+             
+            {alertRecords.map((record :TimeRecordWithOtherRecord) => (
+                <TimeCard record={record}/>     
+          ))}
+          
+          
+            <h1 className='text-lg font-bold'>5分前アラート</h1>
+             
+              {preAlertRecords.map((record :TimeRecordWithOtherRecord) => (
+               
+               <TimeCard record={record}/>  
+            
+               ))}
+          
+            <h1 className='text-lg font-bold'>打刻</h1>
+             
+              {records.map((record :TimeRecordWithOtherRecord) => (
+
+                  <TimeCard record={record}/>  
+               
+              ))}
+            
+            
+          
+            
+              
         </ScrollArea>
       </ResizablePanel>
-
-   
     </ResizablePanelGroup>
   )
 }
