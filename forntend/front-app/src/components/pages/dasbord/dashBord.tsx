@@ -25,6 +25,7 @@ import SubTimeRecord from './subTimeRecord';
 import { GetGroupMemberRecord } from './helper';
 
 
+
 const DashBord:FC=() => {
 
 
@@ -93,7 +94,7 @@ const DashBord:FC=() => {
                 )}
                 </AnimatePresence>
             </ResizablePanel>
-
+            
             <ResizableHandle />
                 <ResizablePanel
                   defaultSize={10}
@@ -164,6 +165,7 @@ const DashBord:FC=() => {
                   <TimeCard record={record}/>  
                
               ))}
+            
             
             
           

@@ -30,22 +30,8 @@ const Login:React.FC = () => {
     
           <div className="grid w-full items-center gap-4">
             
-            <div className="flex flex-col space-y-1.5">
-                <InputOTP maxLength={20}>
-                    <InputOTPGroup >
-                            <InputOTPSlot index={0} />
-                            <InputOTPSlot index={1} />
-                            <InputOTPSlot index={2} />
-                            <InputOTPSlot index={3} />
-                            <InputOTPSlot index={4} />
-                            <InputOTPSlot index={5} />
-                            <InputOTPSlot index={6} />
-                            <InputOTPSlot index={7} />
-                    </InputOTPGroup>
-                </InputOTP>
-            </div>
             <Input placeholder='ユーザーID' value={userId} onChange={(e)=>setUserId(e.target.value)}  />
-            <Input placeholder='パスワード' value={password} onChange={(e)=>setPassword(e.target.value)}  />
+            <Input placeholder='パスワード' type='password' value={password} onChange={(e)=>setPassword(e.target.value)}  />
             
           </div>
           

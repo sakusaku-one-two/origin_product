@@ -1,5 +1,5 @@
 #goのドッカーイメージをベースにして、ワークディレクトリを/appにマウントする
-FROM golang:1.23.0
+FROM golang:latest
 
 #ワークディレクトリを/appに設定
 WORKDIR /app
