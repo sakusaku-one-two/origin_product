@@ -1,3 +1,4 @@
+import { circIn } from "framer-motion";
 import { TimeRecordMergeOtherRecord, TimeRecordWithOtherRecord } from "../../../hooks";
 
 
@@ -19,21 +20,23 @@ export function GetGroupMemberRecord(record:TimeRecordWithOtherRecord | null,rec
   const PlanTime:Date|null = record.timeRecord.PlanTime;
   const LocationID:number = record.locationRecord?.LocationID ?? 0;
   const EmployeeID:number = record.employeeRecord?.EmpID ?? 0;
+
+  if (EmployeeID === 0 || LocationID === 0 || PlanNo === 0 || PlanTime === null) {
+    console.log("GetGroupMemberRecord in function",EmployeeID,LocationID,PlanNo,PlanTime);
+    return [];
+  }
   
   const result = records.filter((item:TimeRecordWithOtherRecord)=>{
-    // if (item.employeeRecord?.EmpID === EmployeeID) return false;
-    console.log(EmployeeID,item.employeeRecord?.EmpID,":::",LocationID,item.locationRecord?.LocationID);
-    if (item.timeRecord.PlanNo !== PlanNo) return false;
-    // console.log("GetGroupMemberRecord in function",item.timeRecord.PlanTime,PlanTime);
-    if (item.timeRecord.PlanTime !== PlanTime) return false;
-    // console.log("GetGroupMemberRecord in function",item.locationRecord?.LocationID,LocationID);
-    // if (item.locationRecord?.LocationID !== LocationID) return false;
-    // console.log("GetGroupMemberRecord in function",item.employeeRecord?.EmpID,EmployeeID);
-    
+    const itemEmpID:number = item.employeeRecord?.EmpID ?? 0;
+    const itemLocationID:number = item.locationRecord?.LocationID ?? 0;
+    const itemPlanNo:number = item.timeRecord.PlanNo;
+    const itemPlanTime:Date|null = item.timeRecord.PlanTime;
+    if (itemEmpID === EmployeeID) return false;//同一社員はする無視する、
+    if (itemLocationID !== LocationID) return false;//同一現場は無視しない、
+    if (itemPlanNo !== PlanNo) return false;//同一計画番号は無視しない、
+    if (itemPlanTime.getTime() !== PlanTime.getTime()) return false;//同一計画時刻は無視しない、
     return true;
-  }) 
-    return result;
-                    // && item.timeRecord.PlanTime === PlanTime 
-                    // && item.locationRecord?.LocationID === LocationID 
-                    // && item.employeeRecord?.EmpID !== EmployeeID);
+  });
+  console.log(result);
+  return result;
 }
