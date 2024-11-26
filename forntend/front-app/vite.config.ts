@@ -1,13 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import * as path from 'path';
+import * as path from 'path'
 
-// https://vitejs.dev/config/
+// Viteの設定をエクスポート
 export default defineConfig({
+  // プラグインの設定
   plugins: [react()],
-  resolve:{
-    alias:{
-      '@': path.resolve(__dirname,'src'),
-    }
+  // パスの解決設定
+  resolve: {
+    alias: [
+      // @からのパスをsrcディレクトリに紐付け
+      { find: '@', replacement: path.resolve(__dirname, 'src') }
+    ]
   }
 })
+
