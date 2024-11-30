@@ -8,6 +8,7 @@ import type { LocationRecord } from "./redux/recordType";
 import { useCallback } from "react";
 import { sampleAttendanceRecords } from "./redux/slices/sampleRecords";
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from "./redux/slices/attendanceSlice";
+import type { PostRecord } from "./redux/recordType";
 
 
 // -----------------------[AttendanceRecordのディスパッチとセレクターのカスタムフック]-----------------------------
@@ -54,13 +55,15 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
     const attendanceRecords = state.ATTENDANCE_RECORDS.AttendanceRecords;
     const employeeRecords = state.EMPLOYEE_RECORDS.employeeList;
     const locationRecords = state.LOCATION_RECORDS.locationList;
+    const postRecords = state.POST_RECORDS.postList;
 
     
     return timeRecords.map((timeRecord)=>{
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
         const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.LocationID);
-        return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null};
+        const targetPostRecord = postRecords.find((postRecord)=>postRecord.ID === targetAttendanceRecord?.PostID);
+        return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null};
     });
 }
 
@@ -71,9 +74,19 @@ export const useGetAlertTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecor
 export const useGetPreAlertTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.PreAlertTimeRecords,state));
 export const useGetIsUpdate = ():boolean => useSelector((state:RootState) => state.TIME_RECORDS.isUpdate);
 
+
+
 // -----------------------[LocationRecordのディスパッチとセレクターのカスタムフック]-----------------------------
 
 export const useLocationDispatch = () => useDispatch<AppDispatch>();
 export const useLocationSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const useGetLocationRecords = ():[LocationRecord[],boolean] => useSelector((state:RootState) => [state.LOCATION_RECORDS.locationList,state.LOCATION_RECORDS.isLoading]);
+
+
+// -----------------------[PostRecordのディスパッチとセレクターのカスタムフック]-----------------------------
+
+export const usePostDispatch = () => useDispatch<AppDispatch>();
+export const usePostSelector: TypedUseSelectorHook<RootState> = useSelector;
+
+export const useGetPostRecords = ():[PostRecord[],boolean] => useSelector((state:RootState) => [state.POST_RECORDS.postList,state.POST_RECORDS.isLoading]);

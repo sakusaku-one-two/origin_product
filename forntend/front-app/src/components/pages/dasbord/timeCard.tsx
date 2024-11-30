@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../ui/card';
 import { TimeRecordWithOtherRecord } from '../../../hooks';
-import { SelectedRecord, useSelectedRecord } from '../../../state/selectedRecord'; 
+import {  useSelectedRecord } from '../../../state/selectedRecord'; 
 import { useTimeDispatch } from '../../../hooks';
 import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';

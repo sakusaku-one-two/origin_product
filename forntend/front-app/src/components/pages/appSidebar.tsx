@@ -1,21 +1,15 @@
 import React  from 'react';
 import { useState } from 'react';
-import { useRecoilState } from 'recoil';
-import { LoginDialogOpen } from '../../state/openClose';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
     SidebarGroup,
-    SidebarHeader,
     SidebarMenu,
 } from "@/components/ui/sidebar";
 import { CircleUser,
-        BookUser,
         PlaneTakeoff,
-        UserSearch,
         Crosshair ,
-        Save,
         FileInput,
         FileOutput,
         FileSymlink,

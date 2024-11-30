@@ -5,14 +5,14 @@
     { "path": "./tsconfig.node.json" }
   ],
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*":["src/*"]
+      "@/*":["src/*"],
     },
     "types":["node"],
     "module": "ESNext",
     "moduleResolution": "Node",
     "target": "ESNext",
-    
-  }
+  },
+  
 }

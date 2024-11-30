@@ -18,11 +18,12 @@ import { TimeRecordWithOtherRecord,
          useGetAlertTimeRecordsWithOtherRecord,
          useTimeDispatch } from '../../../hooks';
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import TimeCard from './timeCard';
 import { SelectedRecord } from '../../../state/selectedRecord';
 import SubTimeRecord from './subTimeRecord';
 import { GetGroupMemberRecord } from './helper';
+import { TimeRecord } from '@/redux/recordType';
 
 
 
@@ -51,23 +52,16 @@ const DashBord:FC=() => {
     setFindOpen(!FindOpen);
   };
 
-  const GroupTimeRegistory = () => {
+  const GroupTimeRegistory = (trancerateFunction:(target:TimeRecord)=> TimeRecord) => {
   
     groupMemberRecordsState.forEach((record:TimeRecordWithOtherRecord)=>{
-      const new_time = {
-        ...record.timeRecord,
-        IsComplete:true,
-        ResultTime:record.timeRecord.PlanTime
-      };
+      const new_time = trancerateFunction(record.timeRecord);
       dispatch(UPDATE_TIME_RECORD(new_time));
-    }); 
+    });
+
     if(targetRecord.record){
         const timeRecord = targetRecord.record.timeRecord;
-        const new_time = {    
-          ...timeRecord,
-          IsComplete:true,
-          ResultTime:timeRecord.PlanTime
-        };
+        const new_time = trancerateFunction(timeRecord);
         dispatch(UPDATE_TIME_RECORD(new_time));
         setTargetRecord({
           isSelected:false,
@@ -100,15 +94,35 @@ const DashBord:FC=() => {
                   defaultSize={10}
                   className='flex items-center justify-center h-full'
                 >
-                  <div className='flex-col justify-between px-10 '>
-                  <Button onClick={() =>GroupTimeRegistory()} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                  <div className='flex-col justify-between px-10 h-hull'>
+                  <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                    return {
+                      ...target,
+                      IsComplete:true,
+                      ResultTime:target.PlanTime
+                    }
+                  })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
                     <span>同一勤務対象者を一括で打刻（予定時刻）</span>
                   </Button>
                   <span className='px-5'></span>
-                  <Button onClick={() =>GroupTimeRegistory()} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                  <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                    return {
+                      ...target,
+                      IsComplete:true,
+                      ResultTime:target.ResultTime
+                    }
+                  })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
                     <span>同一勤務対象者を一括で打刻（打刻時刻）</span>
                   </Button>
-
+                  <span className='px-5'></span>
+                  <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                    return {
+                      ...target,
+                      IsIgnore:true
+                    }
+                  })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                    <span>アラートを無視</span>
+                  </Button>
                   </div>
                 </ResizablePanel>
 

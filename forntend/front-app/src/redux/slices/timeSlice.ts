@@ -47,9 +47,9 @@ function separateTimeRecords(state:{
 } ,timeRecords:TimeRecord[])
 {
     const completedTimeRecords = timeRecords.filter((record)=>record.IsComplete || record.IsOver || record.IsIgnore);
-    const waitingTimeRecords = timeRecords.filter((record)=> record.IsComplete === false);
-    const AlertTimeRecords = timeRecords.filter((record)=>record.IsAlert && !record.IsComplete);
-    const PreAlertTimeRecords = timeRecords.filter((record)=>record.PreAlert && !record.IsAlert);
+    const waitingTimeRecords = timeRecords.filter((record)=> !record.IsComplete && !record.IsIgnore );
+    const AlertTimeRecords = timeRecords.filter((record)=> record.IsAlert && !record.IsComplete && !record.IsIgnore);
+    const PreAlertTimeRecords = timeRecords.filter((record)=>record.PreAlert && !record.IsAlert && !record.IsComplete && !record.IsIgnore);
 
     state.completedTimeRecords = completedTimeRecords;
     state.waitingTimeRecords = waitingTimeRecords;

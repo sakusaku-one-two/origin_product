@@ -6,7 +6,7 @@ import { Card } from '../../ui/card';
 import { useNavigate } from 'react-router-dom';
   
 
-const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chengeDescription}) => {
+const SidebarItem:React.FC<{item:Item,chengeDescription:(description:string)=>void}> = ({item,chengeDescription}) => {
     
     const [IsSpin,setIsSpin] = useState<string>("");
     const [IsBounce,setIsBounce] = useState<string>("");
@@ -22,7 +22,7 @@ const SidebarItem:React.FC<{item:Item,chengeDescription:Function}> = ({item,chen
 
     const HoverHandler = (openFlag:boolean) => {
         if (openFlag) {
-            chengeDescription(item.description);
+            chengeDescription(item.description ?? "" );
             setIsBounce("animate-bounce");
         }else {
             chengeDescription("");

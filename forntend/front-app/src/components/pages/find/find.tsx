@@ -1,12 +1,11 @@
-
-import {FC,useState,useEffect} from "react";
+import {FC,useEffect} from "react";
 
 import {
   Calculator,
-  Calendar,
+  
   CreditCard,
   Settings,
-  Smile,
+  
   User,
 } from "lucide-react";
 
@@ -45,7 +44,7 @@ const FindTask:FC =() => {
 
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [])
+  }, [setIsOpen])
 
   return (
     <>
@@ -90,8 +89,13 @@ const FindTask:FC =() => {
             </CommandItem>
             <CommandItem>
               <Settings />
-              <span>Settings</span>
+              <span>現在選択中のデータ</span>
               <CommandShortcut>⌘S</CommandShortcut>
+                {
+                  targetRecord.isSelected && (
+                    <TimeCard record={targetRecord.record as TimeRecordWithOtherRecord}/>
+                  )
+                }
             </CommandItem>
           </CommandGroup>
         </CommandList>

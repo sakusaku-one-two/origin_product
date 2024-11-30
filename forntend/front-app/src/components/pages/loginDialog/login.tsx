@@ -9,7 +9,6 @@ import {
 import { Input } from '../../ui/input';
 
 import { Button } from '../../ui/button';
-import { InputOTP,InputOTPGroup,InputOTPSlot } from '../../ui/input-otp';
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../../state/openClose';
 
@@ -19,8 +18,8 @@ const Login:React.FC = () => {
     const [userId,setUserId] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
   return (
-    <Dialog open={openDialog} >
-    <DialogContent className='flex flex-col gap-4 content-center' onClose={()=>setOpenDialog(false)}>
+    <Dialog open={openDialog} onOpenChange={setOpenDialog} >
+    <DialogContent className='flex flex-col gap-4 content-center' >
         <DialogHeader>
         <DialogTitle>認証</DialogTitle>
         <DialogDescription>

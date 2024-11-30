@@ -7,7 +7,7 @@ import {
   } from '../../ui/resizable';
 
 
-function DashBordLayout(){
+const DashBordLayout:React.FC = ( ) => {
     {/** redux records */}
 
 

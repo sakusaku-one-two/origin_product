@@ -1,0 +1,46 @@
+
+
+services:
+  nginx:
+    image: nginx:latest
+    ports: 
+      - "127.0.0.1:80:80" #Nginxはローカルホストからのみアクセス可能
+      - "127.0.0.1:443:443" #Nginxはローカルホストからのみアクセス可能
+    volumes:
+      - ./proxyServer/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxyServer/certificate.crt:/etc/nginx/certificate.crt:ro
+      - ./proxyServer/private.key:/etc/nginx/private.key:ro
+      - ./forntend/front-app/dist:/usr/share/nginx/html:ro
+#   depends_on:
+#     - api
+
+
+#   api:
+#     image: go-lang:latest #使用するポストグレスのイメージ
+#     build: ./backend
+#     volumes:
+#       - db-data:/var/lib/postgres/data
+#     ports:
+    #   - "127.0.0.1:8080:8080"
+    # depends_on:
+    #   - db
+
+  db:
+    image: postgres:latest #データ永続かのためのボリューム
+    ports:
+      - "127.0.0.1:5433:5433"
+    environment:
+         POSTGRES_USER: ${DB_USER}
+         POSTGRES_PASSWORD: ${DB_PASSWORD}
+         POSTGRES_DB: ${DB_NAME}
+         POSTGRES_HOST: ${DB_HOST}
+         POSTGRES_PORT: ${DB_PORT}  
+         POSTGRES_SSLMODE: ${DB_SSLMODE}  
+         POSTGRES_TIMEZONE: ${DB_TIMEZONE}
+    volumes:
+      # - db-data:/var/lib/postgresql/data #データ永続かのためのボリューム
+      - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+# volumes:
+#   db-data: #データベースのデータを永続するためのボリューム
+
