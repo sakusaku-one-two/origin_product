@@ -22,7 +22,9 @@ var (
 )
 
 func init() {
-
+	if errMessage := Mingrate(); errMessage != "" {
+		panic(errMessage)
+	}
 }
 
 // マイグレーションする関数
@@ -34,6 +36,7 @@ func Mingrate() string {
 		&PostRecord{},
 		&TimeRecord{},
 		&User{},
+		&LocationToEmployee{},
 	).Error()
 }
 
@@ -168,5 +171,26 @@ func NewAttendanceRecord(
 		LocationID:  Location_ID,
 		PostID:      Post_ID,
 		TimeRecords: Time_Records,
+	}
+}
+
+//--------------------------------[ユーザーテーブル]-------------------------------------------
+
+type LocationToEmployee struct {
+	gorm.Model
+	LocationID uint `gorm:"primaryKey;autoIncrement:false"`
+	ClientID   uint `gorm:"primaryKey;autoIncrement:false"`
+	EmpID      uint `gorm:"primaryKey;autoIncrement:false"`
+}
+
+func NewLocationToEmployee(
+	Location_ID uint,
+	Client_ID uint,
+	Emp_ID uint,
+) *LocationToEmployee {
+	return &LocationToEmployee{
+		LocationID: Location_ID,
+		ClientID:   Client_ID,
+		EmpID:      Emp_ID,
 	}
 }

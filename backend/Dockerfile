@@ -11,8 +11,23 @@ COPY go.mod go.sum ./
 COPY go.mod go.sum ./
 
 #ワークディレクトリにmain.goをコピー
-COPY main.go ./
+
+#ワークディレクトリにファイルをコピー
+COPY . .
+
+RUN go build -o main main.go
+
+
+
+#go mod tidy パッケージを整理
+RUN go mod tidy
+
 
 
 #ワークディレクトリにDockerfileをコピー
 COPY Dockerfile ./
+
+CMD [ "go", "run", "main.go" ]
+
+#ポート8080でリクエストを待ち受ける
+EXPOSE 8080

@@ -1,7 +1,6 @@
 package controls
 
 import (
-	"backend-app/server/controls/cash"
 	"backend-app/server/models"
 	"strconv"
 	"strings"
@@ -54,13 +53,13 @@ func CreateDateTime(date_str string, time_string string) time.Time {
 }
 
 func CreateDepartPlanTime(row map[string]*Value) time.Time {
-	location_id := row["勤務地場所"].as_int
-	emp_id := row["隊員番号"].as_int
+	// location_id := row["勤務地場所"].as_int
+	// emp_id := row["隊員番号"].as_int
 
 	//勤務先と社員の通勤時間が一時間半以外の指定ある場合、その値がキャッシュから取得もしくはDBから取得される
 	//もしDB・キャッシュになければ双方に新規作成されて、一時間半のdurationがかえってくる。
-	duration := cash.LocationToEmployeeStore.GetDuration(emp_id, location_id)
-
+	// duration := cash.LocationToEmployeeStore.GetDuration(emp_id, location_id)
+	duration := time.Duration(time.Minute * -90)
 	date_str := row["管制日付"].as_string
 	time_str := row["勤務開始時刻"].as_string
 	job_start_time := CreateDateTime(date_str, time_str)

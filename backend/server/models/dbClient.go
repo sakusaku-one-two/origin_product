@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"gorm.io/driver/postgres"
-
 	"gorm.io/gorm"
 )
 
@@ -13,11 +12,6 @@ var (
 	DB                  *gorm.DB
 	ReportActionChannel chan TimeRecord
 )
-
-func init() {
-	DB = connectDB()
-
-}
 
 // シングルトンを返却
 func GetDB() *gorm.DB {

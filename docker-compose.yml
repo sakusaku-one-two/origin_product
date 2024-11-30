@@ -11,20 +11,12 @@ services:
       - ./proxyServer/certificate.crt:/etc/nginx/certificate.crt:ro
       - ./proxyServer/private.key:/etc/nginx/private.key:ro
       - ./forntend/front-app/dist:/usr/share/nginx/html:ro
-#   depends_on:
-#     - api
-
-
-#   api:
-#     image: go-lang:latest #使用するポストグレスのイメージ
-#     build: ./backend
-#     volumes:
-#       - db-data:/var/lib/postgres/data
-#     ports:
-    #   - "127.0.0.1:8080:8080"
     # depends_on:
-    #   - db
+    #   api:
+    #     condition: service_healthy
 
+
+  
   db:
     image: postgres:latest #データ永続かのためのボリューム
     ports:
@@ -35,11 +27,34 @@ services:
          POSTGRES_DB: ${DB_NAME}
          POSTGRES_HOST: ${DB_HOST}
          POSTGRES_PORT: ${DB_PORT}  
-         POSTGRES_SSLMODE: ${DB_SSLMODE}  
+         POSTGRES_SSL: ${DB_SSL}
          POSTGRES_TIMEZONE: ${DB_TIMEZONE}
     volumes:
-      # - db-data:/var/lib/postgresql/data #データ永続かのためのボリューム
       - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h ${DB_HOST} -p ${DB_PORT}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  api:
+    image: go-lang:latest #使用するポストグレスのイメージ
+    build: ./backend
+    volumes:
+      - ./backend:/app
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_SSL: ${DB_SSL}
+      DB_TIMEZONE: ${DB_TIMEZONE}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
 # volumes:
 #   db-data: #データベースのデータを永続するためのボリューム
