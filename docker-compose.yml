@@ -11,16 +11,14 @@ services:
       - ./proxyServer/certificate.crt:/etc/nginx/certificate.crt:ro
       - ./proxyServer/private.key:/etc/nginx/private.key:ro
       - ./forntend/front-app/dist:/usr/share/nginx/html:ro
-    # depends_on:
-    #   api:
-    #     condition: service_healthy
+    depends_on:
+      api:
+        condition: service_healthy
 
 
   
   db:
     image: postgres:latest #データ永続かのためのボリューム
-    ports:
-      - "127.0.0.1:5433:5433"
     environment:
          POSTGRES_USER: ${DB_USER}
          POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -38,7 +36,7 @@ services:
       retries: 5
 
   api:
-    image: go-lang:latest #使用するポストグレスのイメージ
+    # image: golang:latest #使用するポストグレスのイメージ
     build: ./backend
     volumes:
       - ./backend:/app
@@ -50,11 +48,11 @@ services:
       DB_PORT: ${DB_PORT}
       DB_SSL: ${DB_SSL}
       DB_TIMEZONE: ${DB_TIMEZONE}
-    ports:
-      - "127.0.0.1:8080:8080"
+   
     depends_on:
       db:
         condition: service_healthy
+
 
 # volumes:
 #   db-data: #データベースのデータを永続するためのボリューム
