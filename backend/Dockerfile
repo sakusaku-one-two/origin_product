@@ -1,33 +1,24 @@
-#goのドッカーイメージをベースにして、ワークディレクトリを/appにマウントする
-FROM golang:latest
+# Goの特定バージョンのDockerイメージをベースにする
+FROM golang:1.23.0
 
-#ワークディレクトリを/appに設定
+# ワークディレクトリを/appに設定
 WORKDIR /app
 
-#ワークディレクトリにgo.modとgo.sumをコピー
+# go.modとgo.sumをコピーして依存関係を整理
 COPY go.mod go.sum ./
-
-#ワークディレクトリにgo.modとgo.sumをコピー
-COPY go.mod go.sum ./
-
-#ワークディレクトリにmain.goをコピー
-
-#ワークディレクトリにファイルをコピー
-COPY . .
-
-RUN go build -o main main.go
-
-
-
-#go mod tidy パッケージを整理
 RUN go mod tidy
 
+# ソースコードをコピー
+COPY . .
 
+# アプリケーションをビルド
+RUN go build -o main start.go
 
-#ワークディレクトリにDockerfileをコピー
-COPY Dockerfile ./
-
-CMD [ "go", "run", "main.go" ]
-
-#ポート8080でリクエストを待ち受ける
+# ポート8080でリクエストを待ち受ける
 EXPOSE 8080
+
+# ビルドしたバイナリを実行
+RUN ls -l
+
+
+CMD ["ls", "-l"]

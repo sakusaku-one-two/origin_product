@@ -29,15 +29,17 @@ services:
          POSTGRES_TIMEZONE: ${DB_TIMEZONE}
     volumes:
       - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init-db.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h ${DB_HOST} -p ${DB_PORT}"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h ${DB_HOST} -p ${DB_PORT}"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 5
 
   api:
     # image: golang:latest #使用するポストグレスのイメージ
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     volumes:
       - ./backend:/app
     environment:
@@ -48,12 +50,10 @@ services:
       DB_PORT: ${DB_PORT}
       DB_SSL: ${DB_SSL}
       DB_TIMEZONE: ${DB_TIMEZONE}
-   
+      AllowOrigin: http://localhost:8080
+  
     depends_on:
-      db:
-        condition: service_healthy
-
-
+      - db
 # volumes:
 #   db-data: #データベースのデータを永続するためのボリューム
 
