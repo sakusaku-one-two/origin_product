@@ -4,7 +4,7 @@ services:
   db-2:
     build:
       context: ./backend/store
-      dockerfile: Dockerfile
+      dockerfile: DockerFile
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
       POSTGRES_USER: MY_USER

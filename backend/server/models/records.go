@@ -21,11 +21,11 @@ var (
 	ATTENDANCE_UPDATE_BROADCAST chan ActionDTO[AttendanceRecord]
 )
 
-func init() {
-	if errMessage := Mingrate(); errMessage != "" {
-		panic(errMessage)
-	}
-}
+// func init() {
+// 	if errMessage := Mingrate(); errMessage != "" {
+// 		panic(errMessage)
+// 	}
+// }
 
 // マイグレーションする関数
 func Mingrate() string {

@@ -51,5 +51,7 @@ RUN ls -l
 
 RUN go build -v -o main main.go
 
+RUN chmod +x ./main   
+
 CMD ["./main"]
 

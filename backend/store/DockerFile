@@ -12,5 +12,5 @@ COPY ./pg_hba.conf /etc/postgresql/pg_hba.conf
 RUN rm -rf /var/lib/postgresql/data/* && mkdir -p /var/lib/postgresql/data
 
 # #コンテナが起動した時に実行されるコマンド
-# CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
