@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -18,7 +19,16 @@ func GetDB() *gorm.DB {
 	if DB != nil {
 		return DB
 	}
+	if DB = connectDB(); DB != nil {
+		return DB
+	}
+	time.Sleep(30 * time.Second)
+
 	DB = connectDB()
+
+	if DB == nil {
+		panic("データベースの接続に失敗しました。")
+	}
 	return DB
 }
 
@@ -43,7 +53,7 @@ func connectDB() *gorm.DB {
 
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
 	if err != nil {
-		panic("データベースの接続に失敗しました。")
+		return nil
 	}
 	return db
 }

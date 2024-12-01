@@ -1,59 +1,60 @@
 
 
 services:
-  nginx:
-    image: nginx:latest
-    ports: 
-      - "127.0.0.1:80:80" #Nginxはローカルホストからのみアクセス可能
-      - "127.0.0.1:443:443" #Nginxはローカルホストからのみアクセス可能
-    volumes:
-      - ./proxyServer/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./proxyServer/certificate.crt:/etc/nginx/certificate.crt:ro
-      - ./proxyServer/private.key:/etc/nginx/private.key:ro
-      - ./forntend/front-app/dist:/usr/share/nginx/html:ro
-    depends_on:
-      api:
-        condition: service_healthy
-
-
-  
-  db:
-    image: postgres:latest #データ永続かのためのボリューム
+  db-2:
+    build:
+      context: ./backend/store
+      dockerfile: Dockerfile
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
     environment:
-         POSTGRES_USER: ${DB_USER}
-         POSTGRES_PASSWORD: ${DB_PASSWORD}
-         POSTGRES_DB: ${DB_NAME}
-         POSTGRES_HOST: ${DB_HOST}
-         POSTGRES_PORT: ${DB_PORT}  
-         POSTGRES_SSL: ${DB_SSL}
-         POSTGRES_TIMEZONE: ${DB_TIMEZONE}
+      POSTGRES_USER: MY_USER
+      POSTGRES_PASSWORD: SAKUSAKU
+      POSTGRES_DB: ORIGINAL_PROJECTS
     volumes:
-      - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init-db.sql
-    # healthcheck:
-    #   test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h ${DB_HOST} -p ${DB_PORT}"]
-    #   interval: 10s
-    #   timeout: 10s
-    #   retries: 5
-
+      - original-project_db-data:/var/lib/postgresql/data
+      - ./backend/store/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./backend/store/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-network
+  
   api:
-    # image: golang:latest #使用するポストグレスのイメージ
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
-    volumes:
-      - ./backend:/app
-    environment:
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_SSL: ${DB_SSL}
-      DB_TIMEZONE: ${DB_TIMEZONE}
-      AllowOrigin: http://localhost:8080
-  
+      args:
+        DB_HOST: "db-2"
+        DB_PORT: "5432"
+        DB_USER: "MY_USER"
+        DB_PASSWORD: "SAKUSAKU"
+        DB_NAME: "ORIGINAL_PROJECTS"
+        DB_SSL: "disable"
+        DB_TIMEZONE: "Asia/Tokyo"
+        GOPATH: "/go"
+        GOLANG_VERSION: "1.23.0"
+        AllowOrigin: "http://localhost:8080"
     depends_on:
-      - db
-# volumes:
-#   db-data: #データベースのデータを永続するためのボリューム
+      - db-2
+    networks:
+      - backend-network
 
+  nginx:
+    image: nginx:latest
+    ports:
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:80:80"
+    volumes:
+      - ./proxyServer/nginx.conf:/etc/nginx/nginx.conf  
+      - ./proxyServer/private.key:/etc/nginx/private.key
+      - ./proxyServer/certificate.crt:/etc/nginx/certificate.crt
+      - ./forntend/front-app/dist:/usr/share/nginx/html
+    depends_on:
+      - api
+    networks:
+      - backend-network
+
+volumes:
+  original-project_db-data:
+networks:
+  backend-network:
+    driver: bridge

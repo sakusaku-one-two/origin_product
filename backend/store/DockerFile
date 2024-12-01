@@ -1,16 +1,16 @@
 #ベースイメージとして公式のPostgresSQLイメージを使用
 FROM postgres:latest
 
-ENV POSTGRES_USER=MY_USER
-ENV POSTGRES_PASSWORD=SAKUSAKU
-ENV POSTGRES_DB=ORIGINAL_PROJECTS
+
 
 #ポートを指定
 EXPOSE 5432
 
-#初期化スクリプトをコンテナにコピー
-COPY ./init-db.sql /docker-entrypoint-initdb.d/
+COPY ./postgresql.conf /etc/postgresql/postgresql.conf
+COPY ./pg_hba.conf /etc/postgresql/pg_hba.conf
 
-#コンテナが起動した時に実行されるコマンド
-CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+RUN rm -rf /var/lib/postgresql/data/* && mkdir -p /var/lib/postgresql/data
+
+# #コンテナが起動した時に実行されるコマンド
+# CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
