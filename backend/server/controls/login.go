@@ -29,7 +29,7 @@ var (
 )
 
 type RequestData struct {
-	ID       string `json:"id"`
+	ID       uint   `json:"id"`
 	Password string `json:"password"`
 }
 
@@ -42,7 +42,7 @@ func LoginHandler(c echo.Context) error {
 	}
 	// 該当するユーザを探す。
 	var user User
-	result := DB.Where("UserID = ?", requestData.ID).First(&user) //IDからユーザーレコード構造体（ORM）を取得
+	result := DB.Where("ID = ?", requestData.ID).First(&user) //IDからユーザーレコード構造体（ORM）を取得
 	if result.Error != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "not found user"})
 	}
@@ -72,14 +72,16 @@ func LoginHandler(c echo.Context) error {
 	c.SetCookie(cookie)
 	attendance_records := GetAttendanceRecord()
 
-	return c.JSON(http.StatusOK, struct {
-		Message string                    `json:"message"`
-		User    User                      `json:"user"`
-		Records []models.AttendanceRecord `json:"records"`
-	}{
+	return c.JSON(http.StatusOK, ResponseData{
 		Message: "successful",
 		User:    user,
-		Records: attendance_records,
+		Records: struct {
+			Action  string                    `json:"action"`
+			Payload []models.AttendanceRecord `json:"payload"`
+		}{
+			Action:  "ATTENDANCE_RECORDS/INSERT_SET",
+			Payload: attendance_records,
+		},
 	})
 
 }
@@ -88,7 +90,6 @@ func GenerateJWT(user User) (string, error) {
 	//クレームを設定
 	claims := jwt.MapClaims{
 		"userID":          user.UserID,
-		"userName":        user.UserName,
 		"exp":             time.Now().Add(time.Hour * 72).Unix(), //トークンの有効期限を72時間に設定
 		"permissionLevel": user.PermissionLevel,
 	}

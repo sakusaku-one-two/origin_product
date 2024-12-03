@@ -18,14 +18,19 @@ var (
 func init() {
 
 	DB = connectDB()
-	if err := Mingrate(); err != "" {
+	if err := Mingrate(); err != nil {
 		log.Println("マイグレーションに失敗しました。")
 		panic(err)
 	} else {
 		log.Println("マイグレーションに成功しました。")
 	}
 	//管理者を新規作成
-	CreateAdmin(NewQuerySession(), 1, "admin", "admin")
+	if _, err := CreateAdmin(NewQuerySession(), 1, "admin", "admin"); err != nil {
+		log.Println("管理者の作成に失敗しました。")
+		panic(err)
+	} else {
+		log.Println("管理者の作成に成功しました。")
+	}
 
 }
 

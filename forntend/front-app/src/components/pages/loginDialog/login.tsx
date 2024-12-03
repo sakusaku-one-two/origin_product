@@ -11,12 +11,47 @@ import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../../state/openClose';
+import { useNavigate } from 'react-router-dom';
+import { useAttendanceDispatch } from '@/hooks';
+
+// const API_URL = import.meta.env.VITE_API_URL;
 
 const Login:React.FC = () => {
     const [openDialog,setOpenDialog] = useRecoilState(LoginDialogOpen);
+    const navigate = useNavigate();
+    const dispatch = useAttendanceDispatch();
 
     const [userId,setUserId] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
+
+
+    const handleLogin = async () => {
+      try {
+        const response = await fetch(`/api/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({id: userId, password: password}),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            dispatch({
+              type: data.Records.Action,
+              payload: data.Records.Payload,
+            });
+            navigate("/dashboard");
+        } else {
+            alert("ログインに失敗しました。");
+        } 
+      } catch (error) {
+        alert("ログインに失敗しました。");
+        console.error(error);
+      }
+
+
+    }
   return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog} >
     <DialogContent className='flex flex-col gap-4 content-center' >
@@ -35,9 +70,7 @@ const Login:React.FC = () => {
           </div>
           
        
-        <Button onClick={()=>{
-          alert(userId);
-        }}>
+        <Button onClick={handleLogin}>
             ログイン 
           </Button>
         <Button onClick={()=>setOpenDialog(false)}>

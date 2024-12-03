@@ -28,7 +28,7 @@ var (
 // }
 
 // マイグレーションする関数
-func Mingrate() string {
+func Mingrate() error {
 	DB := GetDB()
 	return DB.AutoMigrate(
 		&EmployeeRecord{},
@@ -37,7 +37,7 @@ func Mingrate() string {
 		&TimeRecord{},
 		&User{},
 		&LocationToEmployee{},
-	).Error()
+	)
 }
 
 //--------------------------------[社員テーブル]-------------------------------------------

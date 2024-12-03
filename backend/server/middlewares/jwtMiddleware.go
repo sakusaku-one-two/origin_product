@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -17,7 +18,9 @@ func JWTMiddleware() echo.MiddlewareFunc {
 		SigningKey: SECRET_KEY,
 		Skipper: func(c echo.Context) bool { //このミドルウェアをスキップするか判定
 			//ログインルートをスキップ
-			if c.Path() == "/login" && c.Request().Method == http.MethodPost {
+			log.Println(c.Path())
+			if c.Path() == "api/login" && c.Request().Method == http.MethodPost {
+				log.Println("ログインルートをスキップ")
 				return true
 			}
 			return false
