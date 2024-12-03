@@ -19,7 +19,7 @@ func JWTMiddleware() echo.MiddlewareFunc {
 		Skipper: func(c echo.Context) bool { //このミドルウェアをスキップするか判定
 			//ログインルートをスキップ
 			log.Println(c.Path())
-			if c.Path() == "api/login" && c.Request().Method == http.MethodPost {
+			if c.Path() == "/login" && c.Request().Method == http.MethodPost {
 				log.Println("ログインルートをスキップ")
 				return true
 			}

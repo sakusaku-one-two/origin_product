@@ -33,7 +33,7 @@ services:
         DB_TIMEZONE: "Asia/Tokyo"
         GOPATH: "/go"
         GOLANG_VERSION: "1.23.0"
-        AllowOrigin: "http://localhost:8080"
+        AllowOrigin: "nginx"
     depends_on:
       - db-2
     networks:

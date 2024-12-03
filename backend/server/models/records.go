@@ -29,8 +29,9 @@ var (
 
 // マイグレーションする関数
 func Mingrate() error {
-	DB := GetDB()
+	DB := NewQuerySession()
 	return DB.AutoMigrate(
+		&AttendanceRecord{},
 		&EmployeeRecord{},
 		&LocationRecord{},
 		&PostRecord{},
@@ -65,7 +66,7 @@ func NewEmployeeRecord(
 
 type LocationRecord struct { //配置場所のエンティティ
 	gorm.Model
-	LocationID   uint   `gorm:"primarykey;autoIncrement:false"` //配置先番号　（配置先）
+	LocationID   uint   `gorm:"primaryKey;autoIncrement:false"` //配置先番号　（配置先）
 	ClientID     uint   `gorm:"primaryKey;autoIncrement:false"` //得意先番号　（会社ID）
 	ClientName   string `gorm:"varchar(50) not null"`           //得意先正式名称　（会社名）
 	LocationName string `gorm:"varchar(50) not null"`           //配置先正式名称
@@ -89,7 +90,7 @@ func NewLocationRecord(
 
 type PostRecord struct { //勤務ポストのエンティティ
 	gorm.Model
-	PostID   uint   `gorm:"primarykey;autoIncrement:false"`
+	PostID   uint   `gorm:"primaryKey;autoIncrement:false"`
 	PostName string `gorm:"varchar(50) not null"`
 }
 
@@ -118,34 +119,33 @@ func NewPostRecord(
 type TimeRecord struct {
 	gorm.Model
 	//親テーブルの管制実績レコードの参照
-	ManageID   uint `gorm:"index;not null"`
+	ManageID   uint `gorm:"primaryKey;index;not null"`
 	PlanNo     uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
 	PlanTime   time.Time
 	ResultTime time.Time
-	IsAlert    bool `gorm:"defalt:fasle"` // このフラグでクライアント側でアラートを発報する。
-	PreAlert   bool `gorm:"defalt:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
-	IsOver     bool `gorm:"defalt:fasle"` //このフラグは予定時刻を超えた事を表す
-	IsIgnore   bool `gorm:"defalt:fasle"` // このフラグはアラートや無視を表す
-	IsComplete bool `gorm:"defalt:fasle"` //完了フラグ
+	IsAlert    bool `gorm:"default:false"` // このフラグでクライアント側でアラートを発報する。
+	PreAlert   bool `gorm:"default:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
+	IsOver     bool `gorm:"default:false"` //このフラグは予定時刻を超えた事を表す
+	IsIgnore   bool `gorm:"default:false"` // このフラグはアラートや無視を表す
+	IsComplete bool `gorm:"default:false"` //完了フラグ
 }
 
 // --------------------------------------------------------------------------------------------
 // 管制実績レコード
 type AttendanceRecord struct {
-	gorm.Model
 	ManageID uint `gorm:"primaryKey;index;not null"` //管制実績番号　隊員・配置先・配置ポストが一連のまとまりとなったエンティティのＩＤ
 
 	//対象社員
 	EmpID uint           `gorm:"index not null"`
-	Emp   EmployeeRecord `gorm:"foreignkey:EmpId"`
+	Emp   EmployeeRecord `gorm:"foreignKey:EmpID"`
 
 	//勤務先情報
-	LocationID uint           `gorm:"index;not null"`
-	ClientID   uint           `gorm:"index;not null"`
-	Location   LocationRecord `gorm:"foreignkey:LocationID,ClientID;references:LocationID,ClientID"`
+	LocationID uint           `gorm:"not null;index;uniqueIndex:idx_location_id_client_id"`
+	ClientID   uint           `gorm:"not null;index;uniqueIndex:idx_location_id_client_id"`
+	Location   LocationRecord `gorm:"foreignKey:LocationID,ClientID;references:LocationID,ClientID"`
 
 	//勤務ポスト
-	PostID uint       `gorm:"index;not null"`
+	PostID uint       `gorm:"index;not null;uniqueIndex:idx_post_id_manage_id"`
 	Post   PostRecord `gorm:"foreignKey:PostID"`
 
 	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"` //リレーションの設定

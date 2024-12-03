@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"errors"
+	"log"
 
 	"golang.org/x/crypto/argon2" //argon2というハッシュ化ライブラリ　暗号化において性能がいいとのこと　by chatGPT調べ
 	"gorm.io/gorm"
@@ -35,6 +36,11 @@ func hash_password_from(raw_password string) ([]byte, error) {
 	return append(hashed_password, password_salt...), nil
 }
 
+func hash_password_with_salt(raw_password string, salt []byte) ([]byte, error) {
+	hashed_password := argon2.IDKey([]byte(raw_password), salt, 1, 64*1024, 4, 32)
+	return append(hashed_password, salt...), nil
+}
+
 // ----------------------------------------------[ユーザーモデル]---------------------------------
 
 type User struct {
@@ -42,23 +48,26 @@ type User struct {
 	UserID          uint   `gorm:"primarykey;not null"`
 	UserName        string `gorm:"size:100"`
 	PermissionLevel uint   `gorm:"default:1;not null"`
-	PermissionName  string `gorm:"size 20"`
-	password        []byte
+	PermissionName  string `gorm:"size:20"`
+	Password        []byte
 	IsLogin         bool
 }
 
 // パスワードを暗号化してUser構造体にセットする。（dbに保存までは行わない）
 func (u *User) setPassword(raw_password string) error {
+	if len(raw_password) == 0 {
+		return errors.New("パスワードが空です")
+	}
 	HashedPassword_as_byteArray, err := hash_password_from(raw_password)
 	if err != nil {
 		return err
 	}
-	u.password = HashedPassword_as_byteArray
+	u.Password = HashedPassword_as_byteArray
 	return nil
 }
 
 // パスワードの変更メソッド
-func (u *User) changeThePassword(db *gorm.DB, new_password string) error {
+func (u *User) ChangeThePassword(db *gorm.DB, new_password string) error {
 
 	if err := u.setPassword(new_password); err != nil {
 		return err
@@ -70,10 +79,21 @@ func (u *User) changeThePassword(db *gorm.DB, new_password string) error {
 	return nil
 }
 
+// ハッシュ化されたパスワードからソルトを取得する
+func GetSaltFromSavedPassword(saved_password []byte) []byte {
+	return saved_password[len(saved_password)-SALT_LENGTH:]
+}
+
 // パスワードを比較するメソッド(ログイン時に使用)
 func (u *User) CheckPassword(password_from_request string) bool {
-	hashed_password := argon2.IDKey([]byte(password_from_request), u.password[:SALT_LENGTH], 1, 64*1024, 4, 32)
-	return bytes.Equal(hashed_password, u.password[SALT_LENGTH:])
+	salt := GetSaltFromSavedPassword(u.Password)
+	hashed_password, err := hash_password_with_salt(password_from_request, salt)
+	if err != nil {
+		return false
+	}
+	log.Println(hashed_password)
+	log.Println(u.Password)
+	return bytes.Equal(hashed_password, u.Password)
 }
 
 //---------------------------------------[ユーザーファクトリ関数　通常ユーザーと管理者ユーザー]---------------------------------------

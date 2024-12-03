@@ -21,7 +21,7 @@ const Login:React.FC = () => {
     const navigate = useNavigate();
     const dispatch = useAttendanceDispatch();
 
-    const [userId,setUserId] = useState<string>("");
+    const [userName,setUserName] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
 
 
@@ -32,18 +32,22 @@ const Login:React.FC = () => {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({id: userId, password: password}),
+            body: JSON.stringify({userName: userName, password: password}),
         });
 
         if (response.ok) {
             const data = await response.json();
             dispatch({
-              type: data.Records.Action,
-              payload: data.Records.Payload,
+              type: data.records.action,
+              payload: data.records.payload,
             });
             navigate("/dashboard");
+            setOpenDialog(false);
         } else {
             alert("ログインに失敗しました。");
+            console.error(response);
+            const message = await response.json();
+            alert(message);
         } 
       } catch (error) {
         alert("ログインに失敗しました。");
@@ -64,7 +68,7 @@ const Login:React.FC = () => {
     
           <div className="grid w-full items-center gap-4">
             
-            <Input placeholder='ユーザーID' value={userId} onChange={(e)=>setUserId(e.target.value)}  />
+            <Input placeholder='ユーザーID' value={userName} onChange={(e)=>setUserName(e.target.value)}  />
             <Input placeholder='パスワード' type='password' value={password} onChange={(e)=>setPassword(e.target.value)}  />
             
           </div>

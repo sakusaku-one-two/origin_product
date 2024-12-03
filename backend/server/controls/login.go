@@ -4,12 +4,13 @@ import (
 	"backend-app/server/models"
 	"time"
 
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-
-	"net/http"
-	"os"
 )
 
 type User = models.User
@@ -29,20 +30,21 @@ var (
 )
 
 type RequestData struct {
-	ID       uint   `json:"id"`
+	UserName string `json:"userName"`
 	Password string `json:"password"`
 }
 
 // ログインしたら本日の管制実績データが返ってくる。
 func LoginHandler(c echo.Context) error {
+	log.Println("ログインエンドポイントにアクセス")
 	//josnからパスワードとIDを取り出す。
 	var requestData RequestData
 	if err := c.Bind(&requestData); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invaild request"})
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invaild request", "message": err.Error()})
 	}
 	// 該当するユーザを探す。
 	var user User
-	result := DB.Where("ID = ?", requestData.ID).First(&user) //IDからユーザーレコード構造体（ORM）を取得
+	result := models.GetDB().Where("user_name = ?", requestData.UserName).First(&user) //IDからユーザーレコード構造体（ORM）を取得
 	if result.Error != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "not found user"})
 	}
