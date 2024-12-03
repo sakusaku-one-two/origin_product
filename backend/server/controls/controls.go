@@ -12,7 +12,7 @@ func SetupHandlers(e *echo.Echo) *echo.Echo {
 	e.POST("/InsertRecords", InsertRecordsHandler) //CSVのデータとDBとの相違確認が完了して、登録するJSONデータを受け取るエンドポイント
 	e.POST("/login", LoginHandler)                 // パスワードをjwtにしてセッションクッキーの中に格納。
 	e.POST("/logout", LogoutHandler)               //セッション内にあるJWTを削除し、DBのログインステータスをfalseに変更
-
+	e.POST("/createUser", CreateUser)              //ユーザーの作成
 	//GET
 	e.GET("/sync", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
 	e.GET("/health", HealthCheckHandler)   //ヘルスチェック用のエンドポイント

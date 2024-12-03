@@ -14,6 +14,15 @@ import (
 
 type User = models.User
 
+type ResponseData struct {
+	Message string `json:"message"`
+	User    User   `json:"user"`
+	Records struct {
+		Action  string                    `json:"action"`
+		Payload []models.AttendanceRecord `json:"payload"`
+	} `json:"records"`
+}
+
 var (
 	DB             *gorm.DB = models.DB
 	JWT_SECRET_KEY string   = os.Getenv("JWT_SECRET_KEY")
@@ -62,17 +71,7 @@ func LoginHandler(c echo.Context) error {
 
 	c.SetCookie(cookie)
 	attendance_records := GetAttendanceRecord()
-	if attendance_records != nil {
-		return c.JSON(http.StatusOK, struct {
-			Message string                    `json:"message"`
-			User    User                      `json:"user"`
-			Records []models.AttendanceRecord `json:"records"`
-		}{
-			Message: "successful",
-			User:    user,
-			Records: attendance_records,
-		})
-	}
+
 	return c.JSON(http.StatusOK, struct {
 		Message string                    `json:"message"`
 		User    User                      `json:"user"`
@@ -80,16 +79,18 @@ func LoginHandler(c echo.Context) error {
 	}{
 		Message: "successful",
 		User:    user,
-		Records: []models.AttendanceRecord{},
+		Records: attendance_records,
 	})
+
 }
 
 func GenerateJWT(user User) (string, error) {
 	//クレームを設定
 	claims := jwt.MapClaims{
-		"userID":   user.UserID,
-		"UserName": user.UserName,
-		"exp":      time.Now().Add(time.Hour * 72).Unix(), //トークンの有効期限を72時間に設定
+		"userID":          user.UserID,
+		"userName":        user.UserName,
+		"exp":             time.Now().Add(time.Hour * 72).Unix(), //トークンの有効期限を72時間に設定
+		"permissionLevel": user.PermissionLevel,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

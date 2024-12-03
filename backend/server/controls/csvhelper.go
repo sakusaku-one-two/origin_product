@@ -109,10 +109,10 @@ func findDuplicateRecords(csvRecords, dbRecords map[uint]*models.AttendanceRecor
 	}
 
 	return &ComfirmationRecords{
-		IsLeft:       isLeft,
-		FromCsv:      csvDuplicates,
-		FromDb:       dbDuplicates,
-		UniqueRecord: unique_records,
+		IsLeft:       isLeft,         // 重複レコードがあるかどうか
+		FromCsv:      csvDuplicates,  // CSVからの重複レコード
+		FromDb:       dbDuplicates,   // DBからの重複レコード
+		UniqueRecord: unique_records, // 重複しないレコード
 	}
 }
 
@@ -144,4 +144,37 @@ func TimerecordsEqual(recordArray1, recordArray2 []models.TimeRecord) bool {
 func TimeRecordEqual(record1, record2 models.TimeRecord) bool {
 	return record1.PlanTime.Equal(record2.PlanTime) &&
 		record1.ResultTime.Equal(record2.ResultTime)
+}
+
+// -------------------[社員の取得]-------------------
+
+// 社員の取得とキャッシュへの登録
+func GetAndCreateEmployee(row map[string]*Value) *models.EmployeeRecord {
+	//存在したばあいはキャッシュから取得して返す
+	if employee, ok := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Load(row["隊員番号"].as_int); ok {
+		return employee
+	}
+
+	employee := models.NewEmployeeRecord(row["隊員番号"].as_int, row["隊員名"].as_string, "")
+
+	if ok, _ := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Insert(row["隊員番号"].as_int, employee); !ok {
+		return nil
+	}
+	return employee
+}
+
+// -------------------[得意先の取得]-------------------
+
+func GetAndCreateLocation(row map[string]*Value) *models.LocationRecord {
+	//存在したばあいはキャッシュから取得して返す
+	if location, ok := models.LOCATION_RECORD_REPOSITORY.Cache.Load(row["配置先番号"].as_int); ok {
+		return location
+	}
+
+	location := models.NewLocationRecord(row["配置先番号"].as_int, row["配置先名"].as_string, row["得意先番号"].as_int, "")
+
+	if ok, _ := models.LOCATION_RECORD_REPOSITORY.Cache.Insert(row["配置先番号"].as_int, location); !ok {
+		return nil
+	}
+	return location
 }

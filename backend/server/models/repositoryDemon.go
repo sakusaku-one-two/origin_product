@@ -26,6 +26,7 @@ var (
 	TIME_RECORD_REPOSITORY       *Repository[TimeRecord]
 	ATTENDANCE_RECORD_REPOSITORY *Repository[AttendanceRecord]
 	LOCATION_RECORD_REPOSITORY   *Repository[LocationRecord]
+	POST_RECORD_REPOSITORY       *Repository[PostRecord]
 )
 
 // 各種設定の呼び出し
@@ -248,6 +249,27 @@ func SetUpRepository() {
 			case "LOCATION_RECORD/DELETE":
 				if ok := repo.Cache.Delete(locationRecordActionDTO.Payload.ID); !ok {
 					log.Printf("Failed to delete cache for LocationRecord ID %v: %v", locationRecordActionDTO.Payload.ID, ok)
+					continue
+				}
+			default:
+				continue
+			}
+		}
+	})
+
+	POST_RECORD_REPOSITORY = CreateRepositry[PostRecord]("ACTION_POST_RECORD", 100)
+	POST_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[PostRecord]) {
+		//削除と更新
+		for postRecordActionDTO := range repo.Reciver {
+			switch postRecordActionDTO.Action {
+			case "POST_RECORD/UPDATE":
+				if err := repo.Cache.loadAndSave(postRecordActionDTO.Payload.ID, postRecordActionDTO.Payload); err != nil {
+					log.Printf("Failed to update cache and DB for PostRecord ID %v: %v", postRecordActionDTO.Payload.ID, err)
+					continue
+				}
+			case "POST_RECORD/DELETE":
+				if ok := repo.Cache.Delete(postRecordActionDTO.Payload.ID); !ok {
+					log.Printf("Failed to delete cache for PostRecord ID %v: %v", postRecordActionDTO.Payload.ID, ok)
 					continue
 				}
 			default:

@@ -2,6 +2,7 @@ package controls
 
 import (
 	"backend-app/server/models"
+	"log"
 	"net/http"
 	"time"
 
@@ -9,17 +10,16 @@ import (
 )
 
 // ログインが完了するとこのエンドポイントがよばれてreduxに格納される。
-func GetRecords(c echo.Context) {
+func GetRecords(c echo.Context) error {
 	attendance_records := GetAttendanceRecord()
+
 	if attendance_records == nil {
-		c.JSON(http.StatusBadRequest, attendance_records)
-		return
+		return c.JSON(http.StatusBadRequest, "取得に失敗しました。")
 	}
-	c.JSON(http.StatusOK, attendance_records)
-	return
+	return c.JSON(http.StatusOK, attendance_records)
 }
 
-// 今から24時間の対称となる管制実績レコードの配信を行う。
+// 今から24時間の対称となる管制実績レコードをDBから取得する。
 func GetAttendanceRecord() []models.AttendanceRecord {
 	var attendance_records []models.AttendanceRecord
 	db := models.GetDB()
@@ -27,6 +27,7 @@ func GetAttendanceRecord() []models.AttendanceRecord {
 	twentyFourHoursLater := current_time.Add(24 * time.Hour)
 	before_time := current_time.Add(-40 * time.Minute)
 	if err := db.Preload("TimeRecords", "plan_time >= ? AND plan_time <= ?", before_time, twentyFourHoursLater).Find(&attendance_records).Error; err != nil {
+		log.Println(err)
 		return nil
 	}
 

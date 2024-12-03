@@ -23,6 +23,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
+        JWT_SECRET_KEY: "SAKUSAKU"
         DB_HOST: "db-2"
         DB_PORT: "5432"
         DB_USER: "MY_USER"

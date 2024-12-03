@@ -10,7 +10,7 @@ import (
 )
 
 var SECRET_KEY = []byte(os.Getenv("JWT_SECRET_KEY"))
-var USER_CONTEXT_KEY = "User"
+var USER_CONTEXT_KEY = "userID"
 
 func JWTMiddleware() echo.MiddlewareFunc {
 	return echojwt.WithConfig(echojwt.Config{
@@ -45,7 +45,7 @@ func JWTMiddleware() echo.MiddlewareFunc {
 				c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid claims"})
 				return
 			}
-			//userIDを取得
+			//userIDを取得userID
 			userID, ok := claims["userID"].(string)
 			if !ok {
 				c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid userID"})

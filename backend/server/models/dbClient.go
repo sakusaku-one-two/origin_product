@@ -14,6 +14,13 @@ var (
 	ReportActionChannel chan TimeRecord
 )
 
+func init() {
+	DB = connectDB()
+	//管理者を新規作成
+	CreateAdmin(NewQuerySession(), 1, "admin", "admin")
+
+}
+
 // シングルトンを返却
 func GetDB() *gorm.DB {
 	if DB != nil {

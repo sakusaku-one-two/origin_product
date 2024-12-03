@@ -18,14 +18,19 @@ type RecordsCache[ModelType any] struct {
 // キャッシュに登録とDBに保存両方行う
 func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData *ModelType) error {
 
+	// キャッシュに登録
 	rc.Map.Store(id, targetData)
+
+	// DBに保存
 	newSession := NewQuerySession()
 	newSession.Begin()
 	if err := newSession.Save(targetData).Error; err != nil {
 		rc.Map.Delete(id)
+		newSession.Rollback()
 		return err
 	}
 
+	newSession.Commit()
 	return nil
 }
 
@@ -93,4 +98,15 @@ func (rc *RecordsCache[ModelType]) Delete(id uint) bool {
 	NewQuerySession().Delete(targetModel)
 	rc.Map.Delete(id)
 	return true
+}
+
+// キャッシュに登録する(DBに保存する)
+func (rc *RecordsCache[ModelType]) Insert(id uint, targetData *ModelType) (bool, error) {
+	if _, exists := rc.Map.Load(id); exists {
+		return false, nil
+	}
+	if err := rc.loadAndSave(id, targetData); err != nil {
+		return false, err
+	}
+	return true, nil
 }
