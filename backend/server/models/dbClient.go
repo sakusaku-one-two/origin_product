@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -15,7 +16,14 @@ var (
 )
 
 func init() {
+
 	DB = connectDB()
+	if err := Mingrate(); err != "" {
+		log.Println("マイグレーションに失敗しました。")
+		panic(err)
+	} else {
+		log.Println("マイグレーションに成功しました。")
+	}
 	//管理者を新規作成
 	CreateAdmin(NewQuerySession(), 1, "admin", "admin")
 
@@ -29,14 +37,20 @@ func GetDB() *gorm.DB {
 	if DB = connectDB(); DB != nil {
 		return DB
 	}
+
+	// 30秒待つ
 	time.Sleep(30 * time.Second)
 
 	DB = connectDB()
 
 	if DB == nil {
-		panic("データベースの接続に失敗しました。")
+		log.Println("データベースの接続に失敗しました。")
+		time.Sleep(30 * time.Second) // 30秒待つ
+		return GetDB()               //接続するまで繰り返す
+	} else {
+		log.Println("データベースの接続に成功しました。")
+		return DB
 	}
-	return DB
 }
 
 func NewQuerySession() *gorm.DB {
