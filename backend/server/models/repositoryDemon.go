@@ -29,6 +29,11 @@ var (
 	POST_RECORD_REPOSITORY       *Repository[PostRecord]
 )
 
+func init() {
+	log.Println("レポジトリーデーモンの初期化開始")
+	SetUp()
+}
+
 // 各種設定の呼び出し
 func SetUp() {
 	SetUpRepository()
@@ -49,7 +54,23 @@ func SetUpRepository() {
 
 	// --------------------[社員記録のリポジトリ]--------------------------------
 
-	EMPLOYEE_RECORD_REPOSITORY = CreateRepositry[EmployeeRecord]("ACTION_EMPLOYEE_RECORD", 10)
+	EMPLOYEE_RECORD_REPOSITORY = CreateRepositry[EmployeeRecord]("ACTION_EMPLOYEE_RECORD", 100)
+	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
+		//初期値を設定する。
+		session := NewQuerySession()
+		employee_records := []EmployeeRecord{}
+		session.Find(&employee_records)
+		if len(employee_records) == 0 {
+			log.Println("初期値を設定することができませんでした。employee_recordsの数が0です。")
+			return
+		}
+
+		for _, employee_record := range employee_records {
+			repo.Cache.Map.Store(employee_record.ID, &employee_record)
+		}
+
+		log.Printf("初期値を設定しました。employee_recordsの数:%v", len(employee_records))
+	})
 	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
 		//社員キャッシュに関連したバックグランドで動作するごルーチン
 
@@ -72,6 +93,25 @@ func SetUpRepository() {
 	// --------------------[時間記録のリポジトリ]--------------------------------
 
 	TIME_RECORD_REPOSITORY = CreateRepositry[TimeRecord]("ACTION_TIME_RECORD", 100)
+
+	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
+		//初期値を設定する。
+		session := NewQuerySession()
+		time_records := []TimeRecord{}
+		before_time := time.Now().Add(-1 * time.Hour)
+		after_time := time.Now().Add(8 * time.Hour)
+		session.Where("plan_time >= ? AND plan_time <= ?", before_time, after_time).Find(&time_records)
+
+		if len(time_records) == 0 {
+			log.Println("初期値を設定することができませんでした。time_recordsの数が0です。")
+			return
+		}
+
+		for _, time_record := range time_records {
+			repo.Cache.Map.Store(time_record.ID, &time_record)
+		}
+		log.Printf("初期値を設定しました。time_recordsの数:%v", len(time_records))
+	})
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 		//全てのtimeActionDTOはこのゴルーチンに渡されてキャッシュとDBが更新と削除される
@@ -175,9 +215,7 @@ func SetUpRepository() {
 		//1時間おきに動作するゴルーチン
 		for {
 
-			<-ticker.C
-
-			currentTime := time.Now()
+			currentTime := <-ticker.C
 			before_time := currentTime.Add(-40 * time.Minute)
 			after_time := currentTime.Add(8 * time.Hour)
 			deleted_keys := []any{}
@@ -236,6 +274,7 @@ func SetUpRepository() {
 		}
 	})
 
+	// --------------------[配置先記録のリポジトリ]--------------------------------
 	LOCATION_RECORD_REPOSITORY = CreateRepositry[LocationRecord]("ACTION_LOCATION_RECORD", 200)
 	LOCATION_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationRecord]) {
 		//削除と更新
@@ -257,12 +296,13 @@ func SetUpRepository() {
 		}
 	})
 
+	// --------------------[勤務形態記録のリポジトリ]--------------------------------
 	POST_RECORD_REPOSITORY = CreateRepositry[PostRecord]("ACTION_POST_RECORD", 100)
 	POST_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[PostRecord]) {
 		//削除と更新
 		for postRecordActionDTO := range repo.Reciver {
 			switch postRecordActionDTO.Action {
-			case "POST_RECORD/UPDATE":
+			case "POST_RECORD/UPDATE", "POST_RECORD/INSERT":
 				if err := repo.Cache.loadAndSave(postRecordActionDTO.Payload.ID, postRecordActionDTO.Payload); err != nil {
 					log.Printf("Failed to update cache and DB for PostRecord ID %v: %v", postRecordActionDTO.Payload.ID, err)
 					continue
@@ -273,8 +313,11 @@ func SetUpRepository() {
 					continue
 				}
 			default:
+				log.Printf("存在しないアクションがPOST_RECORDに送信されました。アクション名:%v", postRecordActionDTO.Action)
 				continue
 			}
+
+			repo.Sender <- postRecordActionDTO
 		}
 	})
 

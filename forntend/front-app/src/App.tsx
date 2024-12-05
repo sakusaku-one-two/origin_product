@@ -5,7 +5,7 @@ import {BrowserRouter as Router,Routes,Route} from 'react-router-dom';
 import './App.css'
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from './state/openClose.tsx';
-import DashBord from './components/pages/dasbord/dashBord.tsx';
+import DashBordLayout from './components/pages/dasbord/dashBordLayout.tsx';
 import { useAttendanceDispatch } from './hooks.ts';
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from './redux/slices/attendanceSlice';
 import { sampleAttendanceRecords } from './redux/slices/sampleRecords';
@@ -25,7 +25,7 @@ function App() {
         <Route path="/" element={<Layout />}>
             <Route index element={<div>index</div>}/>
             <Route path='employeeList' element={<div>employeeList</div>}/>
-            <Route path='dashbord' element={<DashBord/>} />
+            <Route path='dashbord' element={<DashBordLayout/>} />
             <Route path='*' element={<h1>そのようなページは存在しません</h1>}/>
         </Route>
       </Routes>

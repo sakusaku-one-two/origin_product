@@ -72,122 +72,120 @@ const DashBord:FC=() => {
 
   
   return (
-    <ResizablePanelGroup
-      direction='horizontal'
-      className='max-w-[3/2-screen] rounded-lg border md:min-w-[500px]'
-    >
+    <ResizablePanelGroup direction='vertical' className='max-w-full max-h-screen'>
+    
       
-      
-      <ResizablePanel defaultSize={70}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={30} className='bg-slate-100'>
-                <AnimatePresence >
-                  {targetRecord.record && (
-                      <TimeCard record={targetRecord.record}/>
-                  
-                )}
-                </AnimatePresence>
-            </ResizablePanel>
-            
-            <ResizableHandle />
+        
+        <ResizablePanel defaultSize={70}>
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={30} className='bg-slate-100'>
+                  {/* 操作対象 */}
+                  <AnimatePresence > 
+                    {targetRecord.record && (
+                        <TimeCard record={targetRecord.record}/>
+                    
+                  )}
+                  </AnimatePresence>
+              </ResizablePanel>
+              
+              <ResizableHandle />
                 <ResizablePanel
-                  defaultSize={10}
-                  className='flex items-center justify-center h-full'
+                    defaultSize={10}
+                    className='flex items-center justify-center h-full'
                 >
-                  <div className='flex-col justify-between px-10 h-hull'>
-                  <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
-                    return {
-                      ...target,
-                      IsComplete:true,
-                      ResultTime:target.PlanTime
-                    }
-                  })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
-                    <span>同一勤務対象者を一括で打刻（予定時刻）</span>
-                  </Button>
-                  <span className='px-5'></span>
-                  <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
-                    return {
-                      ...target,
-                      IsComplete:true,
-                      ResultTime:target.ResultTime
-                    }
-                  })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
-                    <span>同一勤務対象者を一括で打刻（打刻時刻）</span>
-                  </Button>
-                  <span className='px-5'></span>
-                  <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
-                    return {
-                      ...target,
-                      IsIgnore:true
-                    }
-                  })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
-                    <span>アラートを無視</span>
-                  </Button>
-                  </div>
-                </ResizablePanel>
+                    <div className='flex-col justify-between px-10 h-hull'>
+                    <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                      return {
+                        ...target,
+                        IsComplete:true,
+                        ResultTime:target.PlanTime
+                      }
+                    })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                      <span>同一勤務対象者を一括で打刻（予定時刻）</span>
+                    </Button>
+                    <span className='px-5'></span>
+                    <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                      return {
+                        ...target,
+                        IsComplete:true,
+                        ResultTime:target.ResultTime
+                      }
+                    })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                      <span>同一勤務対象者を一括で打刻（打刻時刻）</span>
+                    </Button>
+                    <span className='px-5'></span>
+                    <Button onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                      return {
+                        ...target,
+                        IsIgnore:true
+                      }
+                    })} className='hover:bg-slate-200 hover:text-slate-800 transition-colors duration-300'>
+                      <span>アラートを無視</span>
+                    </Button>
+                    </div>
+                  </ResizablePanel>
 
 
-                <ResizableHandle />
-                <ResizablePanel
-                  defaultSize={50}
-                >
+                  <ResizableHandle />
+                  <ResizablePanel
+                    defaultSize={50}
+                  >
 
-                  {
-                    groupMemberRecordsState.map((record:TimeRecordWithOtherRecord)=>(
-                      <SubTimeRecord record={record}/>
-                    ))
-                  }
-                </ResizablePanel>
-            </ResizablePanelGroup>
-      </ResizablePanel >
-      <ResizableHandle />
-      <ResizablePanel defaultSize={30}>
-        <div className='p-2'>
-      <Button className='inline-flex items-center gap-2 whitespace-nowrap transition-colors
-                         focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring 
-                         disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none 
-                         [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:bg-accent 
-                         hover:text-accent-foreground px-4 py-2 relative h-8 w-full 
-                         justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal 
-                         text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64'
-                         onClick={FindDailogHandler}>
-                        打刻の検索 {<FindTask/>}
-        </Button>
-        </div>
+                    {
+                      groupMemberRecordsState.map((record:TimeRecordWithOtherRecord)=>(
+                        <SubTimeRecord record={record}/>
+                      ))
+                    }
+                  </ResizablePanel>
+              </ResizablePanelGroup>
+        </ResizablePanel >
+        <ResizableHandle />
+        <ResizablePanel defaultSize={30}>
         <ScrollArea className='h-[500px] bg-slate-100'>
+          <div className='sticky top-20 z-50
+                 w-full border-border/40 bg-background/95 bg-blue-500
+                 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+        <Button className='inline-flex items-center gap-2 whitespace-nowrap transition-colors
+                          focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring 
+                          disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none 
+                          [&_svg]:size-4 [&_svg]:shrink-0 border border-input hover:bg-accent 
+                          hover:text-accent-foreground px-4 py-2 relative h-8 w-full 
+                          justify-start rounded-[0.5rem] bg-muted/50 text-sm font-normal 
+                          text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64'
+                          onClick={FindDailogHandler}>
+                          打刻の検索 {<FindTask/>}
+          </Button>
+          </div>
+          
           <ScrollBar orientation='horizontal' />
 
-          <h1 className='text-lg font-bold'>アラート</h1>
-             
-            {alertRecords.map((record :TimeRecordWithOtherRecord) => (
-                <TimeCard record={record}/>     
-          ))}
-          
-          
-            <h1 className='text-lg font-bold'>5分前アラート</h1>
-             
-              {preAlertRecords.map((record :TimeRecordWithOtherRecord) => (
-               
-               <TimeCard record={record}/>  
-            
-               ))}
-          
-            <h1 className='text-lg font-bold'>打刻</h1>
-             
-              {records.map((record :TimeRecordWithOtherRecord) => (
-
-                  <TimeCard record={record}/>  
-               
-              ))}
-            
-            
-            
-          
-            
+            <h1 className='text-lg font-bold'>アラート</h1>
               
-        </ScrollArea>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+              {alertRecords.map((record :TimeRecordWithOtherRecord) => (
+                  <TimeCard record={record}/>     
+            ))}
+            
+            
+              <h1 className='text-lg font-bold'>5分前アラート</h1>
+              
+                {preAlertRecords.map((record :TimeRecordWithOtherRecord) => (
+                
+                <TimeCard record={record}/>  
+              
+                ))}
+            
+              <h1 className='text-lg font-bold'>打刻</h1>
+              
+                {records.map((record :TimeRecordWithOtherRecord) => (
+
+                    <TimeCard record={record}/>  
+                
+                ))}  
+          </ScrollArea>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    
+    
   )
 }
 

@@ -1,28 +1,20 @@
 import React from "react";
-
+import { useGetAlertTimeRecordsWithOtherRecord } from "../../../../hooks";
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup
-  } from '../../ui/resizable';
-import { AlertList } from "./alert/alertList";
+  } from '../../../ui/resizable';
+import  TimeCard  from "../timeCard";
 
-
-const DashBordLayout:React.FC = ( ) => {
-    {/** redux records */}
-
-
-
-
+export const AlertList:React.FC = () => {
+    const alertTimeRecords = useGetAlertTimeRecordsWithOtherRecord();
+    
+    
     return (
-        <div className="flex flex-col">
-            <span className="h-1/2">
-                <AlertList/>
-            </span>
-            <span className="h-1/2">
-            <ResizablePanelGroup
+        <ResizablePanelGroup
         direction="vertical"
-        className="min-h-[500px] max-w-full rounded-lg border"
+        className="min-h-[300px] max-w-full rounded-lg border md:min-w-[450px]"
       >
         <ResizablePanel defaultSize={25}>
           <div className="flex h-full items-center justify-center p-6">
@@ -36,9 +28,5 @@ const DashBordLayout:React.FC = ( ) => {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
-            </span>
-        </div>
     );
 };
-
-export default DashBordLayout;  
