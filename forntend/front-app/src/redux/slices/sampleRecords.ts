@@ -85,7 +85,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           PlanTime: new Date("2024-04-02T09:00:00Z"),
           ResultTime: null,
           IsAlert: false,
-          PreAlert: false,
+          PreAlert: true,
           IsOver: false,
           IsIgnore: false,
           IsComplete: false,
