@@ -12,6 +12,7 @@ const initialTimeState = {
     waitingTimeRecords:[] as TimeRecord[],
     AlertTimeRecords:[] as TimeRecord[],
     PreAlertTimeRecords:[] as TimeRecord[],
+    IgnoreTimeRecords:[] as TimeRecord[],
     isUpdate:false as boolean,
 };
 
@@ -44,17 +45,20 @@ function separateTimeRecords(state:{
     waitingTimeRecords:TimeRecord[],
     AlertTimeRecords:TimeRecord[],
     PreAlertTimeRecords:TimeRecord[],
+    IgnoreTimeRecords:TimeRecord[],
 } ,timeRecords:TimeRecord[])
 {
-    const completedTimeRecords = timeRecords.filter((record)=>record.IsComplete || record.IsOver || record.IsIgnore);
-    const waitingTimeRecords = timeRecords.filter((record)=> !record.IsComplete && !record.IsIgnore && !record.IsAlert && !record.IsOver && !record.PreAlert);
+    const completedTimeRecords = timeRecords.filter((record)=>record.IsComplete || record.IsOver);
+    const waitingTimeRecords = timeRecords.filter((record)=> !record.IsComplete  && !record.IsAlert && !record.IsOver && !record.PreAlert && !record.IsIgnore);
     const AlertTimeRecords = timeRecords.filter((record)=> record.IsAlert && !record.IsComplete && !record.IsIgnore && !record.IsOver);
     const PreAlertTimeRecords = timeRecords.filter((record)=>record.PreAlert && !record.IsAlert && !record.IsComplete && !record.IsIgnore && !record.IsOver);
+    const IgnoreTimeRecords = timeRecords.filter((record) => record.IsIgnore && !record.IsComplete)
 
     state.completedTimeRecords = completedTimeRecords;
     state.waitingTimeRecords = waitingTimeRecords;
     state.AlertTimeRecords = AlertTimeRecords;
     state.PreAlertTimeRecords = PreAlertTimeRecords;
+    state.IgnoreTimeRecords = IgnoreTimeRecords;
 }
 
 // -----------------------[TimeRecordの削除]-----------------------------

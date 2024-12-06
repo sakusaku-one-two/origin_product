@@ -8,6 +8,20 @@ import { motion } from 'framer-motion';
 import { PlanNames } from './helper';
 import { Button } from '../../ui/button';
 
+
+const BaseMotionComponents:React.FC<{
+    record:TimeRecordWithOtherRecord,
+    card: typeof Card,
+}> = (record, card) => {
+    return (
+        <motion.div
+
+        >
+            
+        </motion.div>
+    );
+};
+
 const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
 }   
@@ -42,7 +56,25 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             setSelectedRecord({ record: record, isSelected: true });
         }, 100);
     }
-    
+    //アラート状態の場合
+    if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
+        return (
+            <motion.div
+                layoutId={timeRecord.ID.toString()}
+                key={timeRecord.ID.toString()}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className='h-full'
+            >
+
+            </motion.div> 
+        );
+    };
+
+
+
+
     return (
         <motion.div
             layoutId={timeRecord.ID.toString()}

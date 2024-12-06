@@ -8,7 +8,8 @@ import {
 import { TimeRecordWithOtherRecord,
          useGetWaitingTimeRecordsWithOtherRecord,
         useGetAlertTimeRecordsWithOtherRecord,
-        useGetPreAlertTimeRecordsWithOtherRecord } from "@/hooks";
+        useGetPreAlertTimeRecordsWithOtherRecord, 
+        useGetIgnoreTimeRecordsWithOtherRecord} from "@/hooks";
 import { GetGroupMemberRecord } from "../helper";
 import { useRecoilState } from "recoil";
 import { SelectedRecord } from "@/state/selectedRecord";
@@ -31,7 +32,8 @@ export const SelectCardsArea:React.FC = () => {
     const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
     const alertRecords:TimeRecordWithOtherRecord[] = useGetAlertTimeRecordsWithOtherRecord();
     const preAlertRecords:TimeRecordWithOtherRecord[] = useGetPreAlertTimeRecordsWithOtherRecord();
-    const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records.concat(alertRecords,preAlertRecords));
+    const ignoreRecords:TimeRecordWithOtherRecord[] = useGetIgnoreTimeRecordsWithOtherRecord();
+    const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records.concat(alertRecords,preAlertRecords,ignoreRecords));
     const [
       groupMemberRecordsState,
       setGroupMemberRecordsState
@@ -115,11 +117,23 @@ export const SelectCardsArea:React.FC = () => {
           </div>
           
           <ScrollBar orientation='horizontal' />
+            {ignoreRecords.length >=1 ? <h5>アラート無視状態:{ignoreRecords.length}件</h5>: ''}
+                {
+                    ignoreRecords.map((record:TimeRecordWithOtherRecord) => {
+                        return (
+                            <TimeCard record={record}/>
+                        );
+                    })
+                }
+
+                
+                {records.length >=1 ? <h5>未報告:{records.length}件</h5>: <h1>勤怠データをアップロードしてください。</h1>}
                 {records.map((record :TimeRecordWithOtherRecord) => (
 
                     <TimeCard record={record}/>  
                 
-                ))}  
+                ))}
+                
           </ScrollArea>
                    
 
