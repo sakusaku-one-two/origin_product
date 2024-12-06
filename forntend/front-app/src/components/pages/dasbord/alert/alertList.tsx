@@ -12,13 +12,13 @@ import { EmployeeRecord } from "@/redux/recordType";
 
 const CreateSpeakText = (prefix:string,argRecords:TimeRecordWithOtherRecord[]):string => {
   
-  let result:string =  `${prefix}です`
+  let result:string =  `${prefix}`
   argRecords.forEach((value) => {
-    const emp:EmployeeRecord = value.employeeRecord;
+    const emp:EmployeeRecord = value.employeeRecord as EmployeeRecord;
     result = `${result}  ${emp.Name}`
   });
 
-  return `${result} の報告は確認してください。`
+  return `${result} の報告を確認してください。`
 } ;
 
 
@@ -26,37 +26,35 @@ export const AlertList:React.FC = () => {
     const alertRecords:TimeRecordWithOtherRecord[] = useGetAlertTimeRecordsWithOtherRecord();
     const preAlertRecords:TimeRecordWithOtherRecord[] = useGetPreAlertTimeRecordsWithOtherRecord();
 
-    const alertSound = useCallback(()=> GetSounds(SoundsName.alert),[]);
-    const preAlertSound = useCallback(() => GetSounds(SoundsName.preAlert),[]);
-    const speakSound = useCallback(() => GetSounds(SoundsName.speach),[]);
+    
     useEffect(() => {
 
         let isSpeak:boolean = false;
         let speakText:string = '';
         if (alertRecords.length > 0) {
             isSpeak = true;
-            alertSound().play();
+            GetSounds(SoundsName.alert).play();
             speakText =  CreateSpeakText(
-                "報告期限切れです。至急"
+                "報告期限切れです。至急確認してください。"
                 ,alertRecords
               );
         } else {
-            alertSound().stop();
+            GetSounds(SoundsName.alert).stop();
         }
 
         if (preAlertRecords.length > 0 ) {
-          preAlertSound().play();
-          
+          isSpeak = true;
+          GetSounds(SoundsName.preAlert).play();
             speakText = `${speakText} ${CreateSpeakText(
               "報告5分前になりました。",
               preAlertRecords
             )}` 
         } else {
-          preAlertSound().stop();
+          GetSounds(SoundsName.preAlert).stop();
         }
         
         if (isSpeak) {
-          speakSound().speak(speakText);
+          GetSounds(SoundsName.speach).speak(speakText);
         }
         
 
