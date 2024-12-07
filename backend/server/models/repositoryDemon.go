@@ -181,8 +181,8 @@ func SetUpRepository() {
 				if time_record.PlanTime.Add(-5 * time.Minute).Before(currentTime) {
 					//予定時刻（5分前）より前に現在時刻が存在するので何もしない。
 					return true
-				} else if time_record.PlanTime.Before(currentTime) {
-					//予定時刻の5分前	なので、予備アラートを発報
+				} else if time_record.PlanTime.Before(currentTime) && !time_record.PreAlertIgnore {
+					//予定時刻の5分前	なので、予備アラートを発報 (無視の場合は除く)
 					time_record.PreAlert = true
 					if err := repo.Cache.loadAndSave(time_record.ID, time_record); err != nil {
 						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)

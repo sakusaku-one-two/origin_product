@@ -8,6 +8,7 @@ import { LoginDialogOpen } from './state/openClose.tsx';
 import DashBordLayout from './components/pages/dasbord/dashBordLayout.tsx';
 import { useAttendanceDispatch } from './hooks.ts';
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from './redux/slices/attendanceSlice';
+
 import { sampleAttendanceRecords } from './redux/slices/sampleRecords';
 
 function App() {
@@ -15,9 +16,11 @@ function App() {
   const dispatch = useAttendanceDispatch();
   useEffect(()=>{
     setLogin(!isloign);
-    
     dispatch(INSERT_ATTENDANCE_MESSAGE(sampleAttendanceRecords));
-  },[dispatch])
+  },[])
+
+
+
 
   return (
     <Router>

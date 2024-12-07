@@ -9,6 +9,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
         EmpID: 101, // 従業員の識別番号
         Name: "田中一郎", // 従業員の名前
         Email: "ichiro.tanaka@example.com", // 従業員のメールアドレス
+        IsInTerm:true,
       },
       LocationID: 201, // 配置先ID
       Location: {
@@ -32,10 +33,11 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           PlanTime: new Date("2024-04-01T08:00:00Z"), // 計画時刻：2024年4月1日8時
           ResultTime: new Date("2024-04-01T08:05:00Z"), // 結果時刻：2024年4月1日8時5分
           IsAlert: false, // アラートフラグ：アラートなし
-          PreAlert: false, // 事前アラートフラグ：事前アラートなし
+          PreAlert: true, // 事前アラートフラグ：事前アラートあり
           IsOver: false, // 予定時刻超過フラグ：超過なし
-          IsIgnore: false, // 無視フラグ：無視なし
-          IsComplete: true, // 完了フラグ：完了
+          IsIgnore: false, // 無視フラグ：無視していない
+          IsComplete: false, // 完了フラグ：完了していない
+          PreAlertIgnore: false, // 事前アラート無視フラグ：無視していない
         },
         {
           ID: 502,
@@ -43,11 +45,12 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           PlanNo: PlanNo.START, // 計画番号：上番報告
           PlanTime: new Date("2024-04-02T09:00:00Z"),
           ResultTime: null, // 結果時刻：未報告
-          IsAlert: true, // アラートフラグ：アラートあり
-          PreAlert: true, // 事前アラートフラグ：事前アラートあり
+          IsAlert: false, // アラートフラグ：アラートあり
+          PreAlert: false, // 事前アラートフラグ：事前アラートなし
           IsOver: false,
           IsIgnore: false,
           IsComplete: false,
+          PreAlertIgnore: false,
         },
       ],
       Description: "通常勤務", // 説明：通常勤務
@@ -62,6 +65,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
         EmpID: 102,
         Name: "佐藤花子",
         Email: "hanako.sato@example.com",
+        IsInTerm:true,
       },
       LocationID: 201, // 配置先ID
       Location: {
@@ -89,6 +93,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           IsOver: false,
           IsIgnore: false,
           IsComplete: false,
+          PreAlertIgnore: false,
         },
         {
           ID: 504,
@@ -101,6 +106,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           IsOver: true,
           IsIgnore: false,
           IsComplete: false,
+          PreAlertIgnore: false,
         },
       ],
       Description: "プロジェクトデザイン",
@@ -118,6 +124,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
         EmpID: 121, // 従業員の識別番号
         Name: "松本二郎", // 従業員の名前
         Email: "jiro.matsumoto@example.com", // 従業員のメールアドレス
+        IsInTerm:true,
       },
       LocationID: 301, // 同じ配置先ID
       Location: {
@@ -143,8 +150,9 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           IsAlert: false, // アラートフラグ：アラートなし
           PreAlert: false, // 事前アラートフラグ：事前アラートなし
           IsOver: false, // 予定時刻超過フラグ：超過なし
-          IsIgnore: false, // 無視フラグ：無視なし
-          IsComplete: false, // 完了フラグ：未完了
+          IsIgnore: false, // 無視フラグ：無視していない
+          IsComplete: false, // 完了フラグ：完了していない
+          PreAlertIgnore: false, // 事前アラート無視フラグ：無視していない
         },
         {
           ID: 602,
@@ -157,6 +165,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           IsOver: false,
           IsIgnore: false,
           IsComplete: false,
+          PreAlertIgnore: false,
         },
       ],
       Description: "新規プロジェクト",
@@ -171,6 +180,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
         EmpID: 122,
         Name: "山田三郎",
         Email: "saburo.yamada@example.com",
+        IsInTerm:true,
       },
       LocationID: 301, // 同じ配置先ID
       Location: {
@@ -198,6 +208,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           IsOver: false,
           IsIgnore: false,
           IsComplete: false,
+          PreAlertIgnore: false,
         },
         {
           ID: 604,
@@ -210,6 +221,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           IsOver: false,
           IsIgnore: false,
           IsComplete: false,
+          PreAlertIgnore: false,
         },
       ],
       Description: "デザイン作業",

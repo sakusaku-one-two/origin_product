@@ -24,7 +24,7 @@ import { FindDialogOpen } from "../../../state/openClose";
 import { useRecoilState } from "recoil";
 import { TimeRecordWithOtherRecord } from "../../../hooks";
 import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
-import TimeCard from "../dasbord/timeCard";
+import TimeCard from "../dasbord/timeCard/timeCard";
 import { SelectedRecord } from "../../../state/selectedRecord";
 
 

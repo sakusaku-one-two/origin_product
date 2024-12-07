@@ -34,12 +34,13 @@ func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData *ModelType) e
 	return nil
 }
 
-type getId[ModleType any, ReturnType any] func(target *ModleType) (ReturnType, bool)
+type GetId[ModleType any, ReturnType any] func(target *ModleType) (ReturnType, bool)
 
 // 複数のデータをキャッシュに登録と同時にDBに保存する
-func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId getId[ModelType, uint]) error {
+func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId GetId[ModelType, uint]) error {
 
 	new_session := NewQuerySession()
+
 	new_tx := new_session.Begin()
 
 	if err := new_tx.Save(payloadArray).Error; err != nil {

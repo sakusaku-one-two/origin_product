@@ -32,6 +32,10 @@ func init() {
 		log.Println("管理者の作成に成功しました。")
 	}
 
+	CreateSampleTimeRecords()
+	CreateSampleAttendanceRecords()
+	CreateSampleEmployeeRecords()
+	CreateSampleLocationRecords()
 }
 
 // シングルトンを返却

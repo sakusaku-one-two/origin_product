@@ -43,9 +43,9 @@ const Login:React.FC = () => {
             });
             navigate("/dashboard");
             setOpenDialog(false);
+            dispatch({type:"WEBSOCKET/SETUP",payload:data.records.payload});
         } else {
-            alert("ログインに失敗しました。");
-            console.error(response);
+            
             const message = await response.json();
             alert(message);
         } 

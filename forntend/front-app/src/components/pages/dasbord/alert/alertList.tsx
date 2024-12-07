@@ -1,11 +1,11 @@
-import React ,{ useEffect,useCallback } from "react";
+import React ,{ useEffect } from "react";
 import { TimeRecordWithOtherRecord, useGetAlertTimeRecordsWithOtherRecord,useGetPreAlertTimeRecordsWithOtherRecord } from "../../../../hooks";
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup
   } from '../../../ui/resizable';
-import  TimeCard  from "../timeCard";
+import  TimeCard  from "../timeCard/timeCard";
 import GetSounds, { SoundsName } from "../../../../sounds/GetSounds";
 import { EmployeeRecord } from "@/redux/recordType";
 
@@ -76,13 +76,12 @@ export const AlertList:React.FC = () => {
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={50}>
-          <div className="flex h-full items-center justify-center p-6">
+        
             { alertRecords.map((alertRecord) => {
               return (
                 <TimeCard record={alertRecord} />
               );
               })}
-          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     );

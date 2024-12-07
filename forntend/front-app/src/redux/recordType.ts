@@ -53,6 +53,7 @@ export interface TimeRecord {
     PreAlert: boolean; // gorm:"default:false" //このフラグは予定時刻の5分前に予備アラートの発報フラグ
     IsOver: boolean; // gorm:"default:false" //このフラグは予定時刻を超えた事を表す
     IsIgnore: boolean; // gorm:"default:false" // このフラグはアラートや無視を表す
+    PreAlertIgnore: boolean; // gorm:"default:false" // このフラグは予定時刻の5分前に無視を表す
     IsComplete: boolean; // gorm:"default:false" //完了フラグ
 }
 

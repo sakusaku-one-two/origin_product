@@ -12,6 +12,8 @@ const initialTimeState = {
     waitingTimeRecords:[] as TimeRecord[],
     AlertTimeRecords:[] as TimeRecord[],
     PreAlertTimeRecords:[] as TimeRecord[],
+    PreAlertIgnoreTimeRecords:[] as TimeRecord[],
+    OverTimeRecords:[] as TimeRecord[],
     IgnoreTimeRecords:[] as TimeRecord[],
     isUpdate:false as boolean,
 };
@@ -46,19 +48,25 @@ function separateTimeRecords(state:{
     AlertTimeRecords:TimeRecord[],
     PreAlertTimeRecords:TimeRecord[],
     IgnoreTimeRecords:TimeRecord[],
+    OverTimeRecords:TimeRecord[],
+    PreAlertIgnoreTimeRecords:TimeRecord[],
 } ,timeRecords:TimeRecord[])
 {
     const completedTimeRecords = timeRecords.filter((record)=>record.IsComplete || record.IsOver);
     const waitingTimeRecords = timeRecords.filter((record)=> !record.IsComplete  && !record.IsAlert && !record.IsOver && !record.PreAlert && !record.IsIgnore);
     const AlertTimeRecords = timeRecords.filter((record)=> record.IsAlert && !record.IsComplete && !record.IsIgnore && !record.IsOver);
-    const PreAlertTimeRecords = timeRecords.filter((record)=>record.PreAlert && !record.IsAlert && !record.IsComplete && !record.IsIgnore && !record.IsOver);
+    const PreAlertTimeRecords = timeRecords.filter((record)=>record.PreAlert && !record.PreAlertIgnore && !record.IsAlert && !record.IsComplete && !record.IsIgnore && !record.IsOver);
     const IgnoreTimeRecords = timeRecords.filter((record) => record.IsIgnore && !record.IsComplete)
+    const OverTimeRecords = timeRecords.filter((record) => record.IsOver && !record.IsComplete && !record.IsIgnore);
+    const PreAlertIgnoreTimeRecords = timeRecords.filter((record)=>record.PreAlert && record.PreAlertIgnore && !record.IsComplete && !record.IsAlert && !record.IsOver);
 
     state.completedTimeRecords = completedTimeRecords;
     state.waitingTimeRecords = waitingTimeRecords;
     state.AlertTimeRecords = AlertTimeRecords;
     state.PreAlertTimeRecords = PreAlertTimeRecords;
     state.IgnoreTimeRecords = IgnoreTimeRecords;
+    state.OverTimeRecords = OverTimeRecords;
+    state.PreAlertIgnoreTimeRecords = PreAlertIgnoreTimeRecords;
 }
 
 // -----------------------[TimeRecordの削除]-----------------------------

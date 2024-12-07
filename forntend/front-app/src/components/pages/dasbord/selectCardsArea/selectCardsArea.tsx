@@ -9,11 +9,12 @@ import { TimeRecordWithOtherRecord,
          useGetWaitingTimeRecordsWithOtherRecord,
         useGetAlertTimeRecordsWithOtherRecord,
         useGetPreAlertTimeRecordsWithOtherRecord, 
-        useGetIgnoreTimeRecordsWithOtherRecord} from "@/hooks";
+        useGetIgnoreTimeRecordsWithOtherRecord,
+        useGetPreAlertIgnoreTimeRecordsWithOtherRecord} from "@/hooks";
 import { GetGroupMemberRecord } from "../helper";
 import { useRecoilState } from "recoil";
 import { SelectedRecord } from "@/state/selectedRecord";
-import TimeCard from "../timeCard"; 
+import TimeCard from "../timeCard/timeCard"; 
 import { FindDialogOpen } from "@/state/openClose";
 import { useTimeDispatch } from "@/hooks";
 import { TimeRecord } from "@/redux/recordType";
@@ -33,7 +34,8 @@ export const SelectCardsArea:React.FC = () => {
     const alertRecords:TimeRecordWithOtherRecord[] = useGetAlertTimeRecordsWithOtherRecord();
     const preAlertRecords:TimeRecordWithOtherRecord[] = useGetPreAlertTimeRecordsWithOtherRecord();
     const ignoreRecords:TimeRecordWithOtherRecord[] = useGetIgnoreTimeRecordsWithOtherRecord();
-    const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records.concat(alertRecords,preAlertRecords,ignoreRecords));
+    const preAlertIgnoreRecords:TimeRecordWithOtherRecord[] = useGetPreAlertIgnoreTimeRecordsWithOtherRecord();
+    const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records.concat(alertRecords,preAlertRecords,ignoreRecords,preAlertIgnoreRecords));
     const [
       groupMemberRecordsState,
       setGroupMemberRecordsState
@@ -74,7 +76,7 @@ export const SelectCardsArea:React.FC = () => {
         <>
          <ResizablePanelGroup
                 direction="horizontal"
-                className="min-h-[500px] max-w-full rounded-lg border"
+                className="min-h-[600px] max-w-full rounded-lg border"
               >
                 <ResizablePanel defaultSize={75}>
                     <ResizablePanelGroup direction="vertical">
@@ -89,7 +91,19 @@ export const SelectCardsArea:React.FC = () => {
                             
                         </ResizablePanel>
                         <ResizableHandle />
-                        <ResizablePanel defaultSize={75}>
+                  <ResizablePanel defaultSize={15}>
+                    <div>
+                      <Button className="w-full" onClick={() =>GroupTimeRegistory((target:TimeRecord)=>{
+                        return {
+                          ...target,
+                          IsComplete:true,
+                          ResultTime:target.PlanTime
+                        }
+                      })}>定時打刻（一括）</Button>
+                    </div>
+                  </ResizablePanel>
+                        <ResizableHandle />
+                        <ResizablePanel defaultSize={60}>
                             { 
                                 groupMemberRecordsState.map((record:TimeRecordWithOtherRecord)=>(
                                     <SubTimeRecord record={record}/>
@@ -100,7 +114,7 @@ export const SelectCardsArea:React.FC = () => {
                 </ResizablePanel>
                 <ResizableHandle />
                 <ResizablePanel defaultSize={25}>
-                <ScrollArea className='h-[500px] bg-slate-100'>
+                <ScrollArea className='h-full bg-slate-100'>
                      <div className='sticky top-0 z-50
                         w-full border-border/40 bg-background/95 bg-blue-500
                         backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -117,6 +131,14 @@ export const SelectCardsArea:React.FC = () => {
           </div>
           
           <ScrollBar orientation='horizontal' />
+          {preAlertIgnoreRecords.length >=1 ? <h5>5分前アラート無視状態:{preAlertIgnoreRecords.length}件</h5>: ''}
+                {
+                    preAlertIgnoreRecords.map((record:TimeRecordWithOtherRecord) => {
+                        return (
+                            <TimeCard record={record}/>
+                        );
+                    })
+                }
             {ignoreRecords.length >=1 ? <h5>アラート無視状態:{ignoreRecords.length}件</h5>: ''}
                 {
                     ignoreRecords.map((record:TimeRecordWithOtherRecord) => {

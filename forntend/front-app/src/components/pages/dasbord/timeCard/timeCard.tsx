@@ -1,26 +1,14 @@
 import React from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../ui/card';
-import { TimeRecordWithOtherRecord } from '../../../hooks';
-import {  useSelectedRecord } from '../../../state/selectedRecord'; 
-import { useTimeDispatch } from '../../../hooks';
-import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../redux/slices/timeSlice';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../../ui/card';
+import { TimeRecordWithOtherRecord } from '../../../../hooks';
+import {  useSelectedRecord } from '../../../../state/selectedRecord'; 
+import { useTimeDispatch } from '../../../../hooks';
+import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';
-import { PlanNames } from './helper';
-import { Button } from '../../ui/button';
+import { PlanNames } from '../helper';
+import { Button } from '../../../ui/button';
+import { SetAlertAnimation } from './cardHelper';
 
-
-const BaseMotionComponents:React.FC<{
-    record:TimeRecordWithOtherRecord,
-    card: typeof Card,
-}> = (record, card) => {
-    return (
-        <motion.div
-
-        >
-            
-        </motion.div>
-    );
-};
 
 const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
@@ -44,7 +32,30 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
     }
-    
+
+    const handleIgnore = () => {
+        const updatedTimeRecord = {
+            ...timeRecord,
+            IsIgnore: true,
+        };
+        dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+    }
+
+    const handlePreAlertIgnore = () => {
+        const updatedTimeRecord = {
+            ...timeRecord,
+            PreAlertIgnore: true,
+        };
+        dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+    }
+
+    const handleAlertIgnore = () => {
+        if (timeRecord.IsAlert) {
+            handleIgnore();
+        }else {
+            handlePreAlertIgnore();
+        }
+    };
     const handleSelect = () => {
         if (isSelectedSelf) {
             setSelectedRecord({ record: null, isSelected: false });
@@ -57,20 +68,20 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
         }, 100);
     }
     //アラート状態の場合
-    if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
-        return (
-            <motion.div
-                layoutId={timeRecord.ID.toString()}
-                key={timeRecord.ID.toString()}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className='h-full'
-            >
+    // if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
+    //     return (
+    //         <motion.div
+    //             layoutId={timeRecord.ID.toString()}
+    //             key={timeRecord.ID.toString()}
+    //             animate={{ scale: 1, opacity: 1 }}
+    //             exit={{ scale: 0.8, opacity: 0 }}
+    //             transition={{ duration: 0.3 }}
+    //             className='h-full'
+    //         >
 
-            </motion.div> 
-        );
-    };
+    //         </motion.div> 
+    //     );
+    // };
 
 
 
@@ -85,7 +96,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             className='h-full'
         >
             <Card
-                className='w-full h-full hover:bg-gray-200 transition-colors duration-300'
+                className={`w-full h-full hover:bg-gray-200 transition-colors duration-300 ${SetAlertAnimation(record)}`}
                 onClick={handleSelect}
             >
                 <CardHeader>
@@ -114,10 +125,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
                             </Button>
 
                             <Button
-                                onClick={() => dispatch(UPDATE_TIME_RECORD({
-                                    ...timeRecord,
-                                    IsIgnore:true,
-                                }))}
+                                onClick={handleAlertIgnore}
                                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
                             >
                                 アラート無視

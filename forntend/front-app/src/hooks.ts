@@ -73,6 +73,8 @@ export const useGetWaitingTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRec
 export const useGetAlertTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.AlertTimeRecords,state));
 export const useGetPreAlertTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.PreAlertTimeRecords,state));
 export const useGetIgnoreTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.IgnoreTimeRecords,state));
+export const useGetOverTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.OverTimeRecords,state));
+export const useGetPreAlertIgnoreTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.PreAlertIgnoreTimeRecords,state));
 export const useGetIsUpdate = ():boolean => useSelector((state:RootState) => state.TIME_RECORDS.isUpdate);
 
 

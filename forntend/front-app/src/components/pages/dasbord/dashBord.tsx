@@ -19,7 +19,7 @@ import { TimeRecordWithOtherRecord,
          useTimeDispatch } from '../../../hooks';
 
 import { AnimatePresence } from "framer-motion";
-import TimeCard from './timeCard';
+import TimeCard from './timeCard/timeCard';
 import { SelectedRecord } from '../../../state/selectedRecord';
 import SubTimeRecord from './subTimeRecord';
 import { GetGroupMemberRecord } from './helper';
@@ -90,7 +90,7 @@ const DashBord:FC=() => {
               
               <ResizableHandle />
                 <ResizablePanel
-                    defaultSize={10}
+                    defaultSize={30}
                     className='flex items-center justify-center h-full'
                 >
                     <div className='flex-col justify-between px-10 h-hull'>
@@ -124,9 +124,15 @@ const DashBord:FC=() => {
                     </Button>
                     </div>
                   </ResizablePanel>
-
+                  <ResizableHandle />
+                  <ResizablePanel defaultSize={20}>
+                    <div>
+                      <h1>アラート</h1>
+                    </div>
+                  </ResizablePanel>
 
                   <ResizableHandle />
+
                   <ResizablePanel
                     defaultSize={50}
                   >

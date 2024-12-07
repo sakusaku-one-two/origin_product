@@ -45,20 +45,23 @@ func Mingrate() error {
 
 type EmployeeRecord struct {
 	gorm.Model
-	ID    uint `gorm:"primaryKey"`
-	Name  string
-	Email string `gorm:"type:varchar(255)"`
+	ID       uint `gorm:"primaryKey"`
+	Name     string
+	Email    string `gorm:"type:varchar(255)"`
+	IsInTerm bool   `gorm:"default:false"` //外個人技能実習生かのフラグ
 }
 
 func NewEmployeeRecord(
 	id uint,
 	name string,
 	email string,
+	isInTerm bool,
 ) *EmployeeRecord {
 	return &EmployeeRecord{
-		ID:    id,
-		Name:  name,
-		Email: email,
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		IsInTerm: isInTerm,
 	}
 }
 
@@ -119,15 +122,36 @@ func NewPostRecord(
 type TimeRecord struct {
 	gorm.Model
 	//親テーブルの管制実績レコードの参照
-	ManageID   uint `gorm:"primaryKey;index;not null"`
-	PlanNo     uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
-	PlanTime   time.Time
-	ResultTime time.Time
-	IsAlert    bool `gorm:"default:false"` // このフラグでクライアント側でアラートを発報する。
-	PreAlert   bool `gorm:"default:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
-	IsOver     bool `gorm:"default:false"` //このフラグは予定時刻を超えた事を表す
-	IsIgnore   bool `gorm:"default:false"` // このフラグはアラートや無視を表す
-	IsComplete bool `gorm:"default:false"` //完了フラグ
+	ManageID       uint `gorm:"primaryKey;index;not null"`
+	PlanNo         uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
+	PlanTime       time.Time
+	ResultTime     time.Time
+	IsAlert        bool `gorm:"default:false"` // このフラグでクライアント側でアラートを発報する。
+	PreAlert       bool `gorm:"default:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
+	IsOver         bool `gorm:"default:false"` //このフラグは予定時刻を超えた事を表す
+	IsIgnore       bool `gorm:"default:false"` // このフラグはアラートや無視を表す
+	PreAlertIgnore bool `gorm:"default:false"` // このフラグは予定時刻の5分前に無視を表す
+	IsComplete     bool `gorm:"default:false"` //完了フラグ
+}
+
+func NewTimeRecord(
+	Manage_ID uint,
+	Plan_No uint,
+	Plan_Time time.Time,
+	Result_Time time.Time,
+) *TimeRecord {
+	return &TimeRecord{
+		ManageID:       Manage_ID,
+		PlanNo:         Plan_No,
+		PlanTime:       Plan_Time,
+		ResultTime:     Result_Time,
+		IsAlert:        false,
+		PreAlert:       false,
+		IsOver:         false,
+		IsIgnore:       false,
+		PreAlertIgnore: false,
+		IsComplete:     false,
+	}
 }
 
 // --------------------------------------------------------------------------------------------
