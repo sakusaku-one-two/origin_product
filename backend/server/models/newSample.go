@@ -87,7 +87,7 @@ func GenerateSampleData(db *gorm.DB) error {
 					attendance.ManageID,
 					uint(planNo),
 					&planTime,
-					nil,
+					&time.Time{},
 				)
 				timeRecords = append(timeRecords, *timeRecord)
 			}

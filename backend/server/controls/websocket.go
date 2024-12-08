@@ -49,11 +49,11 @@ var (
 
 func init() {
 	log.Println("ウェブソケットの初期化開始")
-	StartUp()
+	WebSocketStartUp()
 	log.Println("ウェブソケットの初期化完了")
 }
 
-func StartUp() {
+func WebSocketStartUp() {
 
 	BROADCAST_TO_ACTION_EMPLOYEE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("SENDER_ACTION_EMPLOYEE_RECORD")
 	ACTION_EMPLOYEE_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("RECIVER_ACTION_EMPLOYEE_RECORD")
@@ -92,15 +92,25 @@ func SendActionDTO[ModelType any](toRepositoryChan chan models.ActionDTO[ModelTy
 }
 
 func ActionWebSocketHandler(c echo.Context) error {
+	log.Println("ウェブソケットのコネクション開始", c.Request().RequestURI)
+
+	if !websocket.IsWebSocketUpgrade(c.Request()) {
+		log.Println("ウェブソケットのコネクション開始失敗", "Not a WebSocket upgrade request")
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+
 	ws, err := UPGREDER.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		return err
+		log.Println("ウェブソケットのコネクション開始失敗", err.Error())
+		log.Println(err)
+		// return err
 	}
 
 	done_chan := make(chan interface{}) //done_chanを定義
 	clients.Store(ws, &Done{done_chan: done_chan, is_done: false})
 
 	defer func() {
+		log.Println("ウェブソケットのコネクション終了")
 		clients.Delete(ws)
 		close(done_chan)
 		ws.Close()
@@ -111,10 +121,12 @@ func ActionWebSocketHandler(c echo.Context) error {
 	for {
 		select {
 		case <-done_chan: // 送信側で配信できなかった場合の終了フラグ
+			log.Println("ウェブソケットのコネクション終了")
 			return nil
 		default:
 			err := ws.ReadJSON(&msgAction)
 			if err != nil {
+				log.Println("ウェブソケットのメッセージ受信失敗")
 				return err
 			}
 

@@ -42,6 +42,22 @@ const Login:React.FC = () => {
               type: data.records.action,
               payload: data.records.payload,
             });
+
+            try {
+              const response = await fetch(`/api/health`, {
+                method: "GET",
+              });
+              if (response.ok) {
+                alert("サーバーが正常に動作しています");
+              } else {
+                alert("サーバーが正常に動作していません");
+              }
+            } catch (error) {
+              alert("サーバーが正常に動作していません");
+            
+            }
+
+            // ログイン成功後にダッシュボードに遷移
             navigate("/dashboard");
             setOpenDialog(false);
             dispatch({type:"WEBSOCKET/SETUP",payload:data.records.payload});

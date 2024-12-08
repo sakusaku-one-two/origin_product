@@ -25,7 +25,7 @@ func SetUpMiddlewares(e *echo.Echo) {
 		XFrameOptions:         "SAMEORIGIN",
 		HSTSMaxAge:            31536000,
 		HSTSExcludeSubdomains: false,
-		ContentSecurityPolicy: "default-src 'self';",
+		ContentSecurityPolicy: "default-src 'self';connect-src 'self' wss://api.wss/sync;",
 	}))
 
 	e.Use(JWTMiddleware()) //JWTでUser情報を格納
