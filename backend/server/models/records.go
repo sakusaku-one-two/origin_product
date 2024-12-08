@@ -69,10 +69,10 @@ func NewEmployeeRecord(
 
 type LocationRecord struct { //配置場所のエンティティ
 	gorm.Model
-	LocationID   uint   `gorm:"primaryKey;autoIncrement:false"` //配置先番号　（配置先）
-	ClientID     uint   `gorm:"primaryKey;autoIncrement:false"` //得意先番号　（会社ID）
-	ClientName   string `gorm:"varchar(50) not null"`           //得意先正式名称　（会社名）
-	LocationName string `gorm:"varchar(50) not null"`           //配置先正式名称
+	LocationID   uint   `gorm:"not null"`             // ロケーションID（主キーの一部）
+	ClientID     uint   `gorm:"not null"`             // クライアントID（主キーの一部）
+	LocationName string `gorm:"size:255"`             // ロケーションの名前
+	ClientName   string `gorm:"varchar(50) not null"` //得意先正名称　（会社名）
 }
 
 func NewLocationRecord(
@@ -122,7 +122,8 @@ func NewPostRecord(
 type TimeRecord struct {
 	gorm.Model
 	//親テーブルの管制実績レコードの参照
-	ManageID       uint `gorm:"primaryKey;index;not null"`
+	ManageID uint `gorm:"index;not null"`
+
 	PlanNo         uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
 	PlanTime       *time.Time
 	ResultTime     *time.Time `gorm:"default:null"`
@@ -164,12 +165,12 @@ type AttendanceRecord struct {
 	Emp   EmployeeRecord `gorm:"foreignKey:EmpID"`
 
 	//勤務先情報
-	LocationID uint           `gorm:"not null;index;uniqueIndex:idx_location_id_client_id"`
-	ClientID   uint           `gorm:"not null;index;uniqueIndex:idx_location_id_client_id"`
-	Location   LocationRecord `gorm:"foreignKey:LocationID,ClientID;references:LocationID,ClientID"`
+	LocationID uint           `gorm:"not null"`                            // LocationRecord への外部キー（必須）                                               // LocationRecord への外部キー（必須）
+	Location   LocationRecord `gorm:"foreignKey:LocationID;references:ID"` // LocationRecord への参照
+	// 他のフィールド...
 
 	//勤務ポスト
-	PostID uint       `gorm:"index;not null;uniqueIndex:idx_post_id_manage_id"`
+	PostID uint       `gorm:"index;not null;"`
 	Post   PostRecord `gorm:"foreignKey:PostID"`
 
 	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"` //リレーションの設定

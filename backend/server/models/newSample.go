@@ -48,7 +48,7 @@ func GenerateSampleData(db *gorm.DB) error {
 
 		// 3. PostRecordの生成
 		var posts []PostRecord
-		for i := 1; i <= 10; i++ { // 10種類のポストを生成
+		for i := 1; i <= 20; i++ { // 10種類のポストを生成
 			post := NewPostRecord(
 				uint(i),
 				fmt.Sprintf("Post_%d", i),
