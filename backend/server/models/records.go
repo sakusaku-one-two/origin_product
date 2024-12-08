@@ -30,7 +30,7 @@ var (
 // マイグレーションする関数
 func Mingrate() error {
 	DB := NewQuerySession()
-	return DB.AutoMigrate(
+	return DB.AutoMigrate( //ここにテーブルモデルを書き連ねる。
 		&AttendanceRecord{},
 		&EmployeeRecord{},
 		&LocationRecord{},
@@ -124,21 +124,21 @@ type TimeRecord struct {
 	//親テーブルの管制実績レコードの参照
 	ManageID       uint `gorm:"primaryKey;index;not null"`
 	PlanNo         uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
-	PlanTime       time.Time
-	ResultTime     time.Time
-	IsAlert        bool `gorm:"default:false"` // このフラグでクライアント側でアラートを発報する。
-	PreAlert       bool `gorm:"default:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
-	IsOver         bool `gorm:"default:false"` //このフラグは予定時刻を超えた事を表す
-	IsIgnore       bool `gorm:"default:false"` // このフラグはアラートや無視を表す
-	PreAlertIgnore bool `gorm:"default:false"` // このフラグは予定時刻の5分前に無視を表す
-	IsComplete     bool `gorm:"default:false"` //完了フラグ
+	PlanTime       *time.Time
+	ResultTime     *time.Time `gorm:"default"`
+	IsAlert        bool       `gorm:"default:false"` // このフラグでクライアント側でアラートを発報する。
+	PreAlert       bool       `gorm:"default:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
+	IsOver         bool       `gorm:"default:false"` //このフラグは予定時刻を超えた事を表す
+	IsIgnore       bool       `gorm:"default:false"` // このフラグはアラートや無視を表す
+	PreAlertIgnore bool       `gorm:"default:false"` // このフラグは予定時刻の5分前に無視を表す
+	IsComplete     bool       `gorm:"default:false"` //完了フラグ
 }
 
 func NewTimeRecord(
 	Manage_ID uint,
 	Plan_No uint,
-	Plan_Time time.Time,
-	Result_Time time.Time,
+	Plan_Time *time.Time,
+	Result_Time *time.Time,
 ) *TimeRecord {
 	return &TimeRecord{
 		ManageID:       Manage_ID,

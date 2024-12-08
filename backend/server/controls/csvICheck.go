@@ -178,7 +178,7 @@ func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
 	var min_time time.Time = time.Time{} //仮の初期値
 
 	for _, row := range ct.rows {
-		tmp_time = CreateStartTime(row) //とりあえず勤務開始日時に変換したのを格納
+		tmp_time = *CreateStartTime(row) //とりあえず勤務開始日時に変換したのを格納
 
 		if tmp_time.Before(max_time) {
 			max_time = tmp_time
@@ -198,8 +198,8 @@ func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
 	if len(ct.rows) == 0 {
 		return 0, 0, false
 	}
-	var min_val uint = ^uint(0)
-	var max_val uint = uint(0)
+	var min_val uint = ^uint(0) //uint型の最大値で初期化
+	var max_val uint = uint(0)  //uint型の最小値で初期化
 	var temp_val uint
 
 	for _, row := range ct.rows {
