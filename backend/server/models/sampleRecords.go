@@ -21,7 +21,7 @@ func CreateSampleEmployeeRecords() {
 	// 1から20までループしてサンプル従業員を生成
 	for i := 1; i <= 20; i++ {
 		name := fmt.Sprintf("sample%d", i)                                                                     // 名前を "sample1", "sample2", ... と生成
-		email := fmt.Sprintf("sample%d@sample.com", i)                                                         // メールアドレスを "sample1@sample.com", ... と生成
+		email := fmt.Sprintf("sample%d@sample.com", i)                                                         // メ-���アドレスを "sample1@sample.com", ... と生成
 		isActive := i%2 == 1                                                                                   // 奇数ならアクティブ、偶数なら非アクティブ
 		employeeRecordSample = append(employeeRecordSample, NewEmployeeRecord(uint(i), name, email, isActive)) // 新しい従業員レコードを追加
 	}
@@ -68,7 +68,7 @@ func CreateSampleTimeRecords() {
 
 	// レコードのManageIDを取得するためのgetter関数を定義
 	getter := func(record *TimeRecord) (uint, bool) {
-		return record.ManageID, true
+		return record.ID, true
 	}
 
 	// リポジトリのキャッシュに複数レコードを挿入し、エラーがあればログを出力して終了
@@ -80,7 +80,6 @@ func CreateSampleTimeRecords() {
 // CreateSampleAttendanceRecords は出席レコードのサンプルデータを生成し、リポジトリに挿入します。
 func CreateSampleAttendanceRecords() {
 	var attendanceRecordSample []*AttendanceRecord // 出席レコードのスライスを初期化
-
 	// 0から19までループしてサンプル出席レコードを生成
 	for i := 0; i < 20; i++ {
 		attendanceRecordSample = append(attendanceRecordSample, NewAttendanceRecord(
@@ -117,18 +116,23 @@ func GenerateSampleTimeRecords(startNo int, endNo int, baseTime time.Time) []*Ti
 	var result []*TimeRecord                                // タイムレコードのスライスを初期化
 	for manageID := startNo; manageID < endNo; manageID++ { // 指定範囲でループ
 		for planNo := 1; planNo <= 4; planNo++ { // 各管理IDごとに4つのプラン番号でループ
-			time := addTime(manageID, baseTime)  // 基準時間に管理ID分の分を追加
-			result = append(result, &TimeRecord{ // 新しいタイムレコードを追加
-				ManageID:       uint(manageID),
-				PlanNo:         uint(planNo),
-				PlanTime:       time,
-				IsAlert:        false,
-				PreAlert:       false,
-				PreAlertIgnore: false,
-				IsOver:         false,
-				IsIgnore:       false,
-				IsComplete:     false,
-			})
+			time := addTime(manageID, baseTime) // 基準時間に管理ID分の分を追加
+			if time != nil {                    // nil チェックを追加
+				result = append(result, &TimeRecord{ // 新しいタイムレコードを追加
+					ManageID:       uint(manageID),
+					PlanNo:         uint(planNo),
+					PlanTime:       time, // ポインタをそのまま使用
+					IsAlert:        false,
+					PreAlert:       false,
+					PreAlertIgnore: false,
+					IsOver:         false,
+					IsIgnore:       false,
+					IsComplete:     false,
+				})
+			} else {
+				// エラーハンドリングまたはデフォルト値の設定
+				log.Println("addTime returned nil")
+			}
 		}
 	}
 	return result // 生成したタイムレコードのスライスを返す

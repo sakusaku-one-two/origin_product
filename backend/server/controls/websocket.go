@@ -47,6 +47,12 @@ var (
 	UPGREDER *websocket.Upgrader
 )
 
+func init() {
+	log.Println("ウェブソケットの初期化開始")
+	StartUp()
+	log.Println("ウェブソケットの初期化完了")
+}
+
 func StartUp() {
 
 	BROADCAST_TO_ACTION_EMPLOYEE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("SENDER_ACTION_EMPLOYEE_RECORD")
@@ -113,13 +119,13 @@ func ActionWebSocketHandler(c echo.Context) error {
 			}
 
 			switch msgAction.Action {
-			case "EMPLOYEE_RECORD/UPDATE", "EMPLOYEE_RECORD/DELETE", "EMPLOYEE_RECORD/INSERT":
+			case "EMPLOYEE_RECORD/UPDATE", "EMPLOYEE_RECORD/DELETE":
 				SendActionDTO[models.EmployeeRecord](ACTION_EMPLOYEE_RECORD_TO_REPO, msgAction)
-			case "ATTENDANCE_RECORD/UPDATE", "ATTENDANCE_RECORD/DELETE", "ATTENDANCE_RECORD/INSERT":
+			case "ATTENDANCE_RECORD/UPDATE", "ATTENDANCE_RECORD/DELETE":
 				SendActionDTO[models.AttendanceRecord](ATTENDANCE_RECORD_TO_REPO, msgAction)
-			case "TIME_RECORD/UPDATE", "TIME_RECORD/DELETE", "TIME_RECORD/INSERT":
+			case "TIME_RECORD/UPDATE", "TIME_RECORD/DELETE":
 				SendActionDTO[models.TimeRecord](ACTION_TIME_RECORD_TO_REPO, msgAction)
-			case "LOCATION_RECORD/UPDATE", "LOCATION_RECORD/DELETE", "LOCATION_RECORD/INSERT":
+			case "LOCATION_RECORD/UPDATE", "LOCATION_RECORD/DELETE":
 				SendActionDTO[models.LocationRecord](ACTION_LOCATION_RECORD_TO_REPO, msgAction)
 			default:
 				log.Printf("不明なActionDTOが送信されました。Action: %v", msgAction.Action)

@@ -31,11 +31,13 @@ func init() {
 	} else {
 		log.Println("管理者の作成に成功しました。")
 	}
+	log.Println("レポジトリーデーモンの初期化開始")
+	SetUpRepository()
+	time.Sleep(2 * time.Second)
+	log.Println("リポジトリキャッシュ作成完了 -> サンプルデータの作成開始")
+	GenerateSampleData(DB)
+	log.Println("サンプルデータの作成に成功しました。")
 
-	CreateSampleTimeRecords()
-	CreateSampleAttendanceRecords()
-	CreateSampleEmployeeRecords()
-	CreateSampleLocationRecords()
 }
 
 // シングルトンを返却
@@ -47,14 +49,14 @@ func GetDB() *gorm.DB {
 		return DB
 	}
 
-	// 30秒待つ
-	time.Sleep(30 * time.Second)
+	// 10秒待つ
+	time.Sleep(10 * time.Second)
 
 	DB = connectDB()
 
 	if DB == nil {
 		log.Println("データベースの接続に失敗しました。")
-		time.Sleep(30 * time.Second) // 30秒待つ
+		time.Sleep(10 * time.Second) // 30秒待つ
 		return GetDB()               //接続するまで繰り返す
 	} else {
 		log.Println("データベースの接続に成功しました。")

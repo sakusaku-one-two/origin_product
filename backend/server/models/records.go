@@ -125,7 +125,7 @@ type TimeRecord struct {
 	ManageID       uint `gorm:"primaryKey;index;not null"`
 	PlanNo         uint // 1=> 出発報告　2=>到着報告 3=>上番報告 4=>下番報告
 	PlanTime       *time.Time
-	ResultTime     *time.Time `gorm:"default"`
+	ResultTime     *time.Time `gorm:"default:null"`
 	IsAlert        bool       `gorm:"default:false"` // このフラグでクライアント側でアラートを発報する。
 	PreAlert       bool       `gorm:"default:false"` //このフラグは予定時刻の5分前に予備アラートの発報フラグ
 	IsOver         bool       `gorm:"default:false"` //このフラグは予定時刻を超えた事を表す

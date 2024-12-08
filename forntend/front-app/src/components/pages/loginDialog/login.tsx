@@ -37,6 +37,7 @@ const Login:React.FC = () => {
 
         if (response.ok) {
             const data = await response.json();
+            console.log(data.payload,data.records.payload);
             dispatch({
               type: data.records.action,
               payload: data.records.payload,

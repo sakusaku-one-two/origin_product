@@ -15,6 +15,7 @@ export interface EmployeeRecord {
     EmpID : number;
     Name:string;
     Email:string;
+    IsInTerm:boolean;
 }
 
 //----------------------------[配置先]--------------------------------------------

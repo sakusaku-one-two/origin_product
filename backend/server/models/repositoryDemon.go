@@ -29,15 +29,10 @@ var (
 	POST_RECORD_REPOSITORY       *Repository[PostRecord]
 )
 
-func init() {
-	log.Println("レポジトリーデーモンの初期化開始")
-	SetUp()
-}
-
-// 各種設定の呼び出し
-func SetUp() {
-	SetUpRepository()
-}
+// // 各種設定の呼び出し
+// func SetUp() {
+// 	SetUpRepository()
+// }
 
 // チャネルに渡すdtoを作成する関数
 func CreateActionDTO[ModelType any](actionName string, targetModle *ModelType) ActionDTO[ModelType] {

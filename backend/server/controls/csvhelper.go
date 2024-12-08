@@ -142,8 +142,8 @@ func TimerecordsEqual(recordArray1, recordArray2 []models.TimeRecord) bool {
 }
 
 func TimeRecordEqual(record1, record2 models.TimeRecord) bool {
-	return record1.PlanTime.Equal(record2.PlanTime) &&
-		record1.ResultTime.Equal(record2.ResultTime)
+	return record1.PlanTime.Equal(*record2.PlanTime) &&
+		record1.ResultTime.Equal(*record2.ResultTime)
 }
 
 // -------------------[社員の取得]-------------------
@@ -155,7 +155,7 @@ func GetAndCreateEmployee(row map[string]*Value) *models.EmployeeRecord {
 		return employee
 	}
 
-	employee := models.NewEmployeeRecord(row["隊員番号"].as_int, row["隊員名"].as_string, "")
+	employee := models.NewEmployeeRecord(row["隊員番号"].as_int, row["隊員名"].as_string, "", false)
 
 	if ok, _ := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Insert(row["隊員番号"].as_int, employee); !ok {
 		return nil

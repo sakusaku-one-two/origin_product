@@ -2,6 +2,7 @@ import { Middleware,Dispatch} from '@reduxjs/toolkit';
 import type { AttendanceRecord,EmployeeRecord,LocationRecord,TimeRecord } from "./recordType";
 
 
+
 type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
 type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
 type RecordArrayType = RecordType[];
@@ -25,11 +26,15 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch):void{
         });
     };
     // サーバーリアルタイム接続に失敗
-    socket.onerror = ()=>{
+    socket.onerror = (event:Event)=>{
+        alert("サーバーリアルタイム接続に失敗しました。");
+        console.log(event);
+        
         next({
             type:"WEBSOCKET/ERROR",
-            payload:"サーバーリアルタイム接続に失敗しました。"
+            payload:"websocketの接続に失敗しました。"
         });
+
     };  
     // サーバーからのメッセージを受信
     socket.onmessage = (event:MessageEvent<{Action:string,Payload:unknown | RecordType}>)=>{
