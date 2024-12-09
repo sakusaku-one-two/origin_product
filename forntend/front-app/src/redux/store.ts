@@ -5,6 +5,7 @@ import timeReducer from "./slices/timeSlice";
 import locationReducer from "./slices/locationSlice"; 
 import  WebSocketMiddleware  from "./websocketMiddleware";
 import postReducer from "./slices/postSlice";
+import websocketSlice from "./slices/websocketSlice";
 
 const RecordStore = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ const RecordStore = configureStore({
       TIME_RECORDS:timeReducer,
       LOCATION_RECORDS:locationReducer,
       POST_RECORDS:postReducer,
+      WEBSOCKET:websocketSlice,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(WebSocketMiddleware),
   devTools: import.meta.env.VITE_NODE_ENV !== "production",
