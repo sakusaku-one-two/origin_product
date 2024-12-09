@@ -171,7 +171,7 @@ type AttendanceRecord struct {
 
 	//勤務ポスト
 	PostID uint       `gorm:"index;not null;"`
-	Post   PostRecord `gorm:"foreignKey:PostID"`
+	Post   PostRecord `gorm:"foreignKey:PostID;references:PostID"`
 
 	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"` //リレーションの設定
 
