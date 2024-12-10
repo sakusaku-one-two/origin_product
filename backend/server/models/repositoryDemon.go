@@ -145,9 +145,10 @@ func SetUpRepository() {
 		for {
 
 			<-ticker.C // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
-
-			currentTime := time.Now()
-
+			update_records := []*TimeRecord{}
+			currentTime := time.Now().Local()
+			log.Println("現在の時間", currentTime)
+			log.Println("現在のキャッシュの数（timeRecord）", repo.Cache.Len())
 			repo.Cache.Map.Range(func(key any, value any) bool { //キャッシュの中味を走査するコールバック関数　trueを返すと次の要素でそのコールバックを呼び出す。
 				time_record, ok := value.(*TimeRecord)
 
@@ -161,58 +162,53 @@ func SetUpRepository() {
 					return true
 				}
 
-				//予定時刻の30分をオーバーしたか。
-				if time_record.PlanTime.Add(30 * time.Minute).Before(currentTime) {
+				//予定時刻から30分をオーバーしたか。
+				if currentTime.After(time_record.PlanTime.Add(30 * time.Minute)) {
 					time_record.IsOver = true
-					if err := repo.Cache.loadAndSave(time_record.ID, time_record); err != nil {
-						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
-						return true //キャッシュとDBの更新が失敗したのでスキップする。
-					}
-
+					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
 				}
 
 				//予定時刻の5分前より前か判定。
-				if time_record.PlanTime.Add(-5 * time.Minute).Before(currentTime) {
+				if time_record.PlanTime.Add(-5 * time.Minute).After(currentTime) {
 					//予定時刻（5分前）より前に現在時刻が存在するので何もしない。
 					return true
-				} else if time_record.PlanTime.Before(currentTime) && !time_record.PreAlertIgnore {
+				} else if time_record.PlanTime.After(currentTime) && !time_record.PreAlertIgnore {
 					//予定時刻の5分前	なので、予備アラートを発報 (無視の場合は除く)
 					time_record.PreAlert = true
-					if err := repo.Cache.loadAndSave(time_record.ID, time_record); err != nil {
-						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
-						return true //キャッシュに再度更新とDBの更新が失敗したので一旦　次に移行
-					}
+					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
 
 				} else {
 					time_record.IsAlert = true
-					if err := repo.Cache.loadAndSave(time_record.ID, time_record); err != nil {
-						log.Printf("Failed to update cache and DB for TimeRecord ID %v: %v", time_record.ID, err)
-						return true
-					}
+					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 				}
 
 				return true
 			})
 
+			if len(update_records) > 0 {
+				repo.Cache.InsertMany(update_records, func(record *TimeRecord) (uint, bool) {
+					return record.ID, true
+				})
+			}
 		}
 	})
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 
 		//timeRecordの監視範囲を1時間おきに更新する。
-		ticker := time.NewTicker(30 * time.Minute)
+		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 
 		//1時間おきに動作するゴルーチン
 		for {
 
 			currentTime := <-ticker.C
-			before_time := currentTime.Add(-40 * time.Minute)
+			before_time := currentTime.Add(-20 * time.Minute)
 			after_time := currentTime.Add(8 * time.Hour)
 			deleted_keys := []any{}
 
@@ -233,23 +229,13 @@ func SetUpRepository() {
 			new_query := NewQuerySession()
 			time_records := []*TimeRecord{}
 			new_query.Where("plan_time >= ? AND plan_time <= ?", currentTime, currentTime.Add(8*time.Hour)).Find(&time_records)
-			repo.Cache.InsertMany(time_records, func(target *TimeRecord) (uint, bool) {
-				return target.ID, true
-			})
 
-			repo.Cache.Map.Range(func(key any, value any) bool {
-				time_record, ok := value.(*TimeRecord)
-				if !ok {
-					log.Printf("Failed to convert to *TimeRecord for key %v", key)
-					return true
-				}
-
+			for _, time_record := range time_records {
 				if _, ok := repo.Cache.Map.Load(time_record.ID); !ok { //存在確認
-					repo.Cache.Map.Store(time_record.ID, &time_record)                            //存在しないレコードなら登録
+					repo.Cache.Map.Store(time_record.ID, time_record)                             //存在しないレコードなら登録
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record) //クライアントに更新を通知
 				}
-				return true
-			})
+			}
 
 		}
 	})

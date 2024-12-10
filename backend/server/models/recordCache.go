@@ -116,11 +116,21 @@ func (rc *RecordsCache[ModelType]) Insert(id uint, targetData *ModelType) (bool,
 	return true, nil
 }
 
-func (rc *RecordsCache[ModelType]) Dump() []*ModelType {
-	result := []*ModelType{}
+func (rc *RecordsCache[ModelType]) Dump() []ModelType {
+	result := []ModelType{}
 	rc.Map.Range(func(key, value any) bool {
-		result = append(result, value.(*ModelType))
+		result = append(result, *value.(*ModelType))
 		return true
 	})
+	log.Println("len(result)", len(result))
 	return result
+}
+
+func (rc *RecordsCache[ModelType]) Len() int {
+	count := 0
+	rc.Map.Range(func(key, value any) bool {
+		count++
+		return true
+	})
+	return count
 }

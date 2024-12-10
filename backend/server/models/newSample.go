@@ -18,8 +18,8 @@ func GenerateSampleData(db *gorm.DB) error {
 	for i := 1; i <= numRecords; i++ {
 		employee := NewEmployeeRecord(
 			uint(i),
-			fmt.Sprintf("Employee_%d", i),
-			fmt.Sprintf("employee_%d@example.com", i),
+			fmt.Sprintf("Employee_%v", i),
+			fmt.Sprintf("employee_%v@example.com", i),
 			false,
 		)
 		employees = append(employees, employee)
@@ -58,6 +58,7 @@ func GenerateSampleData(db *gorm.DB) error {
 		)
 		posts = append(posts, post)
 	}
+
 	if err := POST_RECORD_REPOSITORY.Cache.InsertMany(posts, func(target *PostRecord) (uint, bool) {
 		return target.PostID, true
 	}); err != nil {
@@ -86,7 +87,7 @@ func GenerateSampleData(db *gorm.DB) error {
 	time.Sleep(1 * time.Second)
 	// 5. TimeRecordの生成
 	var timeRecords []*TimeRecord
-	currentTime := time.Now()
+	currentTime := time.Now().Local().Add(time.Minute * 10)
 	for _, attendance := range attendanceRecords {
 		for planNo := 1; planNo <= 4; planNo++ {
 			planTime := currentTime.Add(time.Duration(planNo) * time.Minute)
@@ -99,7 +100,10 @@ func GenerateSampleData(db *gorm.DB) error {
 			timeRecords = append(timeRecords, timeRecord)
 		}
 	}
-	if err := TIME_RECORD_REPOSITORY.Cache.InsertMany(timeRecords, func(target *TimeRecord) (uint, bool) {
+
+	NewQuerySession().Save(timeRecords).Commit()
+
+	if err := TIME_RECORD_REPOSITORY.Cache.InsertMany(timeRecords[0:50], func(target *TimeRecord) (uint, bool) {
 		return target.ID, true
 	}); err != nil {
 		return err

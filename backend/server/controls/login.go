@@ -72,8 +72,9 @@ func LoginHandler(c echo.Context) error {
 	cookie.SameSite = http.SameSiteStrictMode       //クロスサイトリクエストを防ぐ
 
 	c.SetCookie(cookie)
-	attendance_records := GetAttendanceRecord()
 
+	attendance_records := GetAttendanceRecord()
+	log.Println(len(attendance_records))
 	return c.JSON(http.StatusOK, ResponseData{
 		Message: "successful",
 		User:    user,

@@ -52,9 +52,9 @@ func Mingrate() error {
 
 type EmployeeRecord struct {
 	gorm.Model
-	ID       uint `gorm:"primaryKey"`
-	Name     string
-	Email    string `gorm:"type:varchar(255)"`
+	ID       uint   `gorm:"primaryKey"`
+	Name     string `gorm:"size:100"`
+	Email    string `gorm:"size:100"`
 	IsInTerm bool   `gorm:"default:false"` //外個人技能実習生かのフラグ
 }
 
@@ -76,10 +76,10 @@ func NewEmployeeRecord(
 
 type LocationRecord struct { //配置場所のエンティティ
 	gorm.Model
-	LocationID   uint   `gorm:"not null"`             // ロケーションID（主キーの一部）
-	ClientID     uint   `gorm:"not null"`             // クライアントID（主キーの一部）
-	LocationName string `gorm:"size:255"`             // ロケーションの名前
-	ClientName   string `gorm:"varchar(50) not null"` //得意先正名称　（会社名）
+	LocationID   uint   `gorm:"not null"` // ロケーションID（主キーの一部）
+	ClientID     uint   `gorm:"not null"` // クライアントID（主キーの一部）
+	LocationName string `gorm:"size:100"` // ロケーションの名前
+	ClientName   string `gorm:"size:100"` //得意先正名称　（会社名）
 }
 
 func NewLocationRecord(
@@ -101,7 +101,7 @@ func NewLocationRecord(
 type PostRecord struct { //勤務ポストのエンティティ
 
 	PostID   uint   `gorm:"primaryKey;autoIncrement:false"`
-	PostName string `gorm:"varchar(50) not null"`
+	PostName string `gorm:"size:100"`
 }
 
 func NewPostRecord(

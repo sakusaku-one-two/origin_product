@@ -31,6 +31,14 @@ func init() {
 	} else {
 		log.Println("管理者の作成に成功しました。")
 	}
+
+	if _, err := CreateUser(NewQuerySession(), 1, "user", "user"); err != nil {
+		log.Println("ユーザーの作成に失敗しました。")
+		panic(err)
+	} else {
+		log.Println("ユーザーの作成に成功しました。")
+	}
+
 	log.Println("レポジトリーデーモンの初期化開始")
 	SetUpRepository()
 	time.Sleep(2 * time.Second)
@@ -50,14 +58,14 @@ func GetDB() *gorm.DB {
 	}
 
 	// 10秒待つ
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	DB = connectDB()
 
 	if DB == nil {
 		log.Println("データベースの接続に失敗しました。")
-		time.Sleep(10 * time.Second) // 30秒待つ
-		return GetDB()               //接続するまで繰り返す
+		time.Sleep(5 * time.Second) // 30秒待つ
+		return GetDB()              //接続するまで繰り返す
 	} else {
 		log.Println("データベースの接続に成功しました。")
 		return DB

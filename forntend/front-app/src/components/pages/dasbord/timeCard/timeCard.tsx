@@ -22,6 +22,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
     const locationRecord = record.locationRecord;
     const isSelectedSelf = selectedRecord.record?.timeRecord.ID === timeRecord.ID;
 
+   
     const isPlanOnTime: string = timeRecord.IsComplete ? "bg-green-500" : "bg-red-500";
     
     const handleOnTimeRecord = () => {
@@ -97,11 +98,11 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
         >
             <Card
                 className={`w-full h-full hover:bg-gray-200 transition-colors duration-300 ${SetAlertAnimation(record)}`}
-                onClick={handleSelect}
+                
             >
-                <CardHeader>
+                <CardHeader onClick={handleSelect}>
                     <CardDescription className="text-sm text-gray-500">
-                        {PlanName(timeRecord?.PlanNo)} {timeRecord?.PlanTime.toLocaleString()}
+                        {PlanName(timeRecord?.PlanNo)} {new Date(timeRecord?.PlanTime).toLocaleString()}
                     </CardDescription> 
                     <CardTitle className="text-lg font-semibold">
                         {employeeRecord?.Name}
