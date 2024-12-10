@@ -95,5 +95,10 @@ func connectDB() *gorm.DB {
 	if err != nil {
 		return nil
 	}
+
+	db.Set("gorm:auto_preload", true)
+	db.Set("gorm:max_open_conns", 100)
+	db.Set("gorm:max_idle_conns", 50)
+	db.Set("gorm:conn_max_lifetime", time.Hour)
 	return db
 }

@@ -10,7 +10,7 @@ import (
 
 // サンプルデータを生成してデータベースに挿入する関数
 func GenerateSampleData(db *gorm.DB) error {
-	const numRecords = 100
+	const numRecords = 20
 
 	// トランザクションの開始
 	// 1. EmployeeRecordの生成

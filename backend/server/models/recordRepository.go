@@ -2,8 +2,6 @@ package models
 
 import (
 	"sync"
-
-	"gorm.io/gorm"
 )
 
 /*
@@ -25,11 +23,10 @@ type Repository[ModelType any] struct {
 	Cache   *RecordsCache[ModelType]
 	Sender  chan ActionDTO[ModelType]
 	Reciver chan ActionDTO[ModelType]
-	DB      *gorm.DB
 }
 
 func CreateRepositry[ModelType any](channelName string, broadcastCount int) *Repository[ModelType] {
-	db := GetDB()
+
 	sender_name_as_chan := "SENDER_" + channelName //送信channelのキー
 	broadcastChan := NewChannel_TypeIs[ActionDTO[ModelType]](sender_name_as_chan, broadcastCount)
 	reciver_name_as_chan := "RECIVER_" + channelName //受信channelのキー
@@ -40,7 +37,6 @@ func CreateRepositry[ModelType any](channelName string, broadcastCount int) *Rep
 		Cache:   cache,         //threadセーフな辞書でモデルインスタンスを管理
 		Sender:  broadcastChan, //websocketでclientのreduxに向けて配信するためのchannel。
 		Reciver: reciverChan,   //クライアントからの受信を転送してもらうためのチャンネル
-		DB:      db,            //DBクライアントインスタンス。
 	}
 
 	return rp
