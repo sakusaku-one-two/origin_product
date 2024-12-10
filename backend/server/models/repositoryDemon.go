@@ -204,7 +204,7 @@ func SetUpRepository() {
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 
 		//timeRecordの監視範囲を1時間おきに更新する。
-		ticker := time.NewTicker(1 * time.Hour)
+		ticker := time.NewTicker(30 * time.Minute)
 		defer ticker.Stop()
 
 		//1時間おきに動作するゴルーチン
@@ -230,15 +230,25 @@ func SetUpRepository() {
 			})
 
 			new_query := NewQuerySession()
-			time_records := []TimeRecord{}
-			new_query.Where("plan_time >= ? AND plan_time <= ?", before_time, after_time).Find(&time_records)
+			time_records := []*TimeRecord{}
+			new_query.Where("plan_time >= ? AND plan_time <= ?", currentTime, currentTime.Add(8*time.Hour)).Find(&time_records)
+			repo.Cache.InsertMany(time_records, func(target *TimeRecord) (uint, bool) {
+				return target.ID, true
+			})
 
-			for _, time_record := range time_records {
-				if _, ok := repo.Cache.Map.Load(time_record.ID); !ok {
-					repo.Cache.Map.Store(time_record.ID, &time_record)
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", &time_record)
+			repo.Cache.Map.Range(func(key any, value any) bool {
+				time_record, ok := value.(*TimeRecord)
+				if !ok {
+					log.Printf("Failed to convert to *TimeRecord for key %v", key)
+					return true
 				}
-			}
+
+				if _, ok := repo.Cache.Map.Load(time_record.ID); !ok { //存在確認
+					repo.Cache.Map.Store(time_record.ID, &time_record)                            //存在しないレコードなら登録
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record) //クライアントに更新を通知
+				}
+				return true
+			})
 
 		}
 	})

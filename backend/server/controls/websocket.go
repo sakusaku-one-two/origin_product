@@ -129,7 +129,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 				log.Println("ウェブソケットのメッセージ受信失敗")
 				return err
 			}
-
+			log.Printf("ウェブソケットのメッセージ受信成功 %v", msgAction)
 			switch msgAction.Action {
 			case "EMPLOYEE_RECORD/UPDATE", "EMPLOYEE_RECORD/DELETE":
 				SendActionDTO[models.EmployeeRecord](ACTION_EMPLOYEE_RECORD_TO_REPO, msgAction)
