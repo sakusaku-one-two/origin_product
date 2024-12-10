@@ -51,21 +51,20 @@ func Mingrate() error {
 //--------------------------------[社員テーブル]-------------------------------------------
 
 type EmployeeRecord struct {
-	gorm.Model
-	ID       uint   `gorm:"primaryKey"`
+	EmpID    uint   `gorm:"primaryKey"`
 	Name     string `gorm:"size:100"`
 	Email    string `gorm:"size:100"`
 	IsInTerm bool   `gorm:"default:false"` //外個人技能実習生かのフラグ
 }
 
 func NewEmployeeRecord(
-	id uint,
+	emp_ID uint,
 	name string,
 	email string,
 	isInTerm bool,
 ) *EmployeeRecord {
 	return &EmployeeRecord{
-		ID:       id,
+		EmpID:    emp_ID,
 		Name:     name,
 		Email:    email,
 		IsInTerm: isInTerm,
@@ -75,7 +74,7 @@ func NewEmployeeRecord(
 //--------------------------------[配置先テーブル]-------------------------------------------
 
 type LocationRecord struct { //配置場所のエンティティ
-	gorm.Model
+	ID           uint   `gorm:"primaryKey"`
 	LocationID   uint   `gorm:"not null"` // ロケーションID（主キーの一部）
 	ClientID     uint   `gorm:"not null"` // クライアントID（主キーの一部）
 	LocationName string `gorm:"size:100"` // ロケーションの名前
@@ -168,16 +167,16 @@ type AttendanceRecord struct {
 	ManageID uint `gorm:"primaryKey;index;not null"` //管制実績番号　隊員・配置先・配置ポストが一連のまとまりとなったエンティティのＩＤ
 
 	//対象社員
-	EmpID uint           `gorm:"index not null"`
-	Emp   EmployeeRecord `gorm:"foreignKey:EmpID;references:ID"`
+	EmpID uint           `gorm:"index;not null"`
+	Emp   EmployeeRecord `gorm:"foreignKey:EmpID;references:EmpID"`
 
 	//勤務先情報
-	LocationID uint           `gorm:"not null"`                            // LocationRecord への外部キー（必須）                                               // LocationRecord への外部キー（必須）
+	LocationID uint           `gorm:"index;not null"`                      // LocationRecord への外部キー（必須）                                               // LocationRecord への外部キー（必須）
 	Location   LocationRecord `gorm:"foreignKey:LocationID;references:ID"` // LocationRecord への参照
 	// 他のフィールド...
 
 	//勤務ポスト
-	PostID uint       `gorm:"not null;index"`
+	PostID uint       `gorm:"index;not null"`
 	Post   PostRecord `gorm:"foreignKey:PostID;references:PostID"`
 
 	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"` //リレーションの設定

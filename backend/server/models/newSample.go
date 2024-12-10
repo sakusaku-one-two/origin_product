@@ -25,7 +25,7 @@ func GenerateSampleData(db *gorm.DB) error {
 		employees = append(employees, employee)
 	}
 	if err := EMPLOYEE_RECORD_REPOSITORY.Cache.InsertMany(employees, func(target *EmployeeRecord) (uint, bool) {
-		return target.ID, true
+		return target.EmpID, true
 	}); err != nil {
 		return err
 	}

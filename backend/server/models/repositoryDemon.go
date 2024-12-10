@@ -61,7 +61,7 @@ func SetUpRepository() {
 		}
 
 		for _, employee_record := range employee_records {
-			repo.Cache.Map.Store(employee_record.ID, &employee_record)
+			repo.Cache.Map.Store(employee_record.EmpID, &employee_record)
 		}
 
 		log.Printf("初期値を設定しました。employee_recordsの数:%v", len(employee_records))
@@ -73,9 +73,9 @@ func SetUpRepository() {
 
 			switch action_emp_dto.Action {
 			case "EMPLOYEE_RECORD/UPDATE":
-				repo.Cache.loadAndSave(action_emp_dto.Payload.ID, action_emp_dto.Payload)
+				repo.Cache.loadAndSave(action_emp_dto.Payload.EmpID, action_emp_dto.Payload)
 			case "EMPLOYEE_RECORD/DELETE":
-				repo.Cache.Delete(action_emp_dto.Payload.ID)
+				repo.Cache.Delete(action_emp_dto.Payload.EmpID)
 			default:
 				continue
 			}
@@ -83,6 +83,15 @@ func SetUpRepository() {
 			repo.Sender <- action_emp_dto
 		}
 
+	})
+
+	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
+		//キャッシュの中身をダンプする
+
+		time.Sleep(10 * time.Minute)
+		for _, employee_record := range repo.Cache.Dump() {
+			log.Println(employee_record.Name)
+		}
 	})
 
 	// --------------------[時間記録のリポジトリ]--------------------------------

@@ -19,8 +19,8 @@ const UpdatePostList = (oldPostList:PostRecord[],newPostRecord:PostRecord[]):Pos
     if (newPostRecord.length === 0) return oldPostList;
     
     const ReplacedRecord =  newPostRecord.map((newPostRecord:PostRecord)=>{
-        if(newPostRecord.ID === 0) return newPostRecord;
-        const targetRecord = oldPostList.find((postRecord:PostRecord)=>postRecord.ID === newPostRecord.ID);
+        if(newPostRecord.PostID === 0) return newPostRecord;
+        const targetRecord = oldPostList.find((postRecord:PostRecord)=>postRecord.PostID === newPostRecord.PostID);
         if(targetRecord){
             return newPostRecord;
         }
@@ -40,7 +40,7 @@ const postSlice = createSlice({
             state.isLoading = false;        
         },
         DELETE:(state,action:PayloadAction<PostRecord>)=>{
-            state.postList = state.postList.filter((postRecord)=>postRecord.ID !== action.payload.ID);
+            state.postList = state.postList.filter((postRecord)=>postRecord.PostID !== action.payload.PostID);
         },
         INSERT_SETUP:(state,action:PayloadAction<PostRecord>)=>{
             state.postList.push(action.payload);
@@ -59,7 +59,7 @@ const postSlice = createSlice({
             const PostsList:PostRecord[] = [attendanceRecord.Post];
             state.postList = UpdatePostList(state.postList,PostsList);
         }).addCase(ATTENDANCE_RECORD_DELETE,(state,action:PayloadAction<AttendanceRecord>)=>{
-            state.postList = state.postList.filter((postRecord)=>postRecord.ID !== action.payload.Post.ID);
+            state.postList = state.postList.filter((postRecord)=>postRecord.PostID !== action.payload.Post.PostID);
         });
     },
 });     

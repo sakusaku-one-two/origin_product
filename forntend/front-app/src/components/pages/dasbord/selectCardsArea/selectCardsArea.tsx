@@ -76,7 +76,7 @@ export const SelectCardsArea:React.FC = () => {
         <>
          <ResizablePanelGroup
                 direction="horizontal"
-                className="min-h-[600px] max-w-full rounded-lg border"
+                className="min-h-[600px] overflow-y-auto max-w-full rounded-lg border"
               >
                 <ResizablePanel defaultSize={75}>
                     <ResizablePanelGroup direction="vertical">
