@@ -30,8 +30,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 501, // 打刻の識別番号
           ManageID: 1, // 管理実績番号
           PlanNo: PlanNo.HOME_DEPARTURE, // 計画番号：出発報告
-          PlanTime: new Date("2024-04-01T08:00:00Z"), // 計画時刻：2024年4月1日8時
-          ResultTime: new Date("2024-04-01T08:05:00Z"), // 結果時刻：2024年4月1日8時5分
+          PlanTime: "2024-04-01T08:00:00Z", // 計画時刻：2024年4月1日8時
+          ResultTime: "2024-04-01T08:05:00Z", // 結果時刻：2024年4月1日8時5分
           IsAlert: false, // アラートフラグ：アラートなし
           PreAlert: true, // 事前アラートフラグ：事前アラートあり
           IsOver: false, // 予定時刻超過フラグ：超過なし
@@ -43,8 +43,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 502,
           ManageID: 1,
           PlanNo: PlanNo.START, // 計画番号：上番報告
-          PlanTime: new Date("2024-04-02T09:00:00Z"),
-          ResultTime: null, // 結果時刻：未報告
+          PlanTime: "2024-04-02T09:00:00Z",
+          ResultTime: "", // 結果時刻：未報告
           IsAlert: false, // アラートフラグ：アラートあり
           PreAlert: false, // 事前アラートフラグ：事前アラートなし
           IsOver: false,
@@ -86,8 +86,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 503,
           ManageID: 2,
           PlanNo: PlanNo.REACH, // 計画番号：到着報告
-          PlanTime: new Date("2024-04-02T09:00:00Z"),
-          ResultTime: null,
+          PlanTime: "2024-04-02T09:00:00Z",
+          ResultTime: "",
           IsAlert: false,
           PreAlert: true,
           IsOver: false,
@@ -99,8 +99,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 504,
           ManageID: 2,
           PlanNo: PlanNo.FINISH, // 計画番号：下番報告
-          PlanTime: new Date("2024-04-02T17:00:00Z"),
-          ResultTime: new Date("2024-04-02T17:15:00Z"),
+          PlanTime: "2024-04-02T17:00:00Z",
+          ResultTime: "2024-04-02T17:15:00Z",
           IsAlert: true,
           PreAlert: false,
           IsOver: true,
@@ -145,8 +145,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 601, // 打刻の識別番号
           ManageID: 21, // 管理実績番号
           PlanNo: PlanNo.HOME_DEPARTURE, // 計画番号：出発報告
-          PlanTime: new Date("2024-04-21T08:00:00Z"), // 同じ計画時刻
-          ResultTime: null, // 結果時刻
+          PlanTime: "2024-04-21T08:00:00Z", // 同じ計画時刻
+          ResultTime: "", // 結果時刻
           IsAlert: false, // アラートフラグ：アラートなし
           PreAlert: false, // 事前アラートフラグ：事前アラートなし
           IsOver: false, // 予定時刻超過フラグ：超過なし
@@ -158,8 +158,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 602,
           ManageID: 21,
           PlanNo: PlanNo.START, // 計画番号：上番報告
-          PlanTime: new Date("2024-04-21T09:00:00Z"),
-          ResultTime: null,
+          PlanTime: "2024-04-21T09:00:00Z",
+          ResultTime: "",
           IsAlert: false,
           PreAlert: false,
           IsOver: false,
@@ -201,8 +201,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 603,
           ManageID: 22,
           PlanNo: PlanNo.HOME_DEPARTURE,
-          PlanTime: new Date("2024-04-21T08:00:00Z"), // 同じ計画時刻
-          ResultTime: null,
+          PlanTime: "2024-04-21T08:00:00Z", // 同じ計画時刻
+          ResultTime: "",
           IsAlert: false,
           PreAlert: false,
           IsOver: false,
@@ -214,8 +214,8 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
           ID: 604,
           ManageID: 22,
           PlanNo: PlanNo.START,
-          PlanTime: new Date("2024-04-21T09:00:00Z"),
-          ResultTime: new Date("2024-04-21T09:00:00Z"),
+          PlanTime: "2024-04-21T09:00:00Z",
+          ResultTime: "2024-04-21T09:00:00Z",
           IsAlert: false,
           PreAlert: false,
           IsOver: false,

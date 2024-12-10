@@ -111,6 +111,7 @@ func SetUpRepository() {
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 		//全てのtimeActionDTOはこのゴルーチンに渡されてキャッシュとDBが更新と削除される
 		for time_action_dto := range repo.Reciver {
+			log.Printf("time_action_dto入ります!: %v", time_action_dto.Payload)
 
 			switch time_action_dto.Action {
 			case "TIME_RECORD/UPDATE":

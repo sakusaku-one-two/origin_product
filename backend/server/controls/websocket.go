@@ -2,6 +2,7 @@ package controls
 
 import (
 	"backend-app/server/models"
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -30,8 +31,8 @@ type Done struct {
 }
 
 var (
-	clients sync.Map // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
-
+	clients                             sync.Map // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
+	ok                                  bool
 	ACTION_EMPLOYEE_RECORD_TO_REPO      chan models.ActionDTO[models.EmployeeRecord]
 	BROADCAST_TO_ACTION_EMPLOYEE_RECORD chan models.ActionDTO[models.EmployeeRecord]
 
@@ -55,17 +56,53 @@ func init() {
 
 func WebSocketStartUp() {
 
-	BROADCAST_TO_ACTION_EMPLOYEE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("SENDER_ACTION_EMPLOYEE_RECORD")
-	ACTION_EMPLOYEE_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("RECIVER_ACTION_EMPLOYEE_RECORD")
+	BROADCAST_TO_ACTION_EMPLOYEE_RECORD, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("SENDER_ACTION_EMPLOYEE_RECORD")
+	if !ok {
+		log.Println("社員レコードのブロードキャストチャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
 
-	BROADCAST_ACTION_TIME_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("SENDER_ACTION_TIME_RECORD")
-	ACTION_TIME_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("RECIVER_ACTION_TIME_RECORD")
+	ACTION_EMPLOYEE_RECORD_TO_REPO, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.EmployeeRecord]]("RECIVER_ACTION_EMPLOYEE_RECORD")
+	if !ok {
+		log.Println("社員レコードのリポジトリへの送信チャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
 
-	BROADCAST_ATTENDANCE_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("SENDER_ACTION_ATTENDANCE_RECORD")
-	ATTENDANCE_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("RECIVER_ACTION_ATTENDANCE_RECORD")
+	BROADCAST_ACTION_TIME_RECORD, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("SENDER_ACTION_TIME_RECORD")
+	if !ok {
+		log.Println("勤怠レコードのブロードキャストチャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
 
-	BROADCAST_ACTION_LOCATION_RECORD, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("SENDER_ACTION_LOCATION_RECORD")
-	ACTION_LOCATION_RECORD_TO_REPO, _ = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("RECIVER_ACTION_LOCATION_RECORD")
+	ACTION_TIME_RECORD_TO_REPO, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.TimeRecord]]("RECIVER_ACTION_TIME_RECORD")
+	if !ok {
+		log.Println("勤怠レコードのリポジトリへの送信チャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
+
+	BROADCAST_ATTENDANCE_RECORD, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("SENDER_ACTION_ATTENDANCE_RECORD")
+	if !ok {
+		log.Println("勤怠レコードのブロードキャストチャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
+
+	ATTENDANCE_RECORD_TO_REPO, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.AttendanceRecord]]("RECIVER_ACTION_ATTENDANCE_RECORD")
+	if !ok {
+		log.Println("勤怠レコードのリポジトリへの送信チャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
+
+	BROADCAST_ACTION_LOCATION_RECORD, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("SENDER_ACTION_LOCATION_RECORD")
+	if !ok {
+		log.Println("位置レコードのブロードキャストチャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
+
+	ACTION_LOCATION_RECORD_TO_REPO, ok = models.FetchChannele_TypeIs[models.ActionDTO[models.LocationRecord]]("RECIVER_ACTION_LOCATION_RECORD")
+	if !ok {
+		log.Println("位置レコードのリポジトリへの送信チャンネルが見つかりません。")
+		panic("ウェブソケットの初期化失敗")
+	}
 
 	go ActionBroadCastFanIn(
 		BROADCAST_ACTION_TIME_RECORD,
@@ -82,13 +119,25 @@ func WebSocketStartUp() {
 		}}
 }
 
-func SendActionDTO[ModelType any](toRepositoryChan chan models.ActionDTO[ModelType], actionDTO models.ActionDTO[any]) {
+func SendActionDTO[ModelType any](toRepositoryChan chan models.ActionDTO[ModelType], map_msgAction map[string]any) {
 	// any型のPayloadをアサーションしてModelType型に変換し、ActionDTO[ModelType]型に変換する
 	// websocketのメッセージをパースしてchannelに送信
-	payload, ok := (*actionDTO.Payload).(*ModelType)
-	if ok {
-		toRepositoryChan <- models.ActionDTO[ModelType]{Action: actionDTO.Action, Payload: payload}
+	json_msgAction, err := json.Marshal(map_msgAction)
+	if err != nil {
+		log.Println("ウェブソケットのメッセージパース失敗 json", err.Error())
+		return
 	}
+
+	var msgAction models.ActionDTO[ModelType]
+	err = json.Unmarshal(json_msgAction, &msgAction)
+	if err != nil {
+		log.Println("ウェブソケットのメッセージパース失敗 json", err.Error())
+		return
+	}
+	log.Printf("ウェブソケットのメッセージ送信成功: %v", json_msgAction)
+
+	toRepositoryChan <- msgAction
+
 }
 
 func ActionWebSocketHandler(c echo.Context) error {
@@ -103,7 +152,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 	if err != nil {
 		log.Println("ウェブソケットのコネクション開始失敗", err.Error())
 		log.Println(err)
-		// return err
+		return err
 	}
 
 	done_chan := make(chan interface{}) //done_chanを定義
@@ -116,7 +165,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 		ws.Close()
 	}()
 
-	var msgAction models.ActionDTO[interface{}]
+	var msgAction map[string]any
 	// 受信のループ
 	for {
 		select {
@@ -129,8 +178,8 @@ func ActionWebSocketHandler(c echo.Context) error {
 				log.Println("ウェブソケットのメッセージ受信失敗")
 				return err
 			}
-			log.Printf("ウェブソケットのメッセージ受信成功 %v", msgAction)
-			switch msgAction.Action {
+			log.Printf("ウェブソケットのメッセージ受信成功 Action: %v, Payload: %v", msgAction["Action"], msgAction["Payload"])
+			switch msgAction["Action"] {
 			case "EMPLOYEE_RECORD/UPDATE", "EMPLOYEE_RECORD/DELETE":
 				SendActionDTO[models.EmployeeRecord](ACTION_EMPLOYEE_RECORD_TO_REPO, msgAction)
 			case "ATTENDANCE_RECORD/UPDATE", "ATTENDANCE_RECORD/DELETE":
@@ -140,7 +189,7 @@ func ActionWebSocketHandler(c echo.Context) error {
 			case "LOCATION_RECORD/UPDATE", "LOCATION_RECORD/DELETE":
 				SendActionDTO[models.LocationRecord](ACTION_LOCATION_RECORD_TO_REPO, msgAction)
 			default:
-				log.Printf("不明なActionDTOが送信されました。Action: %v", msgAction.Action)
+				log.Printf("不明なActionDTOが送信されました。Action: %v", msgAction)
 			}
 
 		}
@@ -158,7 +207,7 @@ func BroadCast[T models.TimeRecord | models.AttendanceRecord | models.EmployeeRe
 		}
 
 		//型アサーションに成功　コネクションにデータを配信
-
+		log.Printf("コネクションにデータを配信 %v", msg_action_dto)
 		if err := websocket_conn.WriteJSON(msg_action_dto); err != nil {
 			done_obj, ok := value.(*Done)
 			if !ok {
@@ -198,21 +247,25 @@ func ActionBroadCastFanIn(
 		select {
 		case msgAction, ok := <-TimeRecordActionBroadCast:
 			if !ok {
+				log.Println("勤怠時間レコードのブロードキャストチャンネルが閉じた")
 				continue
 			}
 			BroadCast[models.TimeRecord](msgAction)
 		case msgAction, ok := <-AttendacneActionBroadCast:
 			if !ok {
+				log.Println("勤怠レコードのブロードキャストチャンネルが閉じた")
 				continue
 			}
 			BroadCast[models.AttendanceRecord](msgAction)
 		case msgAction, ok := <-LocationRecordActionBroadCast:
 			if !ok {
+				log.Println("位置レコードのブロードキャストチャンネルが閉じた")
 				continue
 			}
 			BroadCast[models.LocationRecord](msgAction)
 		case msgAction, ok := <-EmployeeRecordActionBroadCast:
 			if !ok {
+				log.Println("社員レコードのブロードキャストチャンネルが閉じた")
 				continue
 			}
 			BroadCast[models.EmployeeRecord](msgAction)

@@ -30,7 +30,7 @@ func GenerateSampleData(db *gorm.DB) error {
 		return err
 	}
 	log.Printf("Inserted %d EmployeeRecords\n", len(employees))
-
+	time.Sleep(1 * time.Second)
 	// 2. LocationRecordの生成
 	var locations []*LocationRecord
 	for i := 1; i <= numRecords; i++ {
@@ -48,7 +48,7 @@ func GenerateSampleData(db *gorm.DB) error {
 		return err
 	}
 	log.Printf("Inserted %d LocationRecords\n", len(locations))
-
+	time.Sleep(1 * time.Second)
 	// 3. PostRecordの生成
 	var posts []*PostRecord
 	for i := 1; i <= 20; i++ { // 10種類のポストを生成
@@ -64,10 +64,10 @@ func GenerateSampleData(db *gorm.DB) error {
 		return err
 	}
 	log.Printf("Inserted %d PostRecords\n", len(posts))
-
+	time.Sleep(1 * time.Second)
 	// 4. AttendanceRecordの生成
 	var attendanceRecords []*AttendanceRecord
-	for i := 1; i <= numRecords; i++ {
+	for i := 1; i <= numRecords-5; i++ {
 		attendance := NewAttendanceRecord(
 			uint(i),
 			uint(i),        // EmpID
@@ -83,7 +83,7 @@ func GenerateSampleData(db *gorm.DB) error {
 		return err
 	}
 	log.Printf("Inserted %d AttendanceRecords\n", len(attendanceRecords))
-
+	time.Sleep(1 * time.Second)
 	// 5. TimeRecordの生成
 	var timeRecords []*TimeRecord
 	currentTime := time.Now()
@@ -105,6 +105,6 @@ func GenerateSampleData(db *gorm.DB) error {
 		return err
 	}
 	log.Printf("Inserted %d TimeRecords\n", len(timeRecords))
-
+	time.Sleep(1 * time.Second)
 	return nil
 }

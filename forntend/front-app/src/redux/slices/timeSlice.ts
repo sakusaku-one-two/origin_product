@@ -37,7 +37,7 @@ function updateAndInsertTimeRecords(oldState:TimeRecord[],updateTimeRecords:Time
     // 更新用のTimeRecordから既存のTimeRecordに置換されていないTimeRecordを取得
     const nonReplacedRecordsFromUpdate:TimeRecord[] = updateTimeRecords.filter((record)=>!newReplacedRecords.includes(record));
     // 重複を削除してソート
-    return UniqueTimeRecords([...nonReplacedRecordsFromUpdate,...newReplacedRecords]).sort((a,b)=>a.PlanTime.getTime() - b.PlanTime.getTime());
+    return UniqueTimeRecords([...nonReplacedRecordsFromUpdate,...newReplacedRecords]).sort((a,b)=>new Date(a.PlanTime).getTime() - new Date(b.PlanTime).getTime());
 }
 
 

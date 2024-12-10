@@ -17,7 +17,7 @@ const RecordStore = configureStore({
       WEBSOCKET:websocketSlice,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(WebSocketMiddleware),
-  devTools: import.meta.env.VITE_NODE_ENV !== "production",
+  devTools: true,
 });
 
 export type RootState = ReturnType<typeof RecordStore.getState>;

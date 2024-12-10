@@ -37,11 +37,11 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch):void{
 
     };  
     // サーバーからのメッセージを受信
-    socket.onmessage = (event:MessageEvent<{Action:string,Payload:unknown | RecordType}>)=>{
-        next({
-            type:event.data.Action,
-            payload:event.data.Payload as RecordType | RecordArrayType
-        });
+    socket.onmessage = (event:MessageEvent<string>)=>{
+        const persedEvent = JSON.parse(event.data);
+        const actionObject = {type:persedEvent["Action"],payload:persedEvent["Payload"]} as ActionType;  
+        console.log("actionObject",actionObject);
+        next(actionObject);
     };
 }
 
@@ -62,7 +62,7 @@ const WebSocketMiddleware:Middleware = (store)=> (next)=>{
                 if (socket) {
                     socket.send(JSON.stringify({
                         Action:actionObject.type,
-                        Payload:actionObject.payload
+                        Payload:actionObject.payload as RecordType
                     }));
                     return ;
                 } else {

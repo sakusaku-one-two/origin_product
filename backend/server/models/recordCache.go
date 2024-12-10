@@ -44,6 +44,7 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 	new_tx := new_session.Begin()
 
 	if err := new_tx.Save(payloadArray).Error; err != nil {
+		log.Printf("InsertMany failed 一括と挿入に失敗しました。ロールバックします。: %v", err)
 		new_tx.Rollback()
 		return err
 	}
@@ -61,12 +62,15 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 
 	defer func() {
 		if err := recover(); err != nil {
+			log.Printf(" panic -> InsertMany failed ロールバックします。: %v", err)
 			new_tx.Rollback()
+			for _, id := range insert_id_list {
+				rc.Map.Delete(id)
+			}
+		} else {
+			new_tx.Commit()
 		}
 
-		for _, id := range insert_id_list {
-			rc.Map.Delete(id)
-		}
 	}()
 
 	return nil
@@ -110,4 +114,13 @@ func (rc *RecordsCache[ModelType]) Insert(id uint, targetData *ModelType) (bool,
 		return false, err
 	}
 	return true, nil
+}
+
+func (rc *RecordsCache[ModelType]) Dump() []*ModelType {
+	result := []*ModelType{}
+	rc.Map.Range(func(key, value any) bool {
+		result = append(result, value.(*ModelType))
+		return true
+	})
+	return result
 }

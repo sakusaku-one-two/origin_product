@@ -17,7 +17,7 @@ export function GetGroupMemberRecord(record:TimeRecordWithOtherRecord | null,rec
     return [];
   }
   const PlanNo:number = record.timeRecord.PlanNo;
-  const PlanTime:Date|null = record.timeRecord.PlanTime;
+  const PlanTime:Date|null = new Date(record.timeRecord.PlanTime);
   const LocationID:number = record.locationRecord?.LocationID ?? 0;
   const EmployeeID:number = record.employeeRecord?.EmpID ?? 0;
 
@@ -30,7 +30,7 @@ export function GetGroupMemberRecord(record:TimeRecordWithOtherRecord | null,rec
     const itemEmpID:number = item.employeeRecord?.EmpID ?? 0;
     const itemLocationID:number = item.locationRecord?.LocationID ?? 0;
     const itemPlanNo:number = item.timeRecord.PlanNo;
-    const itemPlanTime:Date|null = item.timeRecord.PlanTime;
+    const itemPlanTime:Date = new Date(item.timeRecord.PlanTime);
     if (itemEmpID === EmployeeID) return false;//同一社員はする無視する、
     if (itemLocationID !== LocationID) return false;//同一現場は無視しない、
     if (itemPlanNo !== PlanNo) return false;//同一計画番号は無視しない、

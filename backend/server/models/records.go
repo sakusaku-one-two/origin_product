@@ -169,7 +169,7 @@ type AttendanceRecord struct {
 
 	//対象社員
 	EmpID uint           `gorm:"index not null"`
-	Emp   EmployeeRecord `gorm:"foreignKey:EmpID"`
+	Emp   EmployeeRecord `gorm:"foreignKey:EmpID;references:ID"`
 
 	//勤務先情報
 	LocationID uint           `gorm:"not null"`                            // LocationRecord への外部キー（必須）                                               // LocationRecord への外部キー（必須）
