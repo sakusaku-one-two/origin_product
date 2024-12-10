@@ -30,15 +30,22 @@ var (
 // マイグレーションする関数
 func Mingrate() error {
 	DB := NewQuerySession()
-	return DB.AutoMigrate( //ここにテーブルモデルを書き連ねる。
-		&AttendanceRecord{},
+	mygrate_models := []interface{}{ //ここにテーブルモデルを書き連ねる。
+
 		&EmployeeRecord{},
 		&LocationRecord{},
 		&PostRecord{},
 		&TimeRecord{},
 		&User{},
+		&AttendanceRecord{},
 		&LocationToEmployee{},
-	)
+	}
+	for _, model := range mygrate_models {
+		if err := DB.AutoMigrate(model); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 //--------------------------------[社員テーブル]-------------------------------------------
@@ -92,7 +99,7 @@ func NewLocationRecord(
 //--------------------------------[勤務ポストテーブル]-------------------------------------------
 
 type PostRecord struct { //勤務ポストのエンティティ
-	gorm.Model
+
 	PostID   uint   `gorm:"primaryKey;autoIncrement:false"`
 	PostName string `gorm:"varchar(50) not null"`
 }
@@ -170,7 +177,7 @@ type AttendanceRecord struct {
 	// 他のフィールド...
 
 	//勤務ポスト
-	PostID uint       `gorm:"index;not null;"`
+	PostID uint       `gorm:"not null;index"`
 	Post   PostRecord `gorm:"foreignKey:PostID;references:PostID"`
 
 	TimeRecords []TimeRecord `gorm:"foreignKey:ManageID;references:ManageID"` //リレーションの設定

@@ -13,8 +13,22 @@ import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../../state/openClose';
 import { useNavigate } from 'react-router-dom';
 import { useAttendanceDispatch } from '@/hooks';
-
+import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from '../../../redux/slices/attendanceSlice';
+import { AttendanceRecord } from '../../../redux/recordType';
 // const API_URL = import.meta.env.VITE_API_URL;
+const stringToDate = (AttendanceRecord:AttendanceRecord[]):AttendanceRecord[] => {
+  return AttendanceRecord.map((record)=>{
+    return {
+      ...record,
+      TimeRecords:record.TimeRecords.map((timeRecord)=>{
+        return {
+          ...timeRecord,
+          PlanTime:new Date(timeRecord.PlanTime)
+        }
+      })
+    }
+  })
+}
 
 const Login:React.FC = () => {
     const [openDialog,setOpenDialog] = useRecoilState(LoginDialogOpen);
@@ -37,11 +51,10 @@ const Login:React.FC = () => {
 
         if (response.ok) {
             const data = await response.json();
-            console.log(data.payload,data.records.payload);
-            dispatch({
-              type: data.records.action,
-              payload: data.records.payload,
-            });
+            console.log(data.records.action,data.records.payload);
+            dispatch(INSERT_ATTENDANCE_MESSAGE(
+              stringToDate(data.records.payload)
+            ));
 
             try {
               const response = await fetch(`/api/health`, {
@@ -54,7 +67,7 @@ const Login:React.FC = () => {
               }
             } catch (error) {
               alert("サーバーが正常に動作していません");
-            
+      
             }
 
             // ログイン成功後にダッシュボードに遷移

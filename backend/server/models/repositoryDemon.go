@@ -298,13 +298,13 @@ func SetUpRepository() {
 		for postRecordActionDTO := range repo.Reciver {
 			switch postRecordActionDTO.Action {
 			case "POST_RECORD/UPDATE", "POST_RECORD/INSERT":
-				if err := repo.Cache.loadAndSave(postRecordActionDTO.Payload.ID, postRecordActionDTO.Payload); err != nil {
-					log.Printf("Failed to update cache and DB for PostRecord ID %v: %v", postRecordActionDTO.Payload.ID, err)
+				if err := repo.Cache.loadAndSave(postRecordActionDTO.Payload.PostID, postRecordActionDTO.Payload); err != nil {
+					log.Printf("Failed to update cache and DB for PostRecord ID %v: %v", postRecordActionDTO.Payload.PostID, err)
 					continue
 				}
 			case "POST_RECORD/DELETE":
-				if ok := repo.Cache.Delete(postRecordActionDTO.Payload.ID); !ok {
-					log.Printf("Failed to delete cache for PostRecord ID %v: %v", postRecordActionDTO.Payload.ID, ok)
+				if ok := repo.Cache.Delete(postRecordActionDTO.Payload.PostID); !ok {
+					log.Printf("Failed to delete cache for PostRecord ID %v: %v", postRecordActionDTO.Payload.PostID, ok)
 					continue
 				}
 			default:
