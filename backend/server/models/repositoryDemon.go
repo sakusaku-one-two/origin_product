@@ -247,7 +247,7 @@ func SetUpRepository() {
 					isSend := false
 					for _, time_record := range attendance_record.TimeRecords {
 						if !repo.Cache.Exists(time_record.ID) {
-							repo.Cache.Map.Store(time_record.ID, time_record)
+							repo.Cache.Map.Store(time_record.ID, &time_record)
 							isSend = true
 						}
 					}

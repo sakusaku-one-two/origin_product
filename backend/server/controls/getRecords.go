@@ -24,8 +24,8 @@ func GetAttendanceRecord() []models.AttendanceRecord {
 	var attendance_records []models.AttendanceRecord
 	db := models.NewQuerySession()
 	current_time := time.Now().Local()
-	twentyFourHoursLater := current_time.Add(24 * time.Hour)
-	before_time := current_time.Add(-40 * time.Minute)
+	twentyFourHoursLater := current_time.Add(1 * time.Hour)
+	before_time := current_time.Add(-5 * time.Minute)
 	if err := db.Preload("Emp").Preload("TimeRecords", "plan_time >= ? AND plan_time <= ?", before_time, twentyFourHoursLater).Preload("Location").Preload("Post").Find(&attendance_records).Error; err != nil {
 		log.Println(err)
 		return nil
