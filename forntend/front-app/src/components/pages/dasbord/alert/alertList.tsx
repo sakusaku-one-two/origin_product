@@ -14,8 +14,10 @@ const CreateSpeakText = (prefix:string,argRecords:TimeRecordWithOtherRecord[]):s
   
   let result:string =  `${prefix}`
   argRecords.forEach((value) => {
-    const emp:EmployeeRecord = value.employeeRecord as EmployeeRecord;
-    result = `${result}  ${emp.Name}`
+    const emp:EmployeeRecord|null = value.employeeRecord as EmployeeRecord;
+    if(emp){
+      result = `${result}  ${emp.Name}`
+    }
   });
 
   return `${result} の報告を確認してください。`

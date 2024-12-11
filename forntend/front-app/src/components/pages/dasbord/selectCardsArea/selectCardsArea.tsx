@@ -13,7 +13,6 @@ import { TimeRecordWithOtherRecord,
         useGetPreAlertIgnoreTimeRecordsWithOtherRecord} from "@/hooks";
 import { GetGroupMemberRecord } from "../helper";
 import { useRecoilState } from "recoil";
-import { SelectedRecord } from "@/state/selectedRecord";
 import TimeCard from "../timeCard/timeCard"; 
 import { FindDialogOpen } from "@/state/openClose";
 import { useTimeDispatch } from "@/hooks";
@@ -23,19 +22,21 @@ import { ScrollArea,ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import FindTask from "@/components/pages/find/find";
 import SubTimeRecord from "../subTimeRecord";
+import { useSetSelectedRecords,useSelectedRecordsSelector } from "@/hooks";
 
 // 下部のカード選択エリア
 export const SelectCardsArea:React.FC = () => {
     // カード選択エリアのデータを取得
 
     const [FindOpen,setFindOpen] = useRecoilState(FindDialogOpen);
-    const [targetRecord,setTargetRecord] = useRecoilState(SelectedRecord);
+    const {setSelectedRecords} = useSetSelectedRecords();
+    const selectedRecord = useSelectedRecordsSelector();
     const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
     const alertRecords:TimeRecordWithOtherRecord[] = useGetAlertTimeRecordsWithOtherRecord();
     const preAlertRecords:TimeRecordWithOtherRecord[] = useGetPreAlertTimeRecordsWithOtherRecord();
     const ignoreRecords:TimeRecordWithOtherRecord[] = useGetIgnoreTimeRecordsWithOtherRecord();
     const preAlertIgnoreRecords:TimeRecordWithOtherRecord[] = useGetPreAlertIgnoreTimeRecordsWithOtherRecord();
-    const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(targetRecord.record,records.concat(alertRecords,preAlertRecords,ignoreRecords,preAlertIgnoreRecords));
+    const groupMemberRecords:TimeRecordWithOtherRecord[] = GetGroupMemberRecord(selectedRecord,records.concat(alertRecords,preAlertRecords,ignoreRecords,preAlertIgnoreRecords));
     const [
       groupMemberRecordsState,
       setGroupMemberRecordsState
@@ -45,7 +46,7 @@ export const SelectCardsArea:React.FC = () => {
   
     useEffect(()=>{
       setGroupMemberRecordsState(groupMemberRecords);
-    },[targetRecord.record]);
+    },[selectedRecord]);
   
   
     const FindDailogHandler = () => {
@@ -59,14 +60,11 @@ export const SelectCardsArea:React.FC = () => {
         dispatch(UPDATE_TIME_RECORD(new_time));
       });
   
-      if(targetRecord.record){
-          const timeRecord = targetRecord.record.timeRecord;
+      if(selectedRecord){
+          const timeRecord = selectedRecord.timeRecord;
           const new_time = trancerateFunction(timeRecord);
           dispatch(UPDATE_TIME_RECORD(new_time));
-          setTargetRecord({
-            isSelected:false,
-            record:null
-          });
+          setSelectedRecords(null);
       }
     };
   
@@ -83,8 +81,8 @@ export const SelectCardsArea:React.FC = () => {
                         <ResizablePanel defaultSize={25}>
                             
                             <AnimatePresence > 
-                            {targetRecord.record && (
-                                <TimeCard record={targetRecord.record}/>
+                            {selectedRecord && (
+                                <TimeCard record={selectedRecord}/>
                             
                                 )}
                             </AnimatePresence>

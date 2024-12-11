@@ -1,14 +1,14 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../../ui/card';
 import { TimeRecordWithOtherRecord } from '../../../../hooks';
-import {  useSelectedRecord } from '../../../../state/selectedRecord'; 
 import { useTimeDispatch } from '../../../../hooks';
 import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';
 import { PlanNames } from '../helper';
 import { Button } from '../../../ui/button';
 import { SetAlertAnimation } from './cardHelper';
-
+import { useSetSelectedRecords } from '../../../../hooks';
+import { useSelectedRecordsSelector } from '../../../../hooks';
 
 const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
@@ -16,11 +16,12 @@ const PlanName = (planNo: number) => {
 
 const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) => {
     const dispatch = useTimeDispatch();
-    const [selectedRecord, setSelectedRecord] = useSelectedRecord();
+    const {setSelectedRecords} = useSetSelectedRecords();
+    const selectedRecord = useSelectedRecordsSelector();
     const timeRecord = record.timeRecord;
     const employeeRecord = record.employeeRecord;
     const locationRecord = record.locationRecord;
-    const isSelectedSelf = selectedRecord.record?.timeRecord.ID === timeRecord.ID;
+    const isSelectedSelf =  selectedRecord?.timeRecord.ID === timeRecord.ID;
 
    
     const isPlanOnTime: string = timeRecord.IsComplete ? "bg-green-500" : "bg-red-500";
@@ -65,9 +66,9 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             return;
         }   
 
-        setSelectedRecord({ record: null, isSelected: false });
+        setSelectedRecords(null);
         setTimeout(() => {
-            setSelectedRecord({ record: record, isSelected: true });
+            setSelectedRecords(record);
         }, 100);
     }
 

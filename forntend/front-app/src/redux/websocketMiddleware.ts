@@ -1,7 +1,7 @@
 import { Middleware,Dispatch} from '@reduxjs/toolkit';
 import type { AttendanceRecord,EmployeeRecord,LocationRecord,TimeRecord } from "./recordType";
-
-
+import { RootState } from "./store";
+import { TimeRecordWithOtherRecord } from "@/hooks";
 
 type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
 type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
@@ -17,8 +17,9 @@ function getSocket():WebSocket {
 };
 
 // サーバーリアルタイム接続の初期化 
-function WebSocketSetup(socket:WebSocket,next:Dispatch):void{
+function WebSocketSetup(socket:WebSocket,next:Dispatch,state:RootState):void{
     //nextは次のミドルウエアに渡される関数
+
     socket.onopen = ()=>{
         next({
             type:"WEBSOCKET/OPENED",
@@ -38,10 +39,22 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch):void{
     };  
     // サーバーからのメッセージを受信
     socket.onmessage = (event:MessageEvent<string>)=>{
+        const selectedRecord:TimeRecordWithOtherRecord | null = state.SELECTED_RECORDS.selectedRecords;
         const persedEvent = JSON.parse(event.data);
         const actionObject = {type:persedEvent["Action"],payload:persedEvent["Payload"]} as ActionType;  
         console.log("actionObject",actionObject);
+
+        if(selectedRecord  && (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE")){
+            const  insertRecord:TimeRecord = actionObject.payload as TimeRecord;
+            if (insertRecord.ID === selectedRecord.timeRecord.ID){
+                next({  
+                    type:"SELECTED_RECORDS/UPDATE",
+                    payload:null
+                });
+            }
+        }
         next(actionObject);
+        
     };
 }
 
@@ -55,7 +68,7 @@ const WebSocketMiddleware:Middleware = (store)=> (next)=>{
             case "WEBSOCKET/SETUP":
                 // サーバーリアルタイム接続の初期化
                 socket = getSocket();
-                WebSocketSetup(socket,next as Dispatch);
+                WebSocketSetup(socket,next as Dispatch,store.getState());
                 return;
             default:
                 // サーバーへのメッセージ送信

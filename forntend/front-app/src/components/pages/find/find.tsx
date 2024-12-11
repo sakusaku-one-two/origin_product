@@ -25,12 +25,15 @@ import { useRecoilState } from "recoil";
 import { TimeRecordWithOtherRecord } from "../../../hooks";
 import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
 import TimeCard from "../dasbord/timeCard/timeCard";
-import { SelectedRecord } from "../../../state/selectedRecord";
+
+import { useSelectedRecordsSelector,useSelectedRecordsDispatch } from "../../../hooks";
 
 
 const FindTask:FC =() => {
-  const [targetRecord,setTargetRecord] = useRecoilState(SelectedRecord);
+  
   const [open,setIsOpen] = useRecoilState(FindDialogOpen);
+  const selectedRecords = useSelectedRecordsSelector();
+  const dispatch = useSelectedRecordsDispatch();
   const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
 
 
@@ -61,14 +64,14 @@ const FindTask:FC =() => {
           <CommandGroup heading="Suggestions">
             {records.map((record)=>(
               <CommandItem key={record.timeRecord.ID} onSelect={()=>{
-                setTargetRecord({record:record,isSelected:true});
+                dispatch({type:"SELECTED_RECORDS/UPDATE",payload:record});
                 setIsOpen(false);
               }}>
                 <TimeCard record={record}/>
               </CommandItem>
             ))}
             <CommandItem onSelect={()=>{
-              setTargetRecord({record:null,isSelected:false});
+              dispatch({type:"SELECTED_RECORDS/UPDATE",payload:null});
               setIsOpen(false);
             }}>
               <Calculator />
@@ -92,8 +95,8 @@ const FindTask:FC =() => {
               <span>現在選択中のデータ</span>
               <CommandShortcut>⌘S</CommandShortcut>
                 {
-                  targetRecord.isSelected && (
-                    <TimeCard record={targetRecord.record as TimeRecordWithOtherRecord}/>
+                  selectedRecords && (
+                    <TimeCard record={selectedRecords as TimeRecordWithOtherRecord}/>
                   )
                 }
             </CommandItem>
