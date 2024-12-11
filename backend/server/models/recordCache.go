@@ -48,7 +48,7 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 		for _, payload := range payloadArray {
 			id, ok := fetchId(payload)
 			if !ok {
-				return errors.New("Failed to fetch ID for payload")
+				return errors.New("failed to fetch ID for payload")
 			}
 			rc.Map.Store(id, payload)
 		}
@@ -60,6 +60,11 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 // キャッシュからデータを取得
 func (rc *RecordsCache[ModelType]) Load(id uint) (*ModelType, bool) {
 	return rc.getValue(id)
+}
+
+func (rc *RecordsCache[ModelType]) Exists(id uint) bool {
+	_, ok := rc.getValue(id)
+	return ok
 }
 
 func (rc *RecordsCache[ModelType]) getValue(id uint) (*ModelType, bool) {
@@ -87,10 +92,8 @@ func (rc *RecordsCache[ModelType]) Delete(id uint) bool {
 		rc.Map.Delete(id)
 		return nil
 	})
-	if err != nil {
-		return false
-	}
-	return true
+
+	return err == nil
 }
 
 // キャッシュに登録する(DBに保存する)

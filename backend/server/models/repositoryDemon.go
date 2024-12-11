@@ -3,6 +3,8 @@ package models
 import (
 	"log"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 /*
@@ -114,6 +116,7 @@ func SetUpRepository() {
 		for _, time_record := range time_records {
 			repo.Cache.Map.Store(time_record.ID, &time_record)
 		}
+
 		log.Printf("初期値を設定しました。time_recordsの数:%v", len(time_records))
 	})
 
@@ -209,7 +212,7 @@ func SetUpRepository() {
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 
-		//timeRecordの監視範囲を1時間おきに更新する。
+		//timeRecordの監視範囲を1時間おきに不用な対象レコードを外す（DBから消すわけではない）
 		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
 
@@ -217,9 +220,8 @@ func SetUpRepository() {
 		for {
 
 			currentTime := <-ticker.C
-			before_time := currentTime.Add(-20 * time.Minute)
-			after_time := currentTime.Add(8 * time.Hour)
-			deleted_keys := []any{}
+			before_time := currentTime.Local().Add(-1 * time.Hour)
+			after_time := currentTime.Local().Add(8 * time.Hour)
 
 			repo.Cache.Map.Range(func(key any, value any) bool {
 				time_record, ok := value.(*TimeRecord)
@@ -227,24 +229,35 @@ func SetUpRepository() {
 					log.Printf("Failed to convert to *TimeRecord for key %v", key)
 					return true
 				}
+				//監視範囲外の場合は削除する （予定時刻から1時間を超えている場合は削除する
 				if time_record.PlanTime.Before(before_time) || time_record.PlanTime.After(after_time) {
-					deleted_keys = append(deleted_keys, key) //画面と監視対象から外すtime_recordのIDを配列に格納
 					repo.Cache.Map.Delete(key)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/DELETE", time_record) //実施際にDB内のデータを削除するわけではないが、クライアント側のredux-reducerに削除するというアクションを送信する
 				}
 				return true
 			})
 
-			new_query := NewQuerySession()
-			time_records := []*TimeRecord{}
-			new_query.Where("plan_time >= ? AND plan_time <= ?", currentTime, currentTime.Add(8*time.Hour)).Find(&time_records)
-
-			for _, time_record := range time_records {
-				if _, ok := repo.Cache.Map.Load(time_record.ID); !ok { //存在確認
-					repo.Cache.Map.Store(time_record.ID, time_record)                             //存在しないレコードなら登録
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record) //クライアントに更新を通知
+			NewQuerySession().Transaction(func(tx *gorm.DB) error {
+				newAttendanceRecords := []*AttendanceRecord{}
+				if err := tx.Preload("TimeRecords", "plan_time >= ? AND plan_time <= ?", before_time, after_time).Preload("Emp").Preload("Location").Preload("Post").Find(&newAttendanceRecords).Error; err != nil {
+					return err
 				}
-			}
+
+				for _, attendance_record := range newAttendanceRecords {
+					isSend := false
+					for _, time_record := range attendance_record.TimeRecords {
+						if !repo.Cache.Exists(time_record.ID) {
+							repo.Cache.Map.Store(time_record.ID, time_record)
+							isSend = true
+						}
+					}
+					if isSend {
+						ATTENDANCE_RECORD_REPOSITORY.Sender <- CreateActionDTO[AttendanceRecord]("ATTENDANCE_RECORD/UPDATE", attendance_record)
+					}
+				}
+
+				return nil
+			})
 
 		}
 	})
