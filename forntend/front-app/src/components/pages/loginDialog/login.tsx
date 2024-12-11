@@ -32,6 +32,7 @@ const Login:React.FC = () => {
       navigate("/dashbord");
       setOpenDialog(false);
       sampleAttendanceRecords.forEach((value:AttendanceRecord) => {
+        console.log(value);
         dispatch(ATTENDANCE_UPDATE(value));
       });
 

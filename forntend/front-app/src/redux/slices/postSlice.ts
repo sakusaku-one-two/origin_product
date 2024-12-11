@@ -1,7 +1,7 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { PostRecord } from "../recordType";
 import { UPDATE as ATTENDANCE_RECORD_UPDATE,
-    DELETE as ATTENDANCE_RECORD_DELETE,
+    
     INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP
     } from "./attendanceSlice";
 import { AttendanceRecord } from "../recordType";
@@ -14,12 +14,12 @@ export const initialPostState = {
 };  
 
 //----------------------------[更新]----------------------------------------
-const UpdatePostList = (oldPostList:PostRecord[],newPostRecord:PostRecord[]):PostRecord[] => {
-    if (oldPostList.length === 0) return newPostRecord;
-    if (newPostRecord.length === 0) return oldPostList;
+const UpdatePostList = (oldPostList:PostRecord[],newPostRecords:PostRecord[]):PostRecord[] => {
+    if (oldPostList.length === 0) return newPostRecords;
+    if (newPostRecords.length === 0) return oldPostList;
     
-    const ReplacedRecord =  newPostRecord.map((newPostRecord:PostRecord)=>{
-        if(newPostRecord.PostID === 0) return newPostRecord;
+    const ReplacedRecord =  newPostRecords.map((newPostRecord:PostRecord)=>{
+        
         const targetRecord = oldPostList.find((postRecord:PostRecord)=>postRecord.PostID === newPostRecord.PostID);
         if(targetRecord){
             return newPostRecord;
@@ -55,12 +55,18 @@ const postSlice = createSlice({
             state.postList = UpdatePostList(state.postList,PostsList);
         })
         .addCase(ATTENDANCE_RECORD_UPDATE,(state,action:PayloadAction<AttendanceRecord>)=>{ 
-            const attendanceRecord:AttendanceRecord = action.payload;
-            const PostsList:PostRecord[] = [attendanceRecord.Post];
-            state.postList = UpdatePostList(state.postList,PostsList);
-        }).addCase(ATTENDANCE_RECORD_DELETE,(state,action:PayloadAction<AttendanceRecord>)=>{
-            state.postList = state.postList.filter((postRecord)=>postRecord.PostID !== action.payload.Post.PostID);
-        });
+            const targetPostRecord:PostRecord = action.payload.Post;
+            const targetIndex = state.postList.findIndex((postRecord:PostRecord)=>postRecord.PostID === targetPostRecord.PostID);
+            if(targetIndex !== -1){     
+                state.postList[targetIndex] = targetPostRecord;
+            } else {
+                state.postList.push(targetPostRecord);
+            }
+            
+         });
+         //.addCase(ATTENDANCE_RECORD_DELETE,(state,action:PayloadAction<AttendanceRecord>)=>{
+        //     state.postList = state.postList.filter((postRecord:PostRecord)=>postRecord.PostID !== action.payload.Post.PostID as number);
+        // });
     },
 });     
 

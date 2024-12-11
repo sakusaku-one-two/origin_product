@@ -55,14 +55,18 @@ export type TimeRecordWithOtherRecord = {
 
 //TimeRecordとEmployeeRecordを結合する
 export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootState):TimeRecordWithOtherRecord[]{
-    const attendanceRecords = state.ATTENDANCE_RECORDS.AttendanceRecords;
-    const employeeRecords = state.EMPLOYEE_RECORDS.employeeList;
-    const locationRecords = state.LOCATION_RECORDS.locationList;
-    const postRecords = state.POST_RECORDS.postList;
+    const attendanceRecords = state.ATTENDANCE_RECORDS.AttendanceRecords as AttendanceRecord[];
+    const employeeRecords = state.EMPLOYEE_RECORDS.employeeList as EmployeeRecord[];
+    const locationRecords = state.LOCATION_RECORDS.locationList as LocationRecord[];
+    const postRecords = state.POST_RECORDS.postList as PostRecord[];
 
+    console.log(postRecords);
     
     return timeRecords.map((timeRecord)=>{
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
+        console.log(targetAttendanceRecord);
+        console.log(targetAttendanceRecord?.PostID);
+        console.log(postRecords);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
         const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.Location.ID);
         const targetPostRecord = postRecords.find((postRecord)=>postRecord.PostID === targetAttendanceRecord?.PostID);
