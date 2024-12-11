@@ -96,7 +96,7 @@ const WebSocketMiddleware:Middleware = (store)=> (next)=>{
                     return;
                 } else {
                     // サーバーリアルタイム接続が開始していない場合は、通常のミドルウエアに渡す
-                    next(action);
+                    next(actionObject);
                 }
             
         };
