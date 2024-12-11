@@ -13,7 +13,9 @@ import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../../state/openClose';
 import { useNavigate } from 'react-router-dom';
 import { useAttendanceDispatch } from '@/hooks';
-import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from '../../../redux/slices/attendanceSlice';
+import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE,UPDATE as ATTENDANCE_UPDATE } from '../../../redux/slices/attendanceSlice';
+import { sampleAttendanceRecords } from '@/redux/slices/sampleRecords';
+import { AttendanceRecord } from '@/redux/recordType';
 // import { AttendanceRecord } from '../../../redux/recordType';
 // const API_URL = import.meta.env.VITE_API_URL;
 
@@ -26,6 +28,14 @@ const Login:React.FC = () => {
     const [userName,setUserName] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
 
+    const SampleExecute = () => {
+      navigate("/dashbord");
+      setOpenDialog(false);
+      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {
+        dispatch(ATTENDANCE_UPDATE(value));
+      });
+
+    };
 
     const handleLogin = async () => {
       try {
@@ -97,6 +107,9 @@ const Login:React.FC = () => {
           </Button>
         <Button onClick={()=>setOpenDialog(false)}>
             閉じる
+        </Button>
+        <Button onClick={SampleExecute}>
+          サンプルデータでのお試し
         </Button>
     </DialogContent>
     </Dialog>
