@@ -6,7 +6,7 @@ import locationReducer from "./slices/locationSlice";
 import  WebSocketMiddleware  from "./websocketMiddleware";
 import postReducer from "./slices/postSlice";
 import websocketSlice from "./slices/websocketSlice";
-
+import selectedRecordsSlice from "./slices/selectedRecordsSlice";
 const RecordStore = configureStore({
   reducer: {
       ATTENDANCE_RECORDS:attendanceReducer,
@@ -15,6 +15,7 @@ const RecordStore = configureStore({
       LOCATION_RECORDS:locationReducer,
       POST_RECORDS:postReducer,
       WEBSOCKET:websocketSlice,
+      SELECTED_RECORDS:selectedRecordsSlice,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(WebSocketMiddleware),
   devTools: true,

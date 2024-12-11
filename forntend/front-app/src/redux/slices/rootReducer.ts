@@ -4,6 +4,7 @@ import employeeSlice from "./employeeSlice";
 import timeSlice from "./timeSlice";
 import locationSlice from "./locationSlice";
 import postSlice from "./postSlice";
+import selectedRecordsSlice from "./selectedRecordsSlice";
 
 const RecordReducer = combineReducers({
     attendance:attendanceSlice,
@@ -11,6 +12,7 @@ const RecordReducer = combineReducers({
     time:timeSlice,
     location:locationSlice,
     post:postSlice,
+    selectedRecords:selectedRecordsSlice,
 }); 
 
 export default RecordReducer;

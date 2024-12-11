@@ -32,7 +32,6 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             ResultTime: timeRecord.PlanTime
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
-        handleSelect();
     }
 
     const handleIgnore = () => {
@@ -41,7 +40,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             IsIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
-        handleSelect();
+
     }
 
     const handlePreAlertIgnore = () => {
@@ -50,7 +49,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             PreAlertIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
-        handleSelect();
+    
     }
 
     const handleAlertIgnore = () => {
@@ -63,7 +62,6 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
 
     const handleSelect = () => {
         if (isSelectedSelf) {
-            setSelectedRecord({ record: null, isSelected: false });
             return;
         }   
 

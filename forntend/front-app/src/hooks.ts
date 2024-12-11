@@ -9,6 +9,8 @@ import { useCallback } from "react";
 import { sampleAttendanceRecords } from "./redux/slices/sampleRecords";
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from "./redux/slices/attendanceSlice";
 import type { PostRecord } from "./redux/recordType";
+import { SET_SELECTED_RECORDS } from "./redux/slices/selectedRecordsSlice";
+
 
 
 // -----------------------[AttendanceRecordのディスパッチとセレクターのカスタムフック]-----------------------------
@@ -47,7 +49,8 @@ export const useTimeRecordDispatch = ():{updateTimeDispatch:(updatedTimeRecord:T
 export type TimeRecordWithOtherRecord = {
     timeRecord:TimeRecord,
     employeeRecord:EmployeeRecord | null,
-    locationRecord:LocationRecord | null
+    locationRecord:LocationRecord | null,
+    isSelected:boolean
 };
 
 //TimeRecordとEmployeeRecordを結合する
@@ -61,10 +64,10 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
     return timeRecords.map((timeRecord)=>{
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
-        const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.LocationID);
+        const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.Location.ID);
         const targetPostRecord = postRecords.find((postRecord)=>postRecord.PostID === targetAttendanceRecord?.PostID);
-        return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null};
-    });
+        return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null,isSelected:true};
+    }); 
 }
 
 export const useGetTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.TimeRecords,state));
@@ -78,6 +81,15 @@ export const useGetPreAlertIgnoreTimeRecordsWithOtherRecord = ():TimeRecordWithO
 export const useGetIsUpdate = ():boolean => useSelector((state:RootState) => state.TIME_RECORDS.isUpdate);
 
 
+export const useSelectedRecordsDispatch = () => useDispatch<AppDispatch>();
+
+export const useSelectedRecordsSelector = ():TimeRecordWithOtherRecord | null => useSelector((state:RootState) => state.SELECTED_RECORDS.selectedRecords);
+
+export const useSetSelectedRecords = ():{setSelectedRecords:(selectedRecords:TimeRecordWithOtherRecord | null)=>void} => {
+    const dispatch = useSelectedRecordsDispatch();
+    const setSelectedRecords = useCallback((selectedRecords:TimeRecordWithOtherRecord | null) => dispatch(SET_SELECTED_RECORDS(selectedRecords)),[dispatch]);
+    return {setSelectedRecords};
+};
 
 // -----------------------[LocationRecordのディスパッチとセレクターのカスタムフック]-----------------------------
 

@@ -76,7 +76,7 @@ export const SelectCardsArea:React.FC = () => {
         <>
          <ResizablePanelGroup
                 direction="horizontal"
-                className="min-h-[600px] overflow-y-auto max-w-full rounded-lg border"
+                className="min-h-[600px] max-w-full rounded-lg border"
               >
                 <ResizablePanel defaultSize={75}>
                     <ResizablePanelGroup direction="vertical">
@@ -114,7 +114,7 @@ export const SelectCardsArea:React.FC = () => {
                 </ResizablePanel>
                 <ResizableHandle />
                 <ResizablePanel defaultSize={25}>
-                <ScrollArea className='h-full bg-slate-100'>
+                <ScrollArea className='h-[800px] bg-slate-100'>
                      <div className='sticky top-0 z-50
                         w-full border-border/40 bg-background/95 bg-blue-500
                         backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -130,7 +130,7 @@ export const SelectCardsArea:React.FC = () => {
           </Button>
           </div>
           
-          <ScrollBar orientation='horizontal' />
+          <ScrollBar orientation='horizontal' className="" />
           {preAlertIgnoreRecords.length >=1 ? <h5>5分前アラート無視状態:{preAlertIgnoreRecords.length}件</h5>: ''}
                 {
                     preAlertIgnoreRecords.map((record:TimeRecordWithOtherRecord) => {
