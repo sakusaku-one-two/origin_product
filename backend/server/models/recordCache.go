@@ -1,8 +1,11 @@
 package models
 
 import (
+	"errors"
 	"log"
 	"sync"
+
+	"gorm.io/gorm"
 )
 
 /*
@@ -22,16 +25,13 @@ func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData *ModelType) e
 	rc.Map.Store(id, targetData)
 
 	// DBに保存
-	newSession := NewQuerySession()
-	newSession.Begin()
-	if err := newSession.Save(targetData).Error; err != nil {
-		rc.Map.Delete(id)
-		newSession.Rollback()
-		return err
-	}
-
-	newSession.Commit()
-	return nil
+	return NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(targetData).Error; err != nil {
+			rc.Map.Delete(id)
+			return err
+		}
+		return nil
+	})
 }
 
 type GetId[ModleType any, ReturnType any] func(target *ModleType) (ReturnType, bool)
@@ -39,42 +39,22 @@ type GetId[ModleType any, ReturnType any] func(target *ModleType) (ReturnType, b
 // 複数のデータをキャッシュに登録と同時にDBに保存する
 func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId GetId[ModelType, uint]) error {
 
-	new_session := NewQuerySession()
+	return NewQuerySession().Transaction(func(tx *gorm.DB) error {
 
-	new_tx := new_session.Begin()
-
-	if err := new_tx.Save(payloadArray).Error; err != nil {
-		log.Printf("InsertMany failed 一括と挿入に失敗しました。ロールバックします。: %v", err)
-		new_tx.Rollback()
-		return err
-	}
-
-	insert_id_list := []uint{}
-	for _, payload := range payloadArray {
-		id, ok := fetchId(payload)
-		if !ok {
-			log.Printf("Failed to fetch ID for payload: %v", payload)
-			continue
+		if err := tx.Save(payloadArray).Error; err != nil {
+			return err
 		}
-		insert_id_list = append(insert_id_list, id)
-		rc.Map.Store(id, payload)
-	}
 
-	defer func() {
-		if err := recover(); err != nil {
-			log.Printf(" panic -> InsertMany failed ロールバックします。: %v", err)
-			new_tx.Rollback()
-			for _, id := range insert_id_list {
-				rc.Map.Delete(id)
+		for _, payload := range payloadArray {
+			id, ok := fetchId(payload)
+			if !ok {
+				return errors.New("Failed to fetch ID for payload")
 			}
-		} else {
-			new_tx.Commit()
+			rc.Map.Store(id, payload)
 		}
 
-	}()
-
-	return nil
-
+		return nil
+	})
 }
 
 // キャッシュからデータを取得
@@ -100,8 +80,16 @@ func (rc *RecordsCache[ModelType]) Delete(id uint) bool {
 	if !ok {
 		return false
 	}
-	NewQuerySession().Delete(targetModel)
-	rc.Map.Delete(id)
+	err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(targetModel).Error; err != nil {
+			return err
+		}
+		rc.Map.Delete(id)
+		return nil
+	})
+	if err != nil {
+		return false
+	}
 	return true
 }
 

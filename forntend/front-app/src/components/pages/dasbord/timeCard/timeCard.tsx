@@ -32,6 +32,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             ResultTime: timeRecord.PlanTime
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+        handleSelect();
     }
 
     const handleIgnore = () => {
@@ -40,6 +41,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             IsIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+        handleSelect();
     }
 
     const handlePreAlertIgnore = () => {
@@ -48,6 +50,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             PreAlertIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+        handleSelect();
     }
 
     const handleAlertIgnore = () => {
@@ -57,6 +60,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             handlePreAlertIgnore();
         }
     };
+
     const handleSelect = () => {
         if (isSelectedSelf) {
             setSelectedRecord({ record: null, isSelected: false });
@@ -68,6 +72,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             setSelectedRecord({ record: record, isSelected: true });
         }, 100);
     }
+
+    
     //アラート状態の場合
     // if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
     //     return (
@@ -98,9 +104,9 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
         >
             <Card
                 className={`w-full h-full hover:bg-gray-200 transition-colors duration-300 ${SetAlertAnimation(record)}`}
-                
+                onClick={handleSelect}
             >
-                <CardHeader onClick={handleSelect}>
+                <CardHeader>
                     <CardDescription className="text-sm text-gray-500">
                         {PlanName(timeRecord?.PlanNo)} {new Date(timeRecord?.PlanTime).toLocaleString()}
                     </CardDescription> 
