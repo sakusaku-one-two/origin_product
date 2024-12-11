@@ -4,6 +4,7 @@ import { RootState } from "./store";
 import { TimeRecordWithOtherRecord } from "@/hooks";
 import { Store } from "@reduxjs/toolkit";
 
+
 type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
 type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
 type RecordArrayType = RecordType[];
@@ -38,7 +39,11 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
         });
 
     };  
-    // サーバーからのメッセージを受信
+
+    socket.onclose = () => {
+        alert("リアルタイム同期が切断されました。再度ログインしてください。");
+    };
+    // サーバーからのメッセージを受信してREDUXのリデューサーに届ける
     socket.onmessage = (event:MessageEvent<string>)=>{
         const state = store.getState();
         const selectedRecord:TimeRecordWithOtherRecord | null = state.SELECTED_RECORDS.selectedRecords;
@@ -46,9 +51,11 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
         const actionObject = {type:persedEvent["Action"],payload:persedEvent["Payload"]} as ActionType;  
         console.log("actionObject",actionObject);
 
+        next(actionObject);
+
         if(selectedRecord !== null  && (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE")){
             const  insertRecord:TimeRecord = actionObject.payload as TimeRecord;
-            next(actionObject);
+            
             if (insertRecord.ID === selectedRecord.timeRecord.ID){
                 next({  
                     type:"SELECTED_RECORDS/SET_SELECTED_RECORDS",
