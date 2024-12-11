@@ -30,7 +30,6 @@ export interface LocationRecord {
 //----------------------------[勤務ポスト]--------------------------------------------
 //勤務ポストのデータ 例 日勤----001
 export interface PostRecord {
-    ID : number;
     PostID : number;
     PostName : string;
 }

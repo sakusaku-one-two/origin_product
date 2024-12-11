@@ -62,7 +62,7 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
         const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.LocationID);
-        const targetPostRecord = postRecords.find((postRecord)=>postRecord.ID === targetAttendanceRecord?.PostID);
+        const targetPostRecord = postRecords.find((postRecord)=>postRecord.PostID === targetAttendanceRecord?.PostID);
         return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null};
     });
 }

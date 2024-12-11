@@ -21,7 +21,6 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
       },
       PostID: 401, // 勤務ポストID
       Post: {
-        ID: 401, // 勤務ポストの識別番号
         PostID: 401, // 勤務ポストの詳細識別番号
         PostName: "エンジニア", // 勤務ポストの名前
       },
@@ -77,7 +76,6 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
       },
       PostID: 401,
       Post: {
-          ID: 401,
           PostID: 401,
         PostName: "エンジニア",
       },
@@ -136,7 +134,6 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
       },
       PostID: 502,
       Post: {
-        ID: 502,
         PostID: 502,
         PostName: "デザイナー",
       },
@@ -192,7 +189,6 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
       },
       PostID: 502,
       Post: {
-        ID: 502,
         PostID: 502,
         PostName: "デザイナー",
       },
