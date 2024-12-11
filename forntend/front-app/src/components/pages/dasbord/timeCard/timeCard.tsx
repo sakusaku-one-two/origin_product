@@ -69,7 +69,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
         setSelectedRecords(null);
         setTimeout(() => {
             setSelectedRecords(record);
-        }, 100);
+        }, 300);
+        
     }
 
     
