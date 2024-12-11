@@ -110,12 +110,7 @@ export const TimeSlice = createSlice({
             state.TimeRecords = updateAndInsertTimeRecords(state.TimeRecords,insertTimeRecordArray);      
             separateTimeRecords(state,state.TimeRecords);
             state.isUpdate = true;
-        })
-        .addCase(ATTENDANCE_RECORD_UPDATE,(state,action:PayloadAction<AttendanceRecord>)=>{
-            state.TimeRecords = updateAndInsertTimeRecords(state.TimeRecords,action.payload.TimeRecords);
-            separateTimeRecords(state,state.TimeRecords);
-            state.isUpdate = true;
-        })
+        });
     }
     
 }); 

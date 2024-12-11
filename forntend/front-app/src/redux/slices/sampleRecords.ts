@@ -55,7 +55,7 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
       Description: "通常勤務", // 説明：通常勤務
       EarlyOverTime: 0.5, // 出勤前残業時間：0.5時間（30分）
       LunchBreakWorkTime: 1.0, // 昼残業時間：1時間
-      ExtraHours: 2.0, // 退勤時の残業時間：2時間
+      ExtraHours: 2.0, // 退勤時の残業時��：2時間
     },
     {
       ManageID: 2,
