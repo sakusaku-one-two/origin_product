@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../..
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { TimeRecordWithOtherRecord } from '../../../../hooks';
 import { useTimeDispatch } from '../../../../hooks';
-import { UPDATE as UPDATE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
+import { UPDATE as UPDATE_TIME_RECORD, } from '../../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';
 import { PlanNames } from '../helper';
 import { Button } from '../../../ui/button';
@@ -137,9 +137,16 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
                                 <PopoverContent>
                                     <div>
                                         <Input
+                                            
                                             type="datetime-local"
-                                            value={timeRecord.PlanTime.toLocaleString()} 
-                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => dispatch(UPDATE_TIME_RECORD({...timeRecord,PlanTime:e.target.value}))}
+                                            defaultValue={timeRecord.PlanTime.toLocaleString()} 
+                                            onKeyDown={(e:React.KeyboardEvent<HTMLInputElement>) => {
+                                                if (e.key === 'Enter') {
+                                                    const input = e.target as HTMLInputElement;
+                                                    const new_time = new Date(input.value);
+                                                    dispatch(UPDATE_TIME_RECORD({...timeRecord,ResultTime:new_time,IsComplete:true}));
+                                                }
+                                            }}
                                         />
                                     </div>
                                 </PopoverContent>
