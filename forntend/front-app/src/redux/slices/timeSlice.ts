@@ -71,7 +71,8 @@ function separateTimeRecords(state:{
 
 // -----------------------[TimeRecordの削除]-----------------------------
 function deleteTimeRecords(state:TimeRecord[],deleteTimeRecords:TimeRecord[]){
-    return state.filter((record)=>!deleteTimeRecords.includes(record));
+    const deleteTimeRecordIDs = deleteTimeRecords.map((record)=>record.ID);
+    return state.filter((record)=>!deleteTimeRecordIDs.includes(record.ID));
 }
 
 // -----------------------[TimeRecordのスライス]-----------------------------

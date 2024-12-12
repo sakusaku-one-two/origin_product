@@ -56,8 +56,10 @@ export const SelectCardsArea:React.FC = () => {
     const GroupTimeRegistory = (trancerateFunction:(target:TimeRecord)=> TimeRecord) => {
     
       groupMemberRecordsState.forEach((record:TimeRecordWithOtherRecord)=>{
-        const new_time = trancerateFunction(record.timeRecord);
-        dispatch(UPDATE_TIME_RECORD(new_time));
+        if (record.isSelected){
+          const new_time = trancerateFunction(record.timeRecord);
+          dispatch(UPDATE_TIME_RECORD(new_time));
+        }
       });
   
       if(selectedRecord){

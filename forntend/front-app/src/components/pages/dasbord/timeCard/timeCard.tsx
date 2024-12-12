@@ -1,14 +1,16 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../../ui/card';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { TimeRecordWithOtherRecord } from '../../../../hooks';
 import { useTimeDispatch } from '../../../../hooks';
-import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
+import { UPDATE as UPDATE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';
 import { PlanNames } from '../helper';
 import { Button } from '../../../ui/button';
 import { SetAlertAnimation } from './cardHelper';
 import { useSetSelectedRecords } from '../../../../hooks';
 import { useSelectedRecordsSelector } from '../../../../hooks';
+import { Input } from '@/components/ui/input';
 
 const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
@@ -123,14 +125,25 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
                             >
                                 定時打刻
                             </Button>
-
-                            <Button
-                                onClick={() => dispatch(DELETE_TIME_RECORD(timeRecord))}
-                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
-                            >
-                                打刻（指定）
-                            </Button>
-
+                            
+                            <Popover>
+                                <PopoverTrigger>
+                                    <Button
+                                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
+                                    >
+                                        打刻（指定）
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                    <div>
+                                        <Input
+                                            type="datetime-local"
+                                            value={timeRecord.PlanTime.toLocaleString()} 
+                                            onChange={(e:React.ChangeEvent<HTMLInputElement>) => dispatch(UPDATE_TIME_RECORD({...timeRecord,PlanTime:e.target.value}))}
+                                        />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                             <Button
                                 onClick={handleAlertIgnore}
                                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
