@@ -29,17 +29,17 @@ const Login:React.FC = () => {
     const [userName,setUserName] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
 
-    const SampleExecute = () => {
+    const SampleExecute = () => {//サンプルデータでのお試し
       navigate("/dashbord");
       setOpenDialog(false);
-      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {
+      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {//サンプルデータを更新
         console.log(value);
         dispatch(ATTENDANCE_UPDATE(value));
       });
-      setTimeout(()=>{
+      setTimeout(()=>{//アラートを表示
         const targetRecord = sampleAttendanceRecords[0].TimeRecords[0];
         
-        dispatch(UPDATE({
+        dispatch(UPDATE({//アラートを表示
           ...targetRecord,
           IsAlert:true
         }));
@@ -47,7 +47,7 @@ const Login:React.FC = () => {
 
       setTimeout(()=>{
         const targetRecord = sampleAttendanceRecords[1].TimeRecords[0];
-        dispatch(UPDATE({
+        dispatch(UPDATE({//アラートを表示
           ...targetRecord,
           IsAlert:true
         }));
@@ -80,9 +80,9 @@ const Login:React.FC = () => {
               } else {
                 alert("サーバーが正常に動作していません");
               }
-            } catch (error) {
+            } catch (error:unknown) {
               alert("サーバーが正常に動作していません");
-      
+              console.error(error);
             }
 
             // ログイン成功後にダッシュボードに遷移
@@ -94,7 +94,7 @@ const Login:React.FC = () => {
             const message = await response.json();
             alert(message);
         } 
-      } catch (error) {
+      } catch (error:unknown) {
         alert("ログインに失敗しました。");
         console.error(error);
       }

@@ -102,22 +102,27 @@ func SetUpRepository() {
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 		//初期値を設定する。
-		session := NewQuerySession()
-		time_records := []TimeRecord{}
-		before_time := time.Now().Add(-1 * time.Hour)
-		after_time := time.Now().Add(8 * time.Hour)
-		session.Where("plan_time >= ? AND plan_time <= ?", before_time, after_time).Find(&time_records)
+		NewQuerySession().Transaction(func(tx *gorm.DB) error {
+			time_records := []*TimeRecord{}
+			before_time := time.Now().Add(-1 * time.Hour)
+			after_time := time.Now().Add(8 * time.Hour)
+			tx.Where("plan_time >= ? AND paln_time <= ?", before_time, after_time).Find(&time_records)
+			if len(time_records) == 0 {
+				log.Println("初期値を初期化することができませんでした。time_recordsの数が0です")
+				return nil
+			}
 
-		if len(time_records) == 0 {
-			log.Println("初期値を設定することができませんでした。time_recordsの数が0です。")
-			return
-		}
+			err := repo.Cache.InsertMany(time_records, func(record *TimeRecord) (uint, bool) {
+				return record.ID, true
+			})
+			if err != nil {
+				log.Println("社員データの初期化情報の書きこみに失敗しました。")
+				return err
+			}
+			log.Printf("初期値を設定しました。time_recordsの数:%v", len(time_records))
+			return nil
+		})
 
-		for _, time_record := range time_records {
-			repo.Cache.Map.Store(time_record.ID, &time_record)
-		}
-
-		log.Printf("初期値を設定しました。time_recordsの数:%v", len(time_records))
 	})
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
@@ -174,8 +179,8 @@ func SetUpRepository() {
 					return true
 				}
 
-				//予定時刻から30分をオーバーしたか。
-				if currentTime.After(time_record.PlanTime.Add(30 * time.Minute)) {
+				//予定時刻から2hをオーバーしたか。
+				if currentTime.After(time_record.PlanTime.Add(2 * time.Hour)) {
 					time_record.IsOver = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/DELETE", time_record) //フロントエンドのreduxに削除依頼を行う。
