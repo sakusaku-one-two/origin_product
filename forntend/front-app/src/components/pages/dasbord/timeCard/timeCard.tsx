@@ -42,7 +42,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             IsIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
-        dispatch(SET_SELECTED_RECORDS(null));
+        
 
     }
 
@@ -52,7 +52,6 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             PreAlertIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
-        dispatch(SET_SELECTED_RECORDS(null));
     }
 
     const handleAlertIgnore = () => {
