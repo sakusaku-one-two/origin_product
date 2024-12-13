@@ -11,6 +11,7 @@ import { SetAlertAnimation } from './cardHelper';
 import { useSelectedRecordsSelector } from '../../../../hooks';
 import { Input } from '@/components/ui/input';
 import { SET_SELECTED_RECORDS } from '../../../../redux/slices/selectedRecordsSlice';
+
 const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
 }   
@@ -73,26 +74,6 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
         }, 300);
         
     }
-
-    
-    //アラート状態の場合
-    // if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
-    //     return (
-    //         <motion.div
-    //             layoutId={timeRecord.ID.toString()}
-    //             key={timeRecord.ID.toString()}
-    //             animate={{ scale: 1, opacity: 1 }}
-    //             exit={{ scale: 0.8, opacity: 0 }}
-    //             transition={{ duration: 0.3 }}
-    //             className='h-full'
-    //         >
-
-    //         </motion.div> 
-    //     );
-    // };
-
-
-
 
     return (
         <motion.div
