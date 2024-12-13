@@ -43,7 +43,7 @@ export const SelectCardsArea:React.FC = () => {
       ] = useState<TimeRecordWithOtherRecord[]>(groupMemberRecords);
   
     const dispatch = useTimeDispatch();
-  
+    //変更があれば自動で更新
     useEffect(()=>{
       setGroupMemberRecordsState(groupMemberRecords);
     },[selectedRecord]);
@@ -85,7 +85,6 @@ export const SelectCardsArea:React.FC = () => {
                             <AnimatePresence > 
                             {selectedRecord && (
                                 <TimeCard record={selectedRecord}/>
-                            
                                 )}
                             </AnimatePresence>
                             

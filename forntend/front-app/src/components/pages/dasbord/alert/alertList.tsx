@@ -68,7 +68,7 @@ export const AlertList:React.FC = () => {
         className="min-h-[300px] max-w-full rounded-lg border md:min-w-[450px]"
       >
         <ResizablePanel defaultSize={50}>
-          <div className="flex h-full items-center justify-center p-6">
+          <div className="flex h-full w-full items-center justify-center p-6">
               {preAlertRecords.map((preRecord) => {
                 return (
                     <TimeCard record={preRecord} />
@@ -78,12 +78,13 @@ export const AlertList:React.FC = () => {
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={50}>
-        
-            { alertRecords.map((alertRecord) => {
-              return (
-                <TimeCard record={alertRecord} />
-              );
-              })}
+            <div className="flex h-full w-full items-center justify-center p-6">
+              { alertRecords.map((alertRecord) => {
+                return (
+                  <TimeCard record={alertRecord} />
+                );
+                })}
+            </div>
         </ResizablePanel>
       </ResizablePanelGroup>
     );

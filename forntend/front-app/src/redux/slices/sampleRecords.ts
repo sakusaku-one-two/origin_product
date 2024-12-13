@@ -68,23 +68,23 @@ export const sampleAttendanceRecords: AttendanceRecord[] = [
       },
       LocationID: 201, // 配置先ID
       Location: {
-        ID: 201,
-        LocationID: 201,
-        ClientID: 301,
-        ClientName: "株式会社サンプルクライアント",
-        LocationName: "東京本社",
+        ID: 201, // 配置先の識別番号
+        LocationID: 201, // 配置先の詳細識別番号
+        ClientID: 301, // クライアントID
+        ClientName: "株式会社サンプルクライアント", // クライアントの正式名称
+        LocationName: "東京本社", // 配置先の正式名称
       },
-      PostID: 401,
+      PostID: 401, // 勤務ポストID
       Post: {
-          PostID: 401,
-        PostName: "エンジニア",
+        PostID: 401, // 勤務ポストの詳細識別番号
+        PostName: "エンジニア", // 勤務ポストの名前
       },
       TimeRecords: [
         {
-          ID: 503,
+          ID: 503, // 打刻の識別番号
           ManageID: 2,
-          PlanNo: PlanNo.REACH, // 計画番号：到着報告
-          PlanTime: "2024-04-02T09:00:00Z",
+          PlanNo: PlanNo.HOME_DEPARTURE, // 計画番号：到着報告
+          PlanTime: "2024-04-01T08:00:00Z",
           ResultTime: "",
           IsAlert: false,
           PreAlert: true,

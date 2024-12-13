@@ -170,7 +170,7 @@ func SetUpRepository() {
 				}
 
 				//スキップ条件 無視か完了又はアラート対称外のどちらか
-				if time_record.IsIgnore || time_record.IsComplete || time_record.IsOver {
+				if time_record.IsComplete || time_record.IsOver {
 					return true
 				}
 
@@ -178,7 +178,11 @@ func SetUpRepository() {
 				if currentTime.After(time_record.PlanTime.Add(30 * time.Minute)) {
 					time_record.IsOver = true
 					update_records = append(update_records, time_record)
-					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
+					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/DELETE", time_record) //フロントエンドのreduxに削除依頼を行う。
+					return true
+				}
+
+				if time_record.IsIgnore {
 					return true
 				}
 

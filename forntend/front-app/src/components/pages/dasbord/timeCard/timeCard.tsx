@@ -8,17 +8,15 @@ import { motion } from 'framer-motion';
 import { PlanNames } from '../helper';
 import { Button } from '../../../ui/button';
 import { SetAlertAnimation } from './cardHelper';
-import { useSetSelectedRecords } from '../../../../hooks';
 import { useSelectedRecordsSelector } from '../../../../hooks';
 import { Input } from '@/components/ui/input';
-
+import { SET_SELECTED_RECORDS } from '../../../../redux/slices/selectedRecordsSlice';
 const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
 }   
 
 const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) => {
     const dispatch = useTimeDispatch();
-    const {setSelectedRecords} = useSetSelectedRecords();
     const selectedRecord = useSelectedRecordsSelector();
     const timeRecord = record.timeRecord;
     const employeeRecord = record.employeeRecord;
@@ -35,6 +33,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             ResultTime: timeRecord.PlanTime
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+        dispatch(SET_SELECTED_RECORDS(null));
     }
 
     const handleIgnore = () => {
@@ -43,6 +42,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             IsIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
+        dispatch(SET_SELECTED_RECORDS(null));
 
     }
 
@@ -52,7 +52,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             PreAlertIgnore: true,
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
-    
+        dispatch(SET_SELECTED_RECORDS(null));
     }
 
     const handleAlertIgnore = () => {
@@ -68,9 +68,9 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord }> = ({ record }) =
             return;
         }   
 
-        setSelectedRecords(null);
+        dispatch(SET_SELECTED_RECORDS(null));
         setTimeout(() => {
-            setSelectedRecords(record);
+            dispatch(SET_SELECTED_RECORDS(record));
         }, 300);
         
     }

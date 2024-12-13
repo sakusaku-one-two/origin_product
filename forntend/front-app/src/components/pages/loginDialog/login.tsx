@@ -14,6 +14,7 @@ import { LoginDialogOpen } from '../../../state/openClose';
 import { useNavigate } from 'react-router-dom';
 import { useAttendanceDispatch } from '@/hooks';
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE,UPDATE as ATTENDANCE_UPDATE } from '../../../redux/slices/attendanceSlice';
+import { UPDATE } from '@/redux/slices/timeSlice';
 import { sampleAttendanceRecords } from '@/redux/slices/sampleRecords';
 import { AttendanceRecord } from '@/redux/recordType';
 // import { AttendanceRecord } from '../../../redux/recordType';
@@ -35,7 +36,22 @@ const Login:React.FC = () => {
         console.log(value);
         dispatch(ATTENDANCE_UPDATE(value));
       });
+      setTimeout(()=>{
+        const targetRecord = sampleAttendanceRecords[0].TimeRecords[0];
+        
+        dispatch(UPDATE({
+          ...targetRecord,
+          IsAlert:true
+        }));
+      },10000);
 
+      setTimeout(()=>{
+        const targetRecord = sampleAttendanceRecords[1].TimeRecords[0];
+        dispatch(UPDATE({
+          ...targetRecord,
+          IsAlert:true
+        }));
+      },20000);
     };
 
     const handleLogin = async () => {
