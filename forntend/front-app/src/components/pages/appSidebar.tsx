@@ -13,6 +13,7 @@ import { CircleUser,
         FileInput,
         FileOutput,
         FileSymlink,
+        UserCheck,
 
 } from "lucide-react";
 
@@ -40,6 +41,12 @@ const AppSidebar:React.FC = () => {
         url:"dashbord",
         icon:CircleUser,
         description:"本日の勤務者一覧を表示します。"
+    },
+    {
+        title:"隊員一覧",
+        url:"employeeList",
+        icon:UserCheck,
+        description:"隊員一覧を表示します。"
     },
     {
         title:"隊員別の出発時間の設定",

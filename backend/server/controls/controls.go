@@ -13,6 +13,7 @@ func SetupHandlers(e *echo.Echo) *echo.Echo {
 	e.POST("/login", LoginHandler)                 // パスワードをjwtにしてセッションクッキーの中に格納。
 	e.POST("/logout", LogoutHandler)               //セッション内にあるJWTを削除し、DBのログインステータスをfalseに変更
 	e.POST("/createUser", CreateUser)              //ユーザーの作成
+	e.POST("/employeeList", EmployeeListHandler)   //隊員一覧の取得
 	//GET
 	e.GET("/sync", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
 	e.GET("/health", HealthCheckHandler)   //ヘルスチェック用のエンドポイント

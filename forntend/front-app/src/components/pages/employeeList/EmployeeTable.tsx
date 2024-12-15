@@ -18,8 +18,8 @@ const EmployeeTable:React.FC = () => {
     useEffect(()=>{
         try {
             const fetchEmp = async () => {
-                await fetch("api/employee/list",{   
-                    method:"GET",
+                await fetch("api/employeeList",{   
+                    method:"POST",
                     headers:{
                         "Content-Type":"application/json"
                     },
@@ -46,8 +46,8 @@ const EmployeeTable:React.FC = () => {
     return (
         <div>
             <h1>EmployeeTable</h1>
-            <input type="date" value={startDate} onChange={(e)=>setStartDate(new Date(e.target.value))}/>
-            <input type="date" value={endDate} onChange={(e)=>setEndDate(new Date(e.target.value))}/>
+            <input type="date" value={startDate?.toISOString()} onChange={(e)=>setStartDate(new Date(e.target.value))}/>
+            <input type="date" value={endDate?.toISOString()} onChange={(e)=>setEndDate(new Date(e.target.value))}/>
             {employeeRecords.map((record)=>(
                 <div key={record.EmpID}>
                     <p>{record.Name}</p>

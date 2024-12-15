@@ -31,8 +31,8 @@ type Done struct {
 }
 
 var (
-	clients                             sync.Map // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
-	ok                                  bool
+	clients sync.Map // 各ユーザーのウェブソケットのコネクションを保持するスレッドセーフな辞書
+
 	ACTION_EMPLOYEE_RECORD_TO_REPO      chan models.ActionDTO[models.EmployeeRecord]
 	BROADCAST_TO_ACTION_EMPLOYEE_RECORD chan models.ActionDTO[models.EmployeeRecord]
 

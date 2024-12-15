@@ -195,14 +195,14 @@ func SetUpRepository() {
 				if time_record.PlanTime.Add(-5 * time.Minute).After(currentTime) {
 					//予定時刻（5分前）より前に現在時刻が存在するので何もしない。
 					return true
-				} else if time_record.PlanTime.After(currentTime) && !time_record.PreAlertIgnore {
+				} else if time_record.PlanTime.After(currentTime) && !time_record.PreAlert {
 					//予定時刻の5分前	なので、予備アラートを発報 (無視の場合は除く)
 					time_record.PreAlert = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
-
-				} else {
+				} else if time_record.PlanTime.Before(currentTime) && !time_record.IsAlert {
+					//予定時刻の後に現在時刻が存在するのでアラートを発報
 					time_record.IsAlert = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)

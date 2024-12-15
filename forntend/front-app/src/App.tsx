@@ -6,6 +6,7 @@ import './App.css'
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from './state/openClose.tsx';
 import DashBordLayout from './components/pages/dasbord/dashBordLayout.tsx';
+import EmployeeTable from './components/pages/employeeList/EmployeeTable.tsx';
 // import { useAttendanceDispatch } from './hooks.ts';
 // import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from './redux/slices/attendanceSlice';
 
@@ -27,7 +28,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
             <Route index element={<div>index</div>}/>
-            <Route path='employeeList' element={<div>employeeList</div>}/>
+            <Route path='employeeList' element={<EmployeeTable/>}/>
             <Route path='dashbord' element={<DashBordLayout/>} />
             <Route path='*' element={<h1>そのようなページは存在しません</h1>}/>
         </Route>

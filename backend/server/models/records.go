@@ -187,6 +187,8 @@ type AttendanceRecord struct {
 	LunchBreakWorkTime float64 //昼残業
 	ExtraHours         float64 //退勤時の残業
 
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
 func NewAttendanceRecord(
