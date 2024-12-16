@@ -8,7 +8,7 @@ import {
 import  TimeCard  from "../timeCard/timeCard";
 import GetSounds, { SoundsName } from "../../../../sounds/GetSounds";
 import { EmployeeRecord } from "@/redux/recordType";
-
+import { CardType } from "../timeCard/cardHelper";
 
 const CreateSpeakText = (prefix:string,argRecords:TimeRecordWithOtherRecord[]):string => {
   
@@ -71,7 +71,7 @@ export const AlertList:React.FC = () => {
           <div className="flex h-full w-full items-center justify-center p-6">
               {preAlertRecords.map((preRecord) => {
                 return (
-                    <TimeCard record={preRecord} />
+                    <TimeCard record={preRecord} cardType={CardType.PreAlertIgnore} />
                 );
               })}
           </div>
@@ -81,7 +81,7 @@ export const AlertList:React.FC = () => {
             <div className="flex h-full w-full items-center justify-center p-6">
               { alertRecords.map((alertRecord) => {
                 return (
-                  <TimeCard record={alertRecord} />
+                  <TimeCard record={alertRecord} cardType={CardType.Alert} />
                 );
                 })}
             </div>

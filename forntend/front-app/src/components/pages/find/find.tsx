@@ -27,6 +27,7 @@ import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
 import TimeCard from "../dasbord/timeCard/timeCard";
 
 import { useSelectedRecordsSelector,useSelectedRecordsDispatch } from "../../../hooks";
+import { CardType } from "../dasbord/timeCard/cardHelper";
 
 
 const FindTask:FC =() => {
@@ -67,7 +68,7 @@ const FindTask:FC =() => {
                 dispatch({type:"SELECTED_RECORDS/UPDATE",payload:record});
                 setIsOpen(false);
               }}>
-                <TimeCard record={record}/>
+                <TimeCard record={record} cardType={CardType.Wait}/>
               </CommandItem>
             ))}
             <CommandItem onSelect={()=>{
@@ -96,7 +97,7 @@ const FindTask:FC =() => {
               <CommandShortcut>⌘S</CommandShortcut>
                 {
                   selectedRecords && (
-                    <TimeCard record={selectedRecords as TimeRecordWithOtherRecord}/>
+                    <TimeCard record={selectedRecords as TimeRecordWithOtherRecord} cardType={CardType.ControlPanel} />
                   )
                 }
             </CommandItem>

@@ -90,7 +90,7 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 	manage_id := row["管制番号"].as_int
 
 	result := []*models.TimeRecord{
-		&models.TimeRecord{ //自宅出発予定時刻
+		{ //自宅出発予定時刻
 			ManageID:       manage_id,
 			PlanNo:         1,
 			PlanTime:       CreateDepartPlanTime(row),
@@ -103,7 +103,7 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 			IsComplete:     false,
 		},
 
-		&models.TimeRecord{ //現場到着予定時刻
+		{ //現場到着予定時刻
 			ManageID:       manage_id,
 			PlanNo:         2,
 			PlanTime:       CreateReachPlanTime(row),
@@ -116,7 +116,7 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 			IsComplete:     false,
 		},
 
-		&models.TimeRecord{ //勤務開始予定時刻
+		{ //勤務開始予定時刻
 			ManageID:       manage_id,
 			PlanNo:         3,
 			PlanTime:       CreateStartTime(row),
@@ -129,7 +129,7 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 			IsComplete:     false,
 		},
 
-		&models.TimeRecord{ //勤務終了予定時刻
+		{ //勤務終了予定時刻
 			ManageID:       manage_id,
 			PlanNo:         4,
 			PlanTime:       CreateFinalyPlanTime(row),

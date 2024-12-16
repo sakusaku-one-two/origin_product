@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import FindTask from "@/components/pages/find/find";
 import SubTimeRecord from "../subTimeRecord";
 import { useSetSelectedRecords,useSelectedRecordsSelector } from "@/hooks";
+import { CardType } from "../timeCard/cardHelper";
 
 // 下部のカード選択エリア
 export const SelectCardsArea:React.FC = () => {
@@ -84,7 +85,7 @@ export const SelectCardsArea:React.FC = () => {
                             
                             <AnimatePresence > 
                             {selectedRecord && (
-                                <TimeCard record={selectedRecord}/>
+                                <TimeCard record={selectedRecord} cardType={CardType.ControlPanel}/>
                                 )}
                             </AnimatePresence>
                             
@@ -134,7 +135,7 @@ export const SelectCardsArea:React.FC = () => {
                 {
                     preAlertIgnoreRecords.map((record:TimeRecordWithOtherRecord) => {
                         return (
-                            <TimeCard record={record}/>
+                            <TimeCard record={record} cardType={CardType.PreAlertIgnore}/>
                         );
                     })
                 }
@@ -142,7 +143,7 @@ export const SelectCardsArea:React.FC = () => {
                 {
                     ignoreRecords.map((record:TimeRecordWithOtherRecord) => {
                         return (
-                            <TimeCard record={record}/>
+                            <TimeCard record={record} cardType={CardType.Ignore}/>
                         );
                     })
                 }
@@ -151,7 +152,7 @@ export const SelectCardsArea:React.FC = () => {
                 {records.length >=1 ? <h5>未報告:{records.length}件</h5>: <h1>勤怠データをアップロードしてください。</h1>}
                 {records.map((record :TimeRecordWithOtherRecord) => (
 
-                    <TimeCard record={record}/>  
+                    <TimeCard record={record} cardType={CardType.Wait}/>  
                 
                 ))}
                 
