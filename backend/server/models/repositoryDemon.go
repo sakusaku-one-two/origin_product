@@ -155,15 +155,15 @@ func SetUpRepository() {
 
 	TIME_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[TimeRecord]) {
 
-		ticker := time.NewTicker(time.Minute) //一分起きに動作する
+		ticker := time.NewTicker(30 * time.Second) //30秒おきに動作する
 		defer ticker.Stop()
 
 		//時間の管理するゴルーチン
 		for {
 
-			<-ticker.C // 1分おきに動作　なので1分おきにキャッシュの中身を走査するゴルーチン
+			temp_time := <-ticker.C // 30秒おきに動作　なので30秒おきにキャッシュの中身を走査するゴルーチン
 			update_records := []*TimeRecord{}
-			currentTime := time.Now().Local()
+			currentTime := temp_time.Local()
 			log.Println("現在の時間", currentTime)
 			log.Println("現在のキャッシュの数（timeRecord）", repo.Cache.Len())
 			repo.Cache.Map.Range(func(key any, value any) bool { //キャッシュの中味を走査するコールバック関数　trueを返すと次の要素でそのコールバックを呼び出す。
