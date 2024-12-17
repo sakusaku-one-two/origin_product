@@ -75,6 +75,8 @@ func WebSocketStartUp() {
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 		CheckOrigin: func(r *http.Request) bool {
+			log.Println("ウェブソケットのコネクション開始", r.RemoteAddr, r.Header.Get("Origin"), r.Header.Get("User-Agent"), r.Header.Get("Referer"), r.Header.Get("Cookie"), r.Header.Get("X-Forwarded-For"))
+			log.Println("ウェブソケットのコネクション開始(Protocol)", r.Header.Get("Protocol"))
 			return true // 一時的にすべてのオリジンを許可
 		}}
 }

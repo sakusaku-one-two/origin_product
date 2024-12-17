@@ -24,6 +24,16 @@ import FindTask from "@/components/pages/find/find";
 import SubTimeRecord from "../subTimeRecord";
 import { useSetSelectedRecords,useSelectedRecordsSelector } from "@/hooks";
 import { CardType } from "../timeCard/cardHelper";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+ 
+
+
 
 // 下部のカード選択エリア
 export const SelectCardsArea:React.FC = () => {
@@ -113,7 +123,7 @@ export const SelectCardsArea:React.FC = () => {
                     </ResizablePanelGroup>
                 </ResizablePanel>
                 <ResizableHandle />
-                <ResizablePanel defaultSize={25}>
+                <ResizablePanel defaultSize={30}>
                 <ScrollArea className='h-[800px] bg-slate-100'>
                      <div className='sticky top-0 z-50
                         w-full border-border/40 bg-background/95 bg-blue-500
@@ -127,35 +137,53 @@ export const SelectCardsArea:React.FC = () => {
                           text-muted-foreground shadow-none sm:pr-12 md:w-40 lg:w-64'
                           onClick={FindDailogHandler}>
                           打刻の検索 {<FindTask/>}
-          </Button>
-          </div>
+                        </Button>
+                    </div>
+         
           
-          <ScrollBar orientation='horizontal' className="" />
-          {preAlertIgnoreRecords.length >=1 ? <h5>5分前アラート無視状態:{preAlertIgnoreRecords.length}件</h5>: ''}
+            <ScrollBar orientation='horizontal' className="" />
+          <Carousel opts={{
+            loop: true,
+            align: "start",} }
+            orientation="vertical"
+            className="w-full h-full">
+            <CarouselContent>
+              
+                {preAlertIgnoreRecords.length >=1 ? <h5>5分前アラート無視状態:{preAlertIgnoreRecords.length}件</h5>: ''}
                 {
                     preAlertIgnoreRecords.map((record:TimeRecordWithOtherRecord) => {
                         return (
+                            <CarouselItem key={record.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                             <TimeCard record={record} cardType={CardType.PreAlertIgnore}/>
+                            </CarouselItem>
                         );
                     })
                 }
+               
             {ignoreRecords.length >=1 ? <h5>アラート無視状態:{ignoreRecords.length}件</h5>: ''}
                 {
                     ignoreRecords.map((record:TimeRecordWithOtherRecord) => {
                         return (
+                            <CarouselItem key={record.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                             <TimeCard record={record} cardType={CardType.Ignore}/>
+                            </CarouselItem>
                         );
                     })
                 }
 
                 
                 {records.length >=1 ? <h5>未報告:{records.length}件</h5>: <h1>勤怠データをアップロードしてください。</h1>}
+               
                 {records.map((record :TimeRecordWithOtherRecord) => (
 
+                    <CarouselItem key={record.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                     <TimeCard record={record} cardType={CardType.Wait}/>  
-                
+                    </CarouselItem>
                 ))}
-                
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
           </ScrollArea>
                    
 

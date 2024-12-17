@@ -10,6 +10,17 @@ import GetSounds, { SoundsName } from "../../../../sounds/GetSounds";
 import { EmployeeRecord } from "@/redux/recordType";
 import { CardType } from "../timeCard/cardHelper";
 
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+ 
+
+
+
 const CreateSpeakText = (prefix:string,argRecords:TimeRecordWithOtherRecord[]):string => {
   
   let result:string =  `${prefix}`
@@ -68,23 +79,50 @@ export const AlertList:React.FC = () => {
         className="min-h-[300px] max-w-full rounded-lg border md:min-w-[450px]"
       >
         <ResizablePanel defaultSize={50}>
-          <div className="flex h-full w-full items-center justify-center p-6">
+            <Carousel
+              opts={{
+                loop: true,
+                align: "start",
+                
+              }}
+              className="w-full h-full"
+            >
+              <CarouselContent>
               {preAlertRecords.map((preRecord) => {
                 return (
+                    <CarouselItem key={preRecord.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                     <TimeCard record={preRecord} cardType={CardType.PreAlertIgnore} />
+                    </CarouselItem>
                 );
               })}
-          </div>
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          
         </ResizablePanel>
         <ResizableHandle />
         <ResizablePanel defaultSize={50}>
-            <div className="flex h-full w-full items-center justify-center p-6">
+            <Carousel
+              opts={{
+                loop: true,
+                align: "start",
+                
+              }}
+              className="w-full h-full"
+            >
+              <CarouselContent>
               { alertRecords.map((alertRecord) => {
                 return (
+                  <CarouselItem key={alertRecord.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                   <TimeCard record={alertRecord} cardType={CardType.Alert} />
+                  </CarouselItem>
                 );
                 })}
-            </div>
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
         </ResizablePanel>
       </ResizablePanelGroup>
     );

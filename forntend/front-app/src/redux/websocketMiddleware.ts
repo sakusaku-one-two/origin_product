@@ -49,14 +49,15 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
         const selectedRecord:TimeRecordWithOtherRecord | null = state.SELECTED_RECORDS.selectedRecords;
         const persedEvent = JSON.parse(event.data);
         const actionObject = {type:persedEvent["Action"],payload:persedEvent["Payload"]} as ActionType;  
-        console.log("actionObject",actionObject);
-
+        
+        // ミドルウエアのチェーンに受信したアクションオブジェクトを渡す
         next(actionObject);
 
+        // 選択中のレコードが更新された場合は、選択中のレコードをクリアする
         if(selectedRecord !== null  && (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE")){
             const  insertRecord:TimeRecord = actionObject.payload as TimeRecord;
-            
             if (insertRecord.ID === selectedRecord.timeRecord.ID){
+                //選択中のレコードをクリアにする。
                 next({  
                     type:"SELECTED_RECORDS/SET_SELECTED_RECORDS",
                     payload:null
