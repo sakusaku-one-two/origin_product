@@ -20,17 +20,15 @@ type RecordsCache[ModelType any] struct {
 // キャッシュに登録とDBに保存両方行う
 func (rc *RecordsCache[ModelType]) loadAndSave(id uint, targetData *ModelType) error {
 
-	// キャッシュに登録
-	rc.Map.Store(id, targetData)
-
 	// DBに保存
 	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(targetData).Error; err != nil {
 			return err
 		}
+		// キャッシュに登録
+		rc.Map.Store(id, targetData)
 		return nil
 	}); err != nil {
-		rc.Map.Delete(id)
 		return err
 	}
 
@@ -43,49 +41,24 @@ type GetId[ModleType any, ReturnType any] func(target *ModleType) (ReturnType, b
 func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId GetId[ModelType, uint]) error {
 
 	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
-
+		// DBに保存
 		if err := tx.Save(payloadArray).Error; err != nil {
 			log.Printf("InsertMany failed 一括と挿入に失敗しました。ロールバックします。: %v", err)
 			tx.Rollback()
 			return err
 		}
+		// キャッシュに登録
+		for _, payload := range payloadArray {
+			id, ok := fetchId(payload)
+			if !ok {
+				log.Printf("Failed to fetch ID for payload: %v", payload)
+				continue
+			}
+			rc.Map.Store(id, payload)
+		}
 		return nil
 	}); err != nil {
 		return err
-	}
-
-	reject_records := []ModelType{}
-	for _, payload := range payloadArray {
-		id, ok := fetchId(payload)
-		if !ok {
-			log.Printf("Failed to fetch ID for payload: %v", payload)
-			reject_records = append(reject_records, *payload)
-			continue
-		}
-		rc.Map.Store(id, payload)
-	}
-
-	if len(reject_records) > 0 {
-		// キャッシュから削除
-		for _, reject_record := range reject_records {
-			id, ok := fetchId(&reject_record)
-			if !ok {
-				log.Printf("Failed to fetch ID for payload: %v", reject_record)
-				continue
-			}
-			rc.Map.Delete(id)
-		}
-
-		if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
-			if err := tx.Delete(reject_records).Error; err != nil {
-				log.Printf("InsertMany failed 一括と挿入に失敗しました。ロールバックします。: %v", err)
-				tx.Rollback()
-				return err
-			}
-			return nil
-		}); err != nil {
-			return err
-		}
 	}
 
 	return nil
