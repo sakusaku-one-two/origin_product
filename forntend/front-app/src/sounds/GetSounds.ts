@@ -5,7 +5,6 @@ import preAlertSound from "@/assets/sounds/preAlert.mp3";
 export interface ISound{
     play():void;
     stop():void;
-
     speak(text:string):void;
 }
 

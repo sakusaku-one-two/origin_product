@@ -24,10 +24,10 @@ csvの取り込み条件
 */
 
 type ComfirmationRecords struct {
-	IsLeft       bool
-	FromCsv      map[uint]*models.AttendanceRecord
-	FromDb       map[uint]*models.AttendanceRecord
-	UniqueRecord []*models.AttendanceRecord
+	IsLeft       bool                              //重複したかのフラグ
+	FromCsv      map[uint]*models.AttendanceRecord //CSVをレコードに変換
+	FromDb       map[uint]*models.AttendanceRecord //DBから重複した箇所を取り出したレコード
+	UniqueRecord []*models.AttendanceRecord        //重複の無いレコード
 }
 
 // 確認が必要なレコードと必要ないレコードを仕分ける。

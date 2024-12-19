@@ -1,7 +1,17 @@
+import { AttendanceRecord } from '@/redux/recordType';
 import React,{useState} from 'react';
+
+export type ComfirmationRecords = {
+    isLeft:boolean,
+    fromCsv:Map<number,AttendanceRecord[]>,
+    fromDb:Map<number,AttendanceRecord[]>,
+    uniqueRecord:AttendanceRecord[]
+};
+
 
 //CSVをサーバーに送るページ
 const ImportPage:React.FC = () => {
+    const [checkedData,setCheckedData] = useState<null|ComfirmationRecords>(null);
 
     const [csvData,setCsvData] = useState<string>("");
     const SetCsvHandler = (event:HTMLInputElement|any) => {
@@ -11,12 +21,11 @@ const ImportPage:React.FC = () => {
         const file = event.target.files[0];
         
         const setCsv = async (data:File|Blob) => {
-            const csv_data:string = await data.text();
+            
             const  formData = new FormData();
-            formData.append('file',data);
-            formData.append('fileName',file.name);
+            formData.append('import_csv',data);
 
-            const response = await fetch('api/csvImport',{
+            const response = await fetch('api/Csvcheck',{
                 method:'POST',
                 body:formData,//formDataを送信(ファイルを送信するために必要)
                 headers:{
@@ -25,21 +34,17 @@ const ImportPage:React.FC = () => {
             });
 
             if (!response.ok) {
-                alert('ファイルのアップロードに失敗しました');
+                alert("CSVに不備があります。");
                 return;
             }
             
-            const response_json = await response.json();
-
-            if (response_json.status === 'success') {
-                console.log(response_json.message);
-            } else {
-                console.log(response_json.message);
-            }
+            const result:ComfirmationRecords|any = await response.json();
+            
+           
             
 
             
-            setCsvData (csv_data);
+           
         };
         setCsv(file);
     };
