@@ -42,10 +42,10 @@ export const AlertList:React.FC = () => {
     
     useEffect(() => {
 
-        let isSpeak:boolean = false;
+        let SpeakDo:boolean = false;
         let speakText:string = '';
         if (alertRecords.length > 0) {
-            isSpeak = true;
+            SpeakDo = true;
             GetSounds(SoundsName.alert).play();
             speakText =  CreateSpeakText(
                 "報告期限切れです。至急確認してください。"
@@ -53,10 +53,11 @@ export const AlertList:React.FC = () => {
               );
         } else {
             GetSounds(SoundsName.alert).stop();
+            
         }
 
         if (preAlertRecords.length > 0 ) {
-          isSpeak = true;
+          SpeakDo = true;
           GetSounds(SoundsName.preAlert).play();
             speakText = `${speakText} ${CreateSpeakText(
               "報告5分前になりました。",
@@ -64,10 +65,13 @@ export const AlertList:React.FC = () => {
             )}` 
         } else {
           GetSounds(SoundsName.preAlert).stop();
+          
         }
         
-        if (isSpeak) {
+        if (SpeakDo) {
           GetSounds(SoundsName.speach).speak(speakText);
+        } else {
+          GetSounds(SoundsName.speach).stop();
         }
         
 
