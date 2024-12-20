@@ -1,6 +1,7 @@
 import { AttendanceRecord } from '@/redux/recordType';
 import React,{useState} from 'react';
 
+
 export type ComfirmationRecords = {
     isLeft:boolean,
     fromCsv:Map<number,AttendanceRecord[]>,
@@ -13,8 +14,7 @@ export type ComfirmationRecords = {
 const ImportPage:React.FC = () => {
     const [checkedData,setCheckedData] = useState<null|ComfirmationRecords>(null);
 
-    
-
+    const [csvData,setCsvData] = useState<string>("");
     const SetCsvHandler = (event:HTMLInputElement|any) => {
         if (!(event.target instanceof HTMLInputElement)) return;
         if (!event.target.files) return;
@@ -41,7 +41,11 @@ const ImportPage:React.FC = () => {
             }
             
             const result:ComfirmationRecords|any = await response.json();
-            setCheckedData(result);
+            
+           
+            
+
+            
            
         };
         setCsv(file);
@@ -54,14 +58,16 @@ const ImportPage:React.FC = () => {
     return (
         <div>
             <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
-            {
-                checkedData?.uniqueRecord.map((record) => (
-                    <div>
-                       { record.ManageID}
-                    </div>
-                ))
+            { perseCsv(csvData).map((row:string[]) => {
+              return (
+                <div>
+                    {
+                        row.map((cell:string) => cell )
+                    }
+                </div>
+              );
+            })
             }
-            
         </div>
     );
 };
