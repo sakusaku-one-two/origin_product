@@ -13,7 +13,8 @@ export type ComfirmationRecords = {
 const ImportPage:React.FC = () => {
     const [checkedData,setCheckedData] = useState<null|ComfirmationRecords>(null);
 
-    const [csvData,setCsvData] = useState<string>("");
+    
+
     const SetCsvHandler = (event:HTMLInputElement|any) => {
         if (!(event.target instanceof HTMLInputElement)) return;
         if (!event.target.files) return;
@@ -34,38 +35,33 @@ const ImportPage:React.FC = () => {
             });
 
             if (!response.ok) {
+                console.log(await response.json())
                 alert("CSVに不備があります。");
                 return;
             }
             
             const result:ComfirmationRecords|any = await response.json();
-            
-           
-            
-
-            
+            setCheckedData(result);
            
         };
         setCsv(file);
     };
     
-    const perseCsv = (dataFromCSV:string):string[][] => {
-        return dataFromCSV.split('/r/n').map((row) => row.split(','));
-    };
+    // const perseCsv = (dataFromCSV:string):string[][] => {
+    //     return dataFromCSV.split('/r/n').map((row) => row.split(','));
+    // };
 
     return (
         <div>
             <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
-            { perseCsv(csvData).map((row:string[]) => {
-              return (
-                <div>
-                    {
-                        row.map((cell:string) => cell )
-                    }
-                </div>
-              );
-            })
+            {
+                checkedData?.uniqueRecord.map((record) => (
+                    <div>
+                       { record.ManageID}
+                    </div>
+                ))
             }
+            
         </div>
     );
 };
