@@ -136,3 +136,11 @@ func (rc *RecordsCache[ModelType]) GetAll() []ModelType {
 	})
 	return result
 }
+
+func (rc *RecordsCache[ModelType]) Get(id uint) (*ModelType, bool) {
+	targetModel, ok := rc.getValue(id)
+	if !ok {
+		return nil, false
+	}
+	return targetModel, true
+}

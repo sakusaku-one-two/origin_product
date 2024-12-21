@@ -150,10 +150,44 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 		if err != nil {
 			return nil
 		}
+		emp, ok := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Get(row["隊員番号"].To_int())
+		if !ok {
+			//社員が存在しないので新しく作成して、キャッシュに登録
+			emp = &models.EmployeeRecord{
+				EmpID:    row["隊員番号"].as_int,
+				Name:     row["隊員名"].To_string(),
+				Email:    "",
+				IsInTerm: false,
+			}
+			models.EMPLOYEE_RECORD_REPOSITORY.Cache.Insert(emp.EmpID, emp)
+		}
+
+		var location *models.LocationRecord
+		target_locationID := row["配置先番号"].To_int()
+		client_ID := row["得意先番号"].To_int()
+		for _, location_record := range models.LOCATION_RECORD_REPOSITORY.Cache.Dump() {
+			if location_record.LocationID == target_locationID && location_record.ClientID == client_ID {
+				location = &location_record
+				break
+			}
+		}
+
+		if location == nil {
+			//配置先が存在しないので新しく作成して、キャッシュに登録
+			location = &models.LocationRecord{
+				LocationID:   target_locationID,
+				ClientID:     client_ID,
+				LocationName: row["配置先正式名称"].To_string(),
+			}
+			models.LOCATION_RECORD_REPOSITORY.Cache.Insert(location.LocationID, location)
+		}
+
 		return &models.AttendanceRecord{
-			ManageID:   row["管制番号"].To_int(),  //これが基本となる値。
-			EmpID:      row["隊員番号"].To_int(),  //社員番号
-			LocationID: row["配置先番号"].To_int(), //配置先番号
+			ManageID:   row["管制番号"].To_int(), //これが基本となる値。
+			EmpID:      row["隊員番号"].as_int,   //社員番号
+			LocationID: row["配置先番号"].as_int,  //配置先番号
+			Emp:        *emp,
+			Location:   *location,
 
 			//時間レコードを変換　（参照型から値型）
 			TimeRecords: func(time__records []*models.TimeRecord) []models.TimeRecord {

@@ -47,3 +47,11 @@ type RepoGorutin[T any] func(repo *Repository[T])
 func (rp *Repository[ModelType]) BackgroundKicker(func_as_background RepoGorutin[ModelType]) {
 	go func_as_background(rp)
 }
+
+func (rp *Repository[ModelType]) Get(id uint) (*ModelType, bool) {
+	if targetModel, ok := rp.Cache.getValue(id); ok {
+		return targetModel, true
+	}
+
+	return nil, false
+}
