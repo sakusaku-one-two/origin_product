@@ -1,6 +1,18 @@
-import { AttendanceRecord, TimeRecord } from '@/redux/recordType';
+import { AttendanceRecord} from '@/redux/recordType';
 import React,{useState} from 'react';
-
+import {
+    ResizablePanelGroup,
+    ResizablePanel,
+    ResizableHandle
+} from '@/components/ui/resizable';
+// import {
+//     Carousel,
+//     CarouselContent,
+//     CarouselItem,
+//     CarouselNext,
+//     CarouselPrevious,
+//   } from "@/components/ui/carousel";
+import AttendanceCard from './attendanceCard';
 
 export type ComfirmationRecords = {
     IsLeft:boolean,
@@ -9,10 +21,23 @@ export type ComfirmationRecords = {
     UniqueRecord:AttendanceRecord[]
 };
 
+        // const InitialSelectedRecord:ComfirmationRecords = {
+        //     IsLeft:false,
+        //     FromCsv:new Map(),
+        //     FromDb:new Map(),
+        //     UniqueRecord:[]
+        // };
 
 //CSVをサーバーに送るページ
 const ImportPage:React.FC = () => {
-    const [checkedData,setCheckedData] = useState<null|ComfirmationRecords>(null);
+   
+
+    //選択されたレコードを保持
+    // const [isLeft,setIsLeft] = useState<boolean>(checkedData.IsLeft);
+    const [fromCsv,setFromCsv] = useState<Map<number,AttendanceRecord[]>>(new Map());
+    const [fromDb,setFromDb] = useState<Map<number,AttendanceRecord[]>>(new Map());
+    const [selectedRecord,setSelectedRecord] = useState<AttendanceRecord[]>([]);
+    
 
     const SetCsvHandler = (event:HTMLInputElement|any) => {
         if (!(event.target instanceof HTMLInputElement)) return;
@@ -32,13 +57,16 @@ const ImportPage:React.FC = () => {
             });
 
             if (!response.ok) {
-                console.log(await response.json());
                 alert("CSVに不備があります。");
                 return;
             }
             
             const result:ComfirmationRecords|any = await response.json();
-            setCheckedData(result);
+            console.log(result);
+            setFromCsv(result.FromCsv);
+            setFromDb(result.FromDb);
+            setSelectedRecord(result.UniqueRecord);
+            
         };
         setCsv(file);
     };
@@ -48,29 +76,44 @@ const ImportPage:React.FC = () => {
     // };
 
     return (
-        <div>
+        <div className=''>
             <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
-            
-            {checkedData?.UniqueRecord && (
-                checkedData.UniqueRecord.map((record:AttendanceRecord) => {
-                    return (
-                        <div>
-                            {record.ManageID}
-                            {record.TimeRecords.map((timeRecord:TimeRecord) => {
-                                return (
-                                    <div>
-                                        {timeRecord.PlanTime.toLocaleString()}
-                                        <div>
-                                            {timeRecord.PlanNo}
-                                        </div>
-                                    </div>
-                                    
-                                );
-                            })}
+            <ResizablePanelGroup direction='horizontal' className='h-full'>
+                <ResizablePanel defaultSize={30}>
+                    <div className='flex flex-col items-center justify-center h-full'>
+                        <h1>CSV</h1>
+                            {fromCsv.size > 0 &&
+                                Array.from(fromCsv.values()).flat().map((record) => (
+                                    <AttendanceCard record={record} />
+                                ))
+                            }
                         </div>
-                    );
-                })
-            )}
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel defaultSize={30}>
+                    <div className='flex flex-col items-center justify-center h-full'>
+                        <h1>DB</h1>
+                            {fromDb.size > 0 &&
+                                Array.from(fromDb.values()).flat().map((record) => (
+                                    <AttendanceCard record={record} />
+                                ))
+                            }
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel defaultSize={30}>   
+                    <div className='flex flex-col items-center justify-center h-full'>
+                        <h1>Unique</h1>
+                            {
+                                selectedRecord.map((record) => (
+                                    <AttendanceCard record={record} />
+                                ))
+                            }
+                        </div>
+                    
+                </ResizablePanel>
+            </ResizablePanelGroup>
+            
         </div>
     );
 };

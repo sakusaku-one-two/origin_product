@@ -178,17 +178,30 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 				LocationID:   target_locationID,
 				ClientID:     client_ID,
 				LocationName: row["配置先正式名称"].To_string(),
+				ClientName:   row["得意先正式名称"].To_string(),
 			}
 			models.LOCATION_RECORD_REPOSITORY.Cache.Insert(location.LocationID, location)
 		}
 
+		//勤務形態を取得 （存在しない場合は新しく作成して、キャッシュに登録）
+		post_record, ok := models.POST_RECORD_REPOSITORY.Cache.Get(row["勤務番号"].To_int())
+		if !ok {
+			//勤務形態が存在しないので新しく作成して、キャッシュに登録
+			post_record = &models.PostRecord{
+				PostID:   row["勤務番号"].To_int(),
+				PostName: row["勤務形態正式名称"].To_string(),
+			}
+			models.POST_RECORD_REPOSITORY.Cache.Insert(post_record.PostID, post_record)
+		}
+
+		//ここまでで、必要なデータを全て取得したので、AttendanceRecordを作製
 		return &models.AttendanceRecord{
 			ManageID:   row["管制番号"].To_int(), //これが基本となる値。
 			EmpID:      row["隊員番号"].as_int,   //社員番号
 			LocationID: row["配置先番号"].as_int,  //配置先番号
 			Emp:        *emp,
 			Location:   *location,
-
+			Post:       *post_record,
 			//時間レコードを変換　（参照型から値型）
 			TimeRecords: func(time__records []*models.TimeRecord) []models.TimeRecord {
 				var new_time_records []models.TimeRecord
