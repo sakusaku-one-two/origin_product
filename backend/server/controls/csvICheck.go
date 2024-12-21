@@ -36,7 +36,7 @@ type Value struct {
 
 // factorymethod　=>　Value
 func ValueInit(val any) *Value {
-	fmt.Println("valの作成対象", val)
+
 	created_val := &Value{
 		Preval: val,
 	}
@@ -75,6 +75,7 @@ type CsvTable struct { //CSVをプログラムで扱いやすい形にしたも�
 
 // コンストラクタ
 func CreateCsVTable(reader *csv.Reader) (*CsvTable, error) {
+	fmt.Println("CreateCsVTableの呼び出し")
 	//最初の行
 	headerRow, err := reader.Read()
 	if err != nil {
@@ -119,6 +120,7 @@ func CreateCsVTable(reader *csv.Reader) (*CsvTable, error) {
 
 // このCSVテーブルをDBへ登録しても問題ないか確認するメソッド
 func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
+	fmt.Println("checkReqireColmunsの呼び出し")
 	if len(ct.header) == 0 || len(ct.rows) == 0 {
 		return nil, false
 	}
@@ -142,7 +144,7 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 
 // このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
 func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
-
+	fmt.Println("To_AttendanceRecordsの呼び出し")
 	createToAttendacneRecord := func(row map[string]*Value) *models.AttendanceRecord {
 		time_records, err := CreateTimeRecord(row)
 		if err != nil {
@@ -175,6 +177,7 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 
 // 管制日付から最小日と最大日を返す
 func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
+	fmt.Println("TimeSpanの呼び出し")
 	var tmp_time time.Time
 	var max_time time.Time = time.Time{} //仮の初期値
 	var min_time time.Time = time.Time{} //仮の初期値
@@ -197,6 +200,7 @@ func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
 }
 
 func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
+	fmt.Println("BetweenMaxAndMinの呼び出し")
 	if len(ct.rows) == 0 {
 		return 0, 0, false
 	}
@@ -224,7 +228,7 @@ func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
 
 // CSVファイルのインポート
 func CsvImportHandler(c echo.Context) error {
-
+	fmt.Println("CsvImportHandlerの呼び出し")
 	import_csv, err := c.FormFile("file")
 	if err != nil {
 		fmt.Println("ファイルが見つかりません。")

@@ -1,12 +1,12 @@
-import { AttendanceRecord } from '@/redux/recordType';
+import { AttendanceRecord, TimeRecord } from '@/redux/recordType';
 import React,{useState} from 'react';
 
 
 export type ComfirmationRecords = {
-    isLeft:boolean,
-    fromCsv:Map<number,AttendanceRecord[]>,
-    fromDb:Map<number,AttendanceRecord[]>,
-    uniqueRecord:AttendanceRecord[]
+    IsLeft:boolean,
+    FromCsv:Map<number,AttendanceRecord[]>,
+    FromDb:Map<number,AttendanceRecord[]>,
+    UniqueRecord:AttendanceRecord[]
 };
 
 
@@ -51,15 +51,25 @@ const ImportPage:React.FC = () => {
         <div>
             <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
             
-            {checkedData && (
-                
-               checkedData.uniqueRecord.map((record:AttendanceRecord) => {
-                return (
-                    <div>
-                        {record.ManageID}
-                    </div>
-                );
-               })
+            {checkedData?.UniqueRecord && (
+                checkedData.UniqueRecord.map((record:AttendanceRecord) => {
+                    return (
+                        <div>
+                            {record.ManageID}
+                            {record.TimeRecords.map((timeRecord:TimeRecord) => {
+                                return (
+                                    <div>
+                                        {timeRecord.PlanTime.toLocaleString()}
+                                        <div>
+                                            {timeRecord.PlanNo}
+                                        </div>
+                                    </div>
+                                    
+                                );
+                            })}
+                        </div>
+                    );
+                })
             )}
         </div>
     );
