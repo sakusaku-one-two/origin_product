@@ -23,17 +23,16 @@ const ImportPage:React.FC = () => {
         const setCsv = async (data:File|Blob) => {
             
             const  formData = new FormData();
-            formData.append('import_csv',data);
-
+            formData.append('file',data);
+            console.log(formData);
             const response = await fetch('api/Csvcheck',{
                 method:'POST',
                 body:formData,//formDataを送信(ファイルを送信するために必要)
-                headers:{
-                    'Content-Type':'multipart/form-data',
-                },
+           
             });
 
             if (!response.ok) {
+                console.log(await response.json());
                 alert("CSVに不備があります。");
                 return;
             }
@@ -53,6 +52,7 @@ const ImportPage:React.FC = () => {
             <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
             
             {checkedData && (
+                
                checkedData.uniqueRecord.map((record:AttendanceRecord) => {
                 return (
                     <div>
