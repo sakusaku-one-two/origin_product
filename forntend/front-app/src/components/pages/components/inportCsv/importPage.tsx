@@ -70,6 +70,21 @@ const ImportPage:React.FC = () => {
         };
         setCsv(file);
     };
+
+    const SetToDBHandler = async () => {
+        const response = await fetch('api/InsertRecords',{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+            },
+            body:JSON.stringify({insertRecords:selectedRecord}),
+        });
+        if (!response.ok) {
+            alert("DBに登録に失敗しました。");
+            return;
+        }
+        alert("DBに登録しました。");
+    };
     
     // const perseCsv = (dataFromCSV:string):string[][] => {
     //     return dataFromCSV.split('/r/n').map((row) => row.split(','));
@@ -104,6 +119,7 @@ const ImportPage:React.FC = () => {
                 <ResizablePanel defaultSize={30}>   
                     <div className='flex flex-col items-center justify-center h-full'>
                         <h1>Unique</h1>
+                        <button onClick={SetToDBHandler}>DBに登録</button>
                             {
                                 selectedRecord.map((record) => (
                                     <AttendanceCard record={record} />

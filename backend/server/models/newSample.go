@@ -102,7 +102,11 @@ func GenerateSampleData(db *gorm.DB) error {
 	}
 
 	NewQuerySession().Save(timeRecords).Commit()
-	
+
+	for _, time_record := range timeRecords {
+		fmt.Println("GenerateSampleDataでtime_record", time_record.ID, time_record.ManageID)
+	}
+
 	if err := TIME_RECORD_REPOSITORY.Cache.InsertMany(timeRecords[0:50], func(target *TimeRecord) (uint, bool) {
 		return target.ID, true
 	}); err != nil {
