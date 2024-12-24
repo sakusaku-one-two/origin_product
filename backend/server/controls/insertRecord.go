@@ -95,18 +95,20 @@ func InsertRecordsHandler(c echo.Context) error {
 
 			for _, record := range InsertDataArray {
 				if location.ClientID == record.ClientID && location.LocationID == record.LocationID {
-					MatchedRecords[record.ID] = record
 					InsertRecord_as_array = append(InsertRecord_as_array, record)
 				}
 			}
-
 			return true
-
 		})
 
 		saved_gorm_db := tx.Save(InsertRecord_as_array).Commit()
 		if err := saved_gorm_db.Error; err != nil {
 			return err, MatchedRecords
+		} else {
+			//辞書に挿入後（IDが入っているはず）のデータ
+			for _, record := range InsertRecord_as_array {
+				MatchedRecords[record.ID] = record
+			}
 		}
 
 		return nil, MatchedRecords
