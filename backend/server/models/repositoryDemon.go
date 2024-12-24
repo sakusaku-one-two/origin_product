@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -304,7 +305,50 @@ func SetUpRepository() {
 		for locationRecordActionDTO := range repo.Reciver {
 			switch locationRecordActionDTO.Action {
 			case "LOCATION_RECORD/UPDATE":
-				if err := repo.Cache.loadAndSave(locationRecordActionDTO.Payload.ID, locationRecordActionDTO.Payload); err != nil {
+				if err := repo.Cache.MulitPrimaryKeyInsert(locationRecordActionDTO.Payload, func(targetRecord *LocationRecord, tx *gorm.DB, rc *RecordsCache[LocationRecord]) (error, uint) {
+					var return_error error = nil
+					result_flag := false
+					var target_uint_id uint = 0
+					rc.Map.Range(func(key any, value any) bool {
+						//型変換
+						_, id_ok := key.(uint)
+						if !id_ok {
+							return_error = errors.New("ロケーションレコードのMAPのキーのキャストが失敗しました")
+							return false
+						}
+
+						record, rec_ok := value.(LocationRecord)
+						if !rec_ok {
+							return_error = errors.New("ロケーションレコードのMAP内のキャストに失敗しました。")
+							return false
+						}
+
+						if record.ClientID == targetRecord.ClientID && record.LocationID == targetRecord.LocationID {
+							//合致したケース
+							target_uint_id = record.ID
+							result_flag = true
+							return true
+						}
+						return true
+					})
+
+					//何かエラーがあった場合はそのエラーを返す。
+					if return_error != nil {
+						return return_error, 0
+					}
+
+					if result_flag {
+						//既に対象のレコードが存在するので、IDを古いのに入れて内容を更新する。
+						targetRecord.ID = target_uint_id
+						tx.Save(targetRecord).Commit()
+						return nil, targetRecord.ID
+					} else {
+						//対象のレコードがキャッシュに存在しないので、新規登録
+						tx.Save(targetRecord).Commit()
+						return nil, targetRecord.ID
+					}
+
+				}); err != nil {
 					log.Printf("Failed to update cache and DB for LocationRecord ID %v: %v", locationRecordActionDTO.Payload.ID, err)
 					continue
 				}
