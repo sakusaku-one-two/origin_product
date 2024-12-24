@@ -45,6 +45,8 @@ func Mingrate() error {
 			return err
 		}
 	}
+
+	DB.Commit()
 	return nil
 }
 
@@ -74,11 +76,11 @@ func NewEmployeeRecord(
 //--------------------------------[配置先テーブル]-------------------------------------------
 
 type LocationRecord struct { //配置場所のエンティティ
-	ID           uint   `gorm:"primaryKey"`
-	LocationID   uint   `gorm:"not null"` // ロケーションID（主キーの一部）
-	ClientID     uint   `gorm:"not null"` // クライアントID（主キーの一部）
-	LocationName string `gorm:"size:100"` // ロケーションの名前
-	ClientName   string `gorm:"size:100"` //得意先正名称　（会社名）
+	ID           uint   `gorm:"primaryKey"`     //　別途用意した主キー　実際の同定はLocationIDとClientIDの二つの複合主キーとして扱う。
+	LocationID   uint   `gorm:"index;not null"` // ロケーションID（主キーの一部）
+	ClientID     uint   `gorm:"index;not null"` // クライアントID（主キーの一部）
+	LocationName string `gorm:"size:100"`       // ロケーションの名前
+	ClientName   string `gorm:"size:100"`       //得意先正名称　（会社名）
 }
 
 func NewLocationRecord(

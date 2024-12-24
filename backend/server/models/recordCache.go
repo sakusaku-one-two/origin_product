@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -64,9 +65,52 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 	}); err != nil {
 		return err
 	}
-
 	return nil
+}
 
+type mulitGetKeyByOne[ModelType any] func(targetRecord *ModelType, tx *gorm.DB, rc *RecordsCache[ModelType]) (error, uint)
+
+// 複合主キーで配列では無い、単一のデータを更新する為のメソッド
+func (rc *RecordsCache[ModelType]) mulitPrimaryKeyInsert(targetRecord *ModelType, executeFunction mulitGetKeyByOne[ModelType]) error {
+	if targetRecord == nil {
+		return nil
+	}
+
+	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err, id := executeFunction(targetRecord, tx, rc); err != nil {
+			return err
+		} else {
+			rc.Map.Store(id, targetRecord)
+			return nil
+		}
+
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 複合主キーに対応するための関数の型定義　DBにUpsertやId：レコードの辞書を作成する。実質的な処理はこのコールバックで担う。　帰り値はエラーとキャッシュに登録するためのIDと値の辞書
+type mulitGetKey[ModelType any] func(InsertDataArray []*ModelType, tx *gorm.DB, rc *RecordsCache[ModelType]) (error, map[uint]ModelType)
+
+// 複合主キーに対応するためのメソッド。　インサートやアップデートはコールバック関数側で基本おこなって貰う。
+func (rc *RecordsCache[ModelType]) multiPrimaryKeyInsertMany(insertarray []*ModelType, execteFunction mulitGetKey[ModelType]) error {
+
+	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err, keyMap := execteFunction(insertarray, tx, rc); err != nil {
+			//DBに保存失敗
+			fmt.Println("複合主キーの一括DB保存失敗しました")
+			return err
+		} else {
+			for key, val := range keyMap {
+				rc.Map.Store(key, val)
+			}
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 // キャッシュからデータを取得
