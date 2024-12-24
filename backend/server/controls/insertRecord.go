@@ -2,11 +2,13 @@ package controls
 
 import (
 	"backend-app/server/models"
+
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 var ATTENDANCE_RECORD_REPOSITORY *models.Repository[models.AttendanceRecord] = models.ATTENDANCE_RECORD_REPOSITORY
@@ -76,8 +78,39 @@ func InsertRecordsHandler(c echo.Context) error {
 		return target.LocationID
 	})
 
-	err = LOCATION_RECORD_REPOSITORY.Cache.InsertMany(not_duplicate_locations, func(target *models.LocationRecord) (uint, bool) {
-		return target.LocationID, true
+	err = LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(not_duplicate_locations, func(InsertDataArray []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
+		MatchedRecords := map[uint]*models.LocationRecord{}
+		InsertRecord_as_array := []*models.LocationRecord{}
+		rc.Map.Range(func(key any, value any) bool {
+			_, ok := key.(uint)
+			if !ok {
+				fmt.Println("location のIDのキャストが失敗しました。")
+				return false
+			}
+			location, ok := value.(*models.LocationRecord)
+			if !ok {
+				fmt.Println("Locationのオブジェクトの型変換が失敗しました")
+				return false
+			}
+
+			for _, record := range InsertDataArray {
+				if location.ClientID == record.ClientID && location.LocationID == record.LocationID {
+					MatchedRecords[record.ID] = record
+					InsertRecord_as_array = append(InsertRecord_as_array, record)
+				}
+			}
+
+			return true
+
+		})
+
+		saved_gorm_db := tx.Save(InsertRecord_as_array).Commit()
+		if err := saved_gorm_db.Error; err != nil {
+			return err, MatchedRecords
+		}
+
+		return nil, MatchedRecords
+
 	})
 
 	if err != nil {
