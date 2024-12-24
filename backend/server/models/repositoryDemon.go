@@ -208,7 +208,6 @@ func SetUpRepository() {
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 				}
-
 				return true
 			})
 
@@ -228,7 +227,6 @@ func SetUpRepository() {
 
 		//1時間おきに動作するゴルーチン
 		for {
-
 			currentTime := <-ticker.C
 			before_time := currentTime.Local().Add(-1 * time.Hour)
 			after_time := currentTime.Local().Add(8 * time.Hour)
