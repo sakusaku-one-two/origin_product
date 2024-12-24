@@ -83,15 +83,11 @@ func InsertRecordsHandler(c echo.Context) error {
 
 	//------------------------------------[LocationRecordを一括で登録する]----------------------------------------------------------------------------
 
-	er := LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(not_duplicate_locations, func(InsertDataArra []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
+	getKeyForLocationRecord := func(InsertDataArray []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
 		MatchedRecords := map[uint]*models.LocationRecord{}
 		InsertRecord_as_array := []*models.LocationRecord{}
-		rc.Map.Range(func(key any, value any) bool {
-			_, ok := key.(uint)
-			if !ok {
-				fmt.Println("location のIDのキャストが失敗しました。")
-				return false
-			}
+		rc.Map.Range(func(_ any, value any) bool {
+
 			location, ok := value.(*models.LocationRecord)
 			if !ok {
 				fmt.Println("Locationのオブジェクトの型変換が失敗しました")
@@ -118,8 +114,11 @@ func InsertRecordsHandler(c echo.Context) error {
 		}
 
 		return nil, MatchedRecords
+	}
 
-	})
+	er := LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(not_duplicate_locations, getKeyForLocationRecord)
+
+	//------------------------------------------------------------------------------------------------------------------
 
 	if er != nil {
 		fmt.Println("InsertRecordsHandlerでLOCATION_RECORD_REPOSITORY.Cache.InsertManyでエラー", er.Error())
