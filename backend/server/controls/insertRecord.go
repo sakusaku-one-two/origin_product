@@ -74,11 +74,16 @@ func InsertRecordsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	not_duplicate_locations, _ := DuplicateDelete[models.LocationRecord](location_records, func(target models.LocationRecord) uint {
+	not_duplicate_locations, err := DuplicateDelete[models.LocationRecord](location_records, func(target models.LocationRecord) uint {
 		return target.LocationID
 	})
+	if err != nil {
+		fmt.Println("重複削除でエラーがおきました。(Location)")
+	}
 
-	err = LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(not_duplicate_locations, func(InsertDataArray []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
+	//------------------------------------[LocationRecordを一括で登録する]----------------------------------------------------------------------------
+
+	er := LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(not_duplicate_locations, func(InsertDataArra []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
 		MatchedRecords := map[uint]*models.LocationRecord{}
 		InsertRecord_as_array := []*models.LocationRecord{}
 		rc.Map.Range(func(key any, value any) bool {
@@ -93,7 +98,7 @@ func InsertRecordsHandler(c echo.Context) error {
 				return false
 			}
 
-			for _, record := range InsertDataArray {
+			for _, record := range InsertRecord_as_array {
 				if location.ClientID == record.ClientID && location.LocationID == record.LocationID {
 					InsertRecord_as_array = append(InsertRecord_as_array, record)
 				}
@@ -101,11 +106,12 @@ func InsertRecordsHandler(c echo.Context) error {
 			return true
 		})
 
-		saved_gorm_db := tx.Save(InsertRecord_as_array).Commit()
+		saved_gorm_db := tx.Save(InsertRecord_as_array)
 		if err := saved_gorm_db.Error; err != nil {
 			return err, MatchedRecords
 		} else {
 			//辞書に挿入後（IDが入っているはず）のデータ
+			saved_gorm_db.Commit()
 			for _, record := range InsertRecord_as_array {
 				MatchedRecords[record.ID] = record
 			}
@@ -115,9 +121,9 @@ func InsertRecordsHandler(c echo.Context) error {
 
 	})
 
-	if err != nil {
-		fmt.Println("InsertRecordsHandlerでLOCATION_RECORD_REPOSITORY.Cache.InsertManyでエラー", err.Error())
-		return c.JSON(http.StatusInternalServerError, err.Error())
+	if er != nil {
+		fmt.Println("InsertRecordsHandlerでLOCATION_RECORD_REPOSITORY.Cache.InsertManyでエラー", er.Error())
+		return c.JSON(http.StatusInternalServerError, er.Error())
 	}
 
 	err = TIME_RECORD_REPOSITORY.Cache.InsertMany(time_records, func(target *models.TimeRecord) (uint, bool) {
