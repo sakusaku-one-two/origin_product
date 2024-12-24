@@ -31,7 +31,6 @@ func InsertRecordsHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	fmt.Println("InsertRecordsHandlerでregistoryData", registoryData)
 	//キャッシュに登録するためのデータを作成
 	time_records := []*models.TimeRecord{}
 	employee_records := []*models.EmployeeRecord{}
@@ -89,7 +88,7 @@ func InsertRecordsHandler(c echo.Context) error {
 
 		//重複削除の処理
 
-		duplicate_locations := []models.LocationRecord{}
+		duplicate_locations := []*models.LocationRecord{}
 		for _, record := range InsertDataArray {
 			flag := true
 			for _, location_record := range duplicate_locations {
@@ -98,7 +97,7 @@ func InsertRecordsHandler(c echo.Context) error {
 				}
 			}
 			if flag {
-				duplicate_locations = append(duplicate_locations, *record)
+				duplicate_locations = append(duplicate_locations, record)
 			}
 		}
 
@@ -110,20 +109,24 @@ func InsertRecordsHandler(c echo.Context) error {
 				return false
 			}
 
+			flag := true
 			for _, record := range duplicate_locations {
 				if location.ClientID == record.ClientID && location.LocationID == record.LocationID {
-					InsertRecord_as_array = append(InsertRecord_as_array, &record)
+					flag = false
 				}
+			}
+			if flag {
+				InsertRecord_as_array = append(InsertRecord_as_array, location)
 			}
 			return true
 		})
-
+		fmt.Println("InsertRecord_as_array", len(InsertRecord_as_array))
 		saved_gorm_db := tx.Save(InsertRecord_as_array)
 		if err := saved_gorm_db.Error; err != nil {
 			return MatchedRecords, err
 		} else {
 			//辞書に挿入後（IDが入っているはず）のデータ
-			saved_gorm_db.Commit()
+
 			for _, record := range InsertRecord_as_array {
 				fmt.Println("InsertRecord_as_array-> ID", record.ID)
 				MatchedRecords[record.ID] = record
@@ -165,6 +168,33 @@ func InsertRecordsHandler(c echo.Context) error {
 		fmt.Println("InsertRecordsHandlerでPOST_RECORD_REPOSITORY.Cache.InsertManyでエラー", err.Error())
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
+
+	// for _, record := range insert_records {
+	// location, ok := LOCATION_RECORD_REPOSITORY.Cache.Get(record.LocationID)
+	// if !ok {
+	// 	fmt.Println("InsertRecordsHandlerでLOCATION_RECORD_REPOSITORY.Cache.Getでエラー", record.LocationID, record.Location)
+	// 	return c.JSON(http.StatusInternalServerError, map[string]string{
+	// 		"status": "LOCATION_RECORD_REPOSITORY.Cache.Getでエラー",
+	// 	})
+	// }
+	// record.Location = *location
+	// // emp, ok := EMPLOYEE_RECORD_REPOSITORY.Cache.Get(record.EmpID)
+	// if !ok {
+	// 	fmt.Println("InsertRecordsHandlerでEMPLOYEE_RECORD_REPOSITORY.Cache.Getでエラー", record.EmpID, record.Emp)
+	// 	return c.JSON(http.StatusInternalServerError, map[string]string{
+	// 		"status": "EMPLOYEE_RECORD_REPOSITORY.Cache.Getでエラー",
+	// 	})
+	// }
+	// record.Emp = *emp
+	// post, ok := POST_RECORD_REPOSITORY.Cache.Get(record.Post.PostID)
+	// if !ok {
+	// 	fmt.Println("InsertRecordsHandlerでPOST_RECORD_REPOSITORY.Cache.Getでエラー", record.PostID, record.Post)
+	// 	return c.JSON(http.StatusInternalServerError, map[string]string{
+	// 		"status": "POST_RECORD_REPOSITORY.Cache.Getでエラー",
+	// 	})
+	// }
+	// record.Post = *post
+	// }
 
 	err = ATTENDANCE_RECORD_REPOSITORY.Cache.InsertMany(insert_records, func(target *models.AttendanceRecord) (uint, bool) {
 		return target.ManageID, true

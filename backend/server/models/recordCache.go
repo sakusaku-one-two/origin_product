@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -194,4 +195,23 @@ func (rc *RecordsCache[ModelType]) Get(id uint) (*ModelType, bool) {
 		return nil, false
 	}
 	return targetModel, true
+}
+
+// キャッシュに登録する(DBに保存してID値を付与した状態で返す)
+func (rc *RecordsCache[ModelType]) CreateNew(not_id_targetData *ModelType, fetchId GetId[ModelType, uint]) (*ModelType, error) {
+
+	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(not_id_targetData).Error; err != nil {
+			return err
+		}
+		id, ok := fetchId(not_id_targetData)
+		if !ok {
+			return errors.New("IDの取得に失敗しました")
+		}
+		rc.Map.Store(id, not_id_targetData)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return not_id_targetData, nil
 }

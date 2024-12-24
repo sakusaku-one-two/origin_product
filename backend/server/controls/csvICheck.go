@@ -199,6 +199,7 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 			ManageID:   row["管制番号"].To_int(), //これが基本となる値。
 			EmpID:      row["隊員番号"].as_int,   //社員番号
 			LocationID: row["配置先番号"].as_int,  //配置先番号
+			PostID:     row["勤務番号"].as_int,   //勤務形態番号
 			Emp:        *emp,
 			Location:   *location,
 			Post:       *post_record,
