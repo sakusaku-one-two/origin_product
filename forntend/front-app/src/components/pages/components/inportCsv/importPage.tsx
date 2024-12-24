@@ -30,7 +30,6 @@ export type ComfirmationRecords = {
 
 //CSVをサーバーに送るページ
 const ImportPage:React.FC = () => {
-   
 
     //選択されたレコードを保持
     // const [isLeft,setIsLeft] = useState<boolean>(checkedData.IsLeft);
@@ -53,11 +52,12 @@ const ImportPage:React.FC = () => {
             const response = await fetch('api/Csvcheck',{
                 method:'POST',
                 body:formData,//formDataを送信(ファイルを送信するために必要)
-           
             });
 
             if (!response.ok) {
                 alert("CSVに不備があります。");
+                const message = await response.json();
+                console.log(message);
                 return;
             }
             
@@ -66,7 +66,6 @@ const ImportPage:React.FC = () => {
             setFromCsv(result.FromCsv);
             setFromDb(result.FromDb);
             setSelectedRecord(result.UniqueRecord);
-            
         };
         setCsv(file);
     };
@@ -81,6 +80,9 @@ const ImportPage:React.FC = () => {
         });
         if (!response.ok) {
             alert("DBに登録に失敗しました。");
+            const message = await response.json();
+            console.log(message);
+
             return;
         }
         alert("DBに登録しました。");

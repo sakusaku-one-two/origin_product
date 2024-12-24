@@ -31,8 +31,8 @@ func InsertRecordsHandler(c echo.Context) error {
 	fmt.Println("InsertRecordsHandlerでregistoryData", registoryData)
 	//キャッシュに登録するためのデータを作成
 	time_records := []*models.TimeRecord{}
-	employee_records := []*models.EmployeeRecord{}
-	location_records := []*models.LocationRecord{}
+	employee_records := []models.EmployeeRecord{}
+	location_records := []models.LocationRecord{}
 	insert_records := []*models.AttendanceRecord{}
 	for _, target := range registoryData.InsertRecords {
 		for _, time_record := range target.TimeRecords {
@@ -41,15 +41,29 @@ func InsertRecordsHandler(c echo.Context) error {
 
 		temp_target := target
 		if ok := EMPLOYEE_RECORD_REPOSITORY.Cache.Exists(temp_target.EmpID); !ok {
-			employee_records = append(employee_records, &temp_target.Emp)
+
+			employee_records = append(employee_records, temp_target.Emp)
 		}
+		temp_target.Emp = models.EmployeeRecord{}
 		if ok := LOCATION_RECORD_REPOSITORY.Cache.Exists(temp_target.LocationID); !ok {
-			location_records = append(location_records, &temp_target.Location)
+			location_records = append(location_records, temp_target.Location)
 		}
+		temp_target.Location = models.LocationRecord{}
 		insert_records = append(insert_records, &temp_target)
 	}
 
-	err = EMPLOYEE_RECORD_REPOSITORY.Cache.InsertMany(employee_records, func(target *models.EmployeeRecord) (uint, bool) {
+	dublicate_emps, err := DuplicateDelete[models.EmployeeRecord](employee_records, func(target models.EmployeeRecord) uint {
+		return target.EmpID
+	})
+
+	if err != nil {
+		fmt.Println("社員データの重複削除が失敗しました")
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"status": "社員データの重複削除が失敗しました",
+		})
+	}
+
+	err = EMPLOYEE_RECORD_REPOSITORY.Cache.InsertMany(dublicate_emps, func(target *models.EmployeeRecord) (uint, bool) {
 		return target.EmpID, true
 	})
 
@@ -58,7 +72,11 @@ func InsertRecordsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	err = LOCATION_RECORD_REPOSITORY.Cache.InsertMany(location_records, func(target *models.LocationRecord) (uint, bool) {
+	not_duplicate_locations, _ := DuplicateDelete[models.LocationRecord](location_records, func(target models.LocationRecord) uint {
+		return target.LocationID
+	})
+
+	err = LOCATION_RECORD_REPOSITORY.Cache.InsertMany(not_duplicate_locations, func(target *models.LocationRecord) (uint, bool) {
 		return target.LocationID, true
 	})
 
@@ -100,4 +118,22 @@ func InsertRecordsHandler(c echo.Context) error {
 	}()
 
 	return c.JSON(http.StatusOK, "OK")
+}
+
+type getId[ModleType any] func(target ModleType) uint
+
+func DuplicateDelete[ModelType any](targetArray []ModelType, FetchID getId[ModelType]) ([]*ModelType, error) {
+	id_map := map[uint]ModelType{}
+
+	for _, record := range targetArray {
+		id := FetchID(record)
+		id_map[id] = record
+	}
+
+	return_array := []*ModelType{}
+
+	for _, value := range id_map {
+		return_array = append(return_array, &value)
+	}
+	return return_array, nil
 }

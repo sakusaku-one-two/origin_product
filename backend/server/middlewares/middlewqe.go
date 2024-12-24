@@ -28,5 +28,9 @@ func SetUpMiddlewares(e *echo.Echo) {
 		ContentSecurityPolicy: "default-src 'self';connect-src 'self' wss://api.wss/sync;",
 	}))
 
+	e.Use(middleware.BodyLimitWithConfig(middleware.BodyLimitConfig{
+		Limit: "2G",
+	}))
+
 	e.Use(JWTMiddleware()) //JWTでUser情報を格納
 }
