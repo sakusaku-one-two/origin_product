@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 )
 
 var ATTENDANCE_RECORD_REPOSITORY *models.Repository[models.AttendanceRecord] = models.ATTENDANCE_RECORD_REPOSITORY
@@ -30,11 +29,11 @@ func InsertRecordsHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	fmt.Println("InsertRecordsHandlerでregistoryData", registoryData)
+	fmt.Println("InsertRecordsHandlerでregistoryData")
 	//キャッシュに登録するためのデータを作成
 	time_records := []*models.TimeRecord{}
-	employee_records := []models.EmployeeRecord{}
-	location_records := []models.LocationRecord{}
+	employee_records := []*models.EmployeeRecord{}
+	location_records := []*models.LocationRecord{}
 	insert_records := []*models.AttendanceRecord{}
 	for _, target := range registoryData.InsertRecords {
 		for _, time_record := range target.TimeRecords {
@@ -43,29 +42,16 @@ func InsertRecordsHandler(c echo.Context) error {
 
 		temp_target := target
 		if ok := EMPLOYEE_RECORD_REPOSITORY.Cache.Exists(temp_target.EmpID); !ok {
-
-			employee_records = append(employee_records, temp_target.Emp)
+			employee_records = append(employee_records, &temp_target.Emp)
 		}
 		temp_target.Emp = models.EmployeeRecord{}
 		if ok := LOCATION_RECORD_REPOSITORY.Cache.Exists(temp_target.LocationID); !ok {
-			location_records = append(location_records, temp_target.Location)
+			location_records = append(location_records, &temp_target.Location)
 		}
-		temp_target.Location = models.LocationRecord{}
 		insert_records = append(insert_records, &temp_target)
 	}
 
-	dublicate_emps, err := DuplicateDelete[models.EmployeeRecord](employee_records, func(target models.EmployeeRecord) uint {
-		return target.EmpID
-	})
-
-	if err != nil {
-		fmt.Println("社員データの重複削除が失敗しました")
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"status": "社員データの重複削除が失敗しました",
-		})
-	}
-
-	err = EMPLOYEE_RECORD_REPOSITORY.Cache.InsertMany(dublicate_emps, func(target *models.EmployeeRecord) (uint, bool) {
+	err = EMPLOYEE_RECORD_REPOSITORY.Cache.InsertMany(employee_records, func(target *models.EmployeeRecord) (uint, bool) {
 		return target.EmpID, true
 	})
 
@@ -74,55 +60,13 @@ func InsertRecordsHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	not_duplicate_locations, err := DuplicateDelete[models.LocationRecord](location_records, func(target models.LocationRecord) uint {
-		return target.LocationID
+	err = LOCATION_RECORD_REPOSITORY.Cache.InsertMany(location_records, func(target *models.LocationRecord) (uint, bool) {
+		return target.LocationID, true
 	})
+
 	if err != nil {
-		fmt.Println("重複削除でエラーがおきました。(Location)")
-	}
-
-	//------------------------------------[LocationRecordを一括で登録する]----------------------------------------------------------------------------
-
-	getKeyForLocationRecord := func(InsertDataArray []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
-		MatchedRecords := map[uint]*models.LocationRecord{}
-		InsertRecord_as_array := []*models.LocationRecord{}
-		rc.Map.Range(func(_ any, value any) bool {
-
-			location, ok := value.(*models.LocationRecord)
-			if !ok {
-				fmt.Println("Locationのオブジェクトの型変換が失敗しました")
-				return false
-			}
-
-			for _, record := range InsertRecord_as_array {
-				if location.ClientID == record.ClientID && location.LocationID == record.LocationID {
-					InsertRecord_as_array = append(InsertRecord_as_array, record)
-				}
-			}
-			return true
-		})
-
-		saved_gorm_db := tx.Save(InsertRecord_as_array)
-		if err := saved_gorm_db.Error; err != nil {
-			return err, MatchedRecords
-		} else {
-			//辞書に挿入後（IDが入っているはず）のデータ
-			saved_gorm_db.Commit()
-			for _, record := range InsertRecord_as_array {
-				MatchedRecords[record.ID] = record
-			}
-		}
-
-		return nil, MatchedRecords
-	}
-
-	er := LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(not_duplicate_locations, getKeyForLocationRecord)
-
-	//------------------------------------------------------------------------------------------------------------------
-
-	if er != nil {
-		fmt.Println("InsertRecordsHandlerでLOCATION_RECORD_REPOSITORY.Cache.InsertManyでエラー", er.Error())
-		return c.JSON(http.StatusInternalServerError, er.Error())
+		fmt.Println("InsertRecordsHandlerでLOCATION_RECORD_REPOSITORY.Cache.InsertManyでエラー", err.Error())
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	err = TIME_RECORD_REPOSITORY.Cache.InsertMany(time_records, func(target *models.TimeRecord) (uint, bool) {
