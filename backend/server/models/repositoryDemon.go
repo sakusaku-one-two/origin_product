@@ -303,7 +303,7 @@ func SetUpRepository() {
 		for locationRecordActionDTO := range repo.Reciver {
 			switch locationRecordActionDTO.Action {
 			case "LOCATION_RECORD/UPDATE":
-				if err := repo.Cache.MulitPrimaryKeyInsert(locationRecordActionDTO.Payload, func(targetRecord *LocationRecord, tx *gorm.DB, rc *RecordsCache[LocationRecord]) (error, uint) {
+				if err := repo.Cache.MulitPrimaryKeyInsert(locationRecordActionDTO.Payload, func(targetRecord *LocationRecord, tx *gorm.DB, rc *RecordsCache[LocationRecord]) (uint, error) {
 					var return_error error = nil
 					result_flag := false
 					var target_uint_id uint = 0
@@ -332,18 +332,18 @@ func SetUpRepository() {
 
 					//何かエラーがあった場合はそのエラーを返す。
 					if return_error != nil {
-						return return_error, 0
+						return 0, return_error
 					}
 
 					if result_flag {
 						//既に対象のレコードが存在するので、IDを古いのに入れて内容を更新する。
 						targetRecord.ID = target_uint_id
 						tx.Save(targetRecord).Commit()
-						return nil, targetRecord.ID
+						return targetRecord.ID, nil
 					} else {
 						//対象のレコードがキャッシュに存在しないので、新規登録
 						tx.Save(targetRecord).Commit()
-						return nil, targetRecord.ID
+						return targetRecord.ID, nil
 					}
 
 				}); err != nil {

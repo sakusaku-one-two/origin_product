@@ -68,7 +68,7 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 	return nil
 }
 
-type MulitGetKeyByOne[ModelType any] func(targetRecord *ModelType, tx *gorm.DB, rc *RecordsCache[ModelType]) (error, uint)
+type MulitGetKeyByOne[ModelType any] func(targetRecord *ModelType, tx *gorm.DB, rc *RecordsCache[ModelType]) (uint, error)
 
 // 複合主キーで配列では無い、単一のデータを更新する為のメソッド
 func (rc *RecordsCache[ModelType]) MulitPrimaryKeyInsert(targetRecord *ModelType, executeFunction MulitGetKeyByOne[ModelType]) error {
@@ -78,7 +78,7 @@ func (rc *RecordsCache[ModelType]) MulitPrimaryKeyInsert(targetRecord *ModelType
 
 	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
 		//executeFunctionにはトランザクションを渡して保存してもらう。
-		if err, id := executeFunction(targetRecord, tx, rc); err != nil {
+		if id, err := executeFunction(targetRecord, tx, rc); err != nil {
 			return err
 		} else {
 			rc.Map.Store(id, targetRecord)
