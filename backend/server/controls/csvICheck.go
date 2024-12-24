@@ -6,9 +6,9 @@ import (
 	"backend-app/server/models"
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -36,33 +36,36 @@ type Value struct {
 
 // factorymethod　=>　Value
 func ValueInit(val any) *Value {
+
 	created_val := &Value{
 		Preval: val,
 	}
-	//anyを文字列にキャスト　->「 as_stringに結果を格納
-	created_val.To_string()
-	//as_stringを数値に変換
-	created_val.To_int()
+	// // //anyを文字列にキャスト　->「 as_stringに結果を格納
+	// created_val.To_string()
+	// // //as_stringを数値に変換
+	// created_val.To_int()
 
 	return created_val
 }
 
-func (v *Value) To_int() {
-	number, err := strconv.Atoi(v.as_string)
+func (v *Value) To_int() uint {
+	number, err := strconv.Atoi(v.To_string())
 	if err != nil {
 		v.is_error = err
-		return
+		return 0
 	}
 	v.as_int = uint(number)
+	return v.as_int
 }
 
-func (v *Value) To_string() {
+func (v *Value) To_string() string {
 	casted_string, ok := v.Preval.(string)
 	if !ok {
 		v.is_error = errors.New("文字列に変換失敗しました。")
-		return
+		return ""
 	}
 	v.as_string = casted_string
+	return v.as_string
 }
 
 type CsvTable struct { //CSVをプログラムで扱いやすい形にしたもの。基本的には
@@ -72,6 +75,7 @@ type CsvTable struct { //CSVをプログラムで扱いやすい形にしたも�
 
 // コンストラクタ
 func CreateCsVTable(reader *csv.Reader) (*CsvTable, error) {
+	fmt.Println("CreateCsVTableの呼び出し")
 	//最初の行
 	headerRow, err := reader.Read()
 	if err != nil {
@@ -116,6 +120,7 @@ func CreateCsVTable(reader *csv.Reader) (*CsvTable, error) {
 
 // このCSVテーブルをDBへ登録しても問題ないか確認するメソッド
 func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
+	fmt.Println("checkReqireColmunsの呼び出し")
 	if len(ct.header) == 0 || len(ct.rows) == 0 {
 		return nil, false
 	}
@@ -139,17 +144,64 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 
 // このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
 func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
-
+	fmt.Println("To_AttendanceRecordsの呼び出し")
 	createToAttendacneRecord := func(row map[string]*Value) *models.AttendanceRecord {
 		time_records, err := CreateTimeRecord(row)
 		if err != nil {
 			return nil
 		}
-		return &models.AttendanceRecord{
-			ManageID:   row["管制番号"].as_int,  //これが基本となる値。
-			EmpID:      row["隊員番号"].as_int,  //社員番号
-			LocationID: row["配置先番号"].as_int, //配置先番号
+		emp, ok := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Get(row["隊員番号"].To_int())
+		if !ok {
+			//社員が存在しないので新しく作成して、キャッシュに登録
+			emp = &models.EmployeeRecord{
+				EmpID:    row["隊員番号"].as_int,
+				Name:     row["隊員名"].To_string(),
+				Email:    "",
+				IsInTerm: false,
+			}
+			models.EMPLOYEE_RECORD_REPOSITORY.Cache.Insert(emp.EmpID, emp)
+		}
 
+		var location *models.LocationRecord
+		target_locationID := row["配置先番号"].To_int()
+		client_ID := row["得意先番号"].To_int()
+		for _, location_record := range models.LOCATION_RECORD_REPOSITORY.Cache.Dump() {
+			if location_record.LocationID == target_locationID && location_record.ClientID == client_ID {
+				location = &location_record
+				break
+			}
+		}
+
+		if location == nil {
+			//配置先が存在しないので新しく作成して、キャッシュに登録
+			location = &models.LocationRecord{
+				LocationID:   target_locationID,
+				ClientID:     client_ID,
+				LocationName: row["配置先正式名称"].To_string(),
+				ClientName:   row["得意先正式名称"].To_string(),
+			}
+			models.LOCATION_RECORD_REPOSITORY.Cache.Insert(location.LocationID, location)
+		}
+
+		//勤務形態を取得 （存在しない場合は新しく作成して、キャッシュに登録）
+		post_record, ok := models.POST_RECORD_REPOSITORY.Cache.Get(row["勤務番号"].To_int())
+		if !ok {
+			//勤務形態が存在しないので新しく作成して、キャッシュに登録
+			post_record = &models.PostRecord{
+				PostID:   row["勤務番号"].To_int(),
+				PostName: row["勤務形態正式名称"].To_string(),
+			}
+			models.POST_RECORD_REPOSITORY.Cache.Insert(post_record.PostID, post_record)
+		}
+
+		//ここまでで、必要なデータを全て取得したので、AttendanceRecordを作製
+		return &models.AttendanceRecord{
+			ManageID:   row["管制番号"].To_int(), //これが基本となる値。
+			EmpID:      row["隊員番号"].as_int,   //社員番号
+			LocationID: row["配置先番号"].as_int,  //配置先番号
+			Emp:        *emp,
+			Location:   *location,
+			Post:       *post_record,
 			//時間レコードを変換　（参照型から値型）
 			TimeRecords: func(time__records []*models.TimeRecord) []models.TimeRecord {
 				var new_time_records []models.TimeRecord
@@ -172,6 +224,7 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 
 // 管制日付から最小日と最大日を返す
 func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
+	fmt.Println("TimeSpanの呼び出し")
 	var tmp_time time.Time
 	var max_time time.Time = time.Time{} //仮の初期値
 	var min_time time.Time = time.Time{} //仮の初期値
@@ -194,6 +247,7 @@ func (ct *CsvTable) TimeSpan() (time.Time, time.Time) {
 }
 
 func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
+	fmt.Println("BetweenMaxAndMinの呼び出し")
 	if len(ct.rows) == 0 {
 		return 0, 0, false
 	}
@@ -202,7 +256,7 @@ func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
 	var temp_val uint
 
 	for _, row := range ct.rows {
-		temp_val = row["管制実績番号"].as_int
+		temp_val = row["管制番号"].To_int()
 
 		if temp_val < min_val {
 			min_val = temp_val
@@ -221,17 +275,25 @@ func (ct *CsvTable) BetweenMaxAndMin() (uint, uint, bool) {
 
 // CSVファイルのインポート
 func CsvImportHandler(c echo.Context) error {
-
-	import_csv := c.FormValue("import_csv")
-	if import_csv == "" {
-		return c.String(http.StatusBadRequest, "csv file not found")
+	fmt.Println("CsvImportHandlerの呼び出し")
+	import_csv, err := c.FormFile("file")
+	if err != nil {
+		fmt.Println("ファイルが見つかりません。")
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "csv file not found"})
 	}
 
-	reader := csv.NewReader(strings.NewReader(import_csv))
+	src, err := import_csv.Open()
+	if err != nil {
+		fmt.Println("ファイルが見つかりません。")
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "csv file not found"})
+	}
+	defer src.Close()
+	reader := csv.NewReader(src)
 
 	csv_table, value_error := CreateCsVTable(reader)
 	if value_error != nil {
-		return c.String(http.StatusBadRequest, "CSVの値に問題があります。確認してくださ。")
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "CSVの値に問題があります。確認してくださ。",
+			"error": value_error.Error()})
 	}
 
 	//CSVを確認し、

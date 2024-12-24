@@ -4,6 +4,8 @@ import (
 	"backend-app/server/models"
 	"errors"
 	"log"
+
+	"gorm.io/gorm"
 )
 
 /*
@@ -77,7 +79,12 @@ func GetRangeRecords(min_id uint, max_id uint) ([]*models.AttendanceRecord, bool
 
 	var result_array []*models.AttendanceRecord
 
-	if err := models.NewQuerySession().Where("ManageID >= ?", min_id).Where("ManageID <= ?", max_id).Find(&result_array).Error; err != nil {
+	if err := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.AttendanceRecord{}).Where("manage_id >= ?", min_id).Where("manage_id <= ?", max_id).Find(&result_array).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		log.Println(err)
 		return nil, false
 	}

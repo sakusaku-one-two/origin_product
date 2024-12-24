@@ -40,6 +40,10 @@ type GetId[ModleType any, ReturnType any] func(target *ModleType) (ReturnType, b
 // 複数のデータをキャッシュに登録と同時にDBに保存する
 func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId GetId[ModelType, uint]) error {
 
+	if len(payloadArray) == 0 {
+		return nil
+	}
+
 	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
 		// DBに保存
 		if err := tx.Save(payloadArray).Error; err != nil {
@@ -135,4 +139,12 @@ func (rc *RecordsCache[ModelType]) GetAll() []ModelType {
 		return true
 	})
 	return result
+}
+
+func (rc *RecordsCache[ModelType]) Get(id uint) (*ModelType, bool) {
+	targetModel, ok := rc.getValue(id)
+	if !ok {
+		return nil, false
+	}
+	return targetModel, true
 }

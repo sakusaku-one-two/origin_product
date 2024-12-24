@@ -1,18 +1,43 @@
-import { AttendanceRecord } from '@/redux/recordType';
+import { AttendanceRecord} from '@/redux/recordType';
 import React,{useState} from 'react';
-
+import {
+    ResizablePanelGroup,
+    ResizablePanel,
+    ResizableHandle
+} from '@/components/ui/resizable';
+// import {
+//     Carousel,
+//     CarouselContent,
+//     CarouselItem,
+//     CarouselNext,
+//     CarouselPrevious,
+//   } from "@/components/ui/carousel";
+import AttendanceCard from './attendanceCard';
 
 export type ComfirmationRecords = {
-    isLeft:boolean,
-    fromCsv:Map<number,AttendanceRecord[]>,
-    fromDb:Map<number,AttendanceRecord[]>,
-    uniqueRecord:AttendanceRecord[]
+    IsLeft:boolean,
+    FromCsv:Map<number,AttendanceRecord[]>,
+    FromDb:Map<number,AttendanceRecord[]>,
+    UniqueRecord:AttendanceRecord[]
 };
 
+        // const InitialSelectedRecord:ComfirmationRecords = {
+        //     IsLeft:false,
+        //     FromCsv:new Map(),
+        //     FromDb:new Map(),
+        //     UniqueRecord:[]
+        // };
 
 //CSVをサーバーに送るページ
 const ImportPage:React.FC = () => {
-    const [checkedData,setCheckedData] = useState<null|ComfirmationRecords>(null);
+   
+
+    //選択されたレコードを保持
+    // const [isLeft,setIsLeft] = useState<boolean>(checkedData.IsLeft);
+    const [fromCsv,setFromCsv] = useState<Map<number,AttendanceRecord[]>>(new Map());
+    const [fromDb,setFromDb] = useState<Map<number,AttendanceRecord[]>>(new Map());
+    const [selectedRecord,setSelectedRecord] = useState<AttendanceRecord[]>([]);
+    
 
     const [csvData,setCsvData] = useState<string>("");
     const SetCsvHandler = (event:HTMLInputElement|any) => {
@@ -24,14 +49,12 @@ const ImportPage:React.FC = () => {
         const setCsv = async (data:File|Blob) => {
             
             const  formData = new FormData();
-            formData.append('import_csv',data);
-
+            formData.append('file',data);
+            console.log(formData);
             const response = await fetch('api/Csvcheck',{
                 method:'POST',
                 body:formData,//formDataを送信(ファイルを送信するために必要)
-                headers:{
-                    'Content-Type':'multipart/form-data',
-                },
+           
             });
 
             if (!response.ok) {
@@ -41,14 +64,24 @@ const ImportPage:React.FC = () => {
             }
             
             const result:ComfirmationRecords|any = await response.json();
-            
-           
-            
-
-            
-           
+            setCheckedData(result);
         };
         setCsv(file);
+    };
+
+    const SetToDBHandler = async () => {
+        const response = await fetch('api/InsertRecords',{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+            },
+            body:JSON.stringify({insertRecords:selectedRecord}),
+        });
+        if (!response.ok) {
+            alert("DBに登録に失敗しました。");
+            return;
+        }
+        alert("DBに登録しました。");
     };
     
     // const perseCsv = (dataFromCSV:string):string[][] => {
@@ -56,18 +89,18 @@ const ImportPage:React.FC = () => {
     // };
 
     return (
-        <div>
+        <div className=''>
             <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
-            { perseCsv(csvData).map((row:string[]) => {
-              return (
-                <div>
-                    {
-                        row.map((cell:string) => cell )
-                    }
-                </div>
-              );
-            })
-            }
+            
+            {checkedData && (
+               checkedData.uniqueRecord.map((record:AttendanceRecord) => {
+                return (
+                    <div>
+                        {record.ManageID}
+                    </div>
+                );
+               })
+            )}
         </div>
     );
 };
