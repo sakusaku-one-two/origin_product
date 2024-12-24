@@ -83,7 +83,7 @@ func InsertRecordsHandler(c echo.Context) error {
 
 	//------------------------------------[LocationRecordを一括で登録する]----------------------------------------------------------------------------
 
-	getKeyForLocationRecord := func(InsertDataArray []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (error, map[uint]*models.LocationRecord) {
+	getKeyForLocationRecord := func(InsertDataArray []*models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (map[uint]*models.LocationRecord, error) {
 		MatchedRecords := map[uint]*models.LocationRecord{}
 		InsertRecord_as_array := []*models.LocationRecord{}
 
@@ -120,7 +120,7 @@ func InsertRecordsHandler(c echo.Context) error {
 
 		saved_gorm_db := tx.Save(InsertRecord_as_array)
 		if err := saved_gorm_db.Error; err != nil {
-			return err, MatchedRecords
+			return MatchedRecords, err
 		} else {
 			//辞書に挿入後（IDが入っているはず）のデータ
 			saved_gorm_db.Commit()
@@ -130,7 +130,7 @@ func InsertRecordsHandler(c echo.Context) error {
 			}
 		}
 
-		return nil, MatchedRecords
+		return MatchedRecords, nil
 	}
 
 	er := LOCATION_RECORD_REPOSITORY.Cache.MultiPrimaryKeyInsertMany(location_records, getKeyForLocationRecord)
