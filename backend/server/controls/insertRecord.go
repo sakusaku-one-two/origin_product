@@ -44,16 +44,15 @@ func InsertRecordsHandler(c echo.Context) error {
 
 		temp_target := target
 		if ok := EMPLOYEE_RECORD_REPOSITORY.Cache.Exists(temp_target.EmpID); !ok {
-
 			employee_records = append(employee_records, &temp_target.Emp)
 		}
-		temp_target.Emp = models.EmployeeRecord{}
 
 		location_records = append(location_records, &temp_target.Location)
-
-		temp_target.Location = models.LocationRecord{}
 		insert_records = append(insert_records, &temp_target)
 		post_records = append(post_records, &temp_target.Post)
+		temp_target.Emp = models.EmployeeRecord{}
+		temp_target.Location = models.LocationRecord{}
+		temp_target.Post = models.PostRecord{}
 	}
 
 	dublicate_emps, err := DuplicateDelete[models.EmployeeRecord](employee_records, func(target models.EmployeeRecord) uint {
@@ -207,10 +206,10 @@ func InsertRecordsHandler(c echo.Context) error {
 
 	//キャッシュに登録したデータをクライアントに配信
 	go func() {
-		time.Sleep(5 * time.Second) //遅延して配信する。
+		tick := time.NewTicker(time.Second) //一秒置きに配信する。
+		time.Sleep(5 * time.Second)         //遅延して配信する。
 		for _, target := range insert_records {
-			time.Sleep(1 * time.Second) //一秒ごとに配信
-			//キャッシュに登録したデータをクライアントに配信
+			<-tick.C //１秒置きに配信処理をおこなう。
 			fmt.Println("配信内容", target)
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
 				Action:  "ATTENDANCE_RECORD/INSERT",

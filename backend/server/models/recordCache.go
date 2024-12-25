@@ -50,7 +50,6 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 		// DBに保存
 		if err := tx.Save(payloadArray).Error; err != nil {
 			log.Printf("InsertMany failed 一括と挿入に失敗しました。ロールバックします。: %v", err)
-			tx.Rollback()
 			return err
 		}
 		// キャッシュに登録
@@ -197,8 +196,12 @@ func (rc *RecordsCache[ModelType]) Get(id uint) (*ModelType, bool) {
 	return targetModel, true
 }
 
-// キャッシュに登録する(DBに保存してID値を付与した状態で返す)
+// キャッシュに登録する(DBに保存してID値を付与した状態で返す)　単一レコード専用
 func (rc *RecordsCache[ModelType]) CreateNew(not_id_targetData *ModelType, fetchId GetId[ModelType, uint]) (*ModelType, error) {
+
+	if not_id_targetData == nil {
+		return nil, errors.New("挿入するデータが存在しませんでした。")
+	}
 
 	if err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(not_id_targetData).Error; err != nil {
@@ -214,4 +217,36 @@ func (rc *RecordsCache[ModelType]) CreateNew(not_id_targetData *ModelType, fetch
 		return nil, err
 	}
 	return not_id_targetData, nil
+}
+
+type ExecuteFunctionForId[ModleType any] func(argsArray []*ModleType, rc *RecordsCache[ModleType], tx *gorm.DB) (map[uint]*ModleType, error)
+
+// 一括で挿入してかつ、連番ＩＤを付与した状態で配列を返す。
+func (rc *RecordsCache[ModelType]) InsertManyToIds(targetArray []*ModelType, getIdFunction GetId[ModelType, uint]) ([]*ModelType, error) {
+
+	err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
+
+		if err := tx.Save(targetArray); err.Error != nil {
+			return err.Error
+		}
+
+		for _, record := range targetArray {
+			id, ok := getIdFunction(record)
+
+			if !ok {
+				fmt.Println("InsertManyToIdsで主キーの取得関数で取得に失敗しました。", id, record)
+				continue
+			}
+
+			rc.Map.Store(id, record)
+
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return targetArray, nil
 }
