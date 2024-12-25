@@ -212,7 +212,7 @@ func InsertRecordsHandler(c echo.Context) error {
 			<-tick.C //１秒置きに配信処理をおこなう。
 			fmt.Println("配信内容", target)
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
-				Action:  "ATTENDANCE_RECORD/INSERT",
+				Action:  "ATTENDANCE_RECORD/INSERT_SETUP",
 				Payload: target,
 			}
 		}
