@@ -80,7 +80,7 @@ func GetRangeRecords(min_id uint, max_id uint) ([]*models.AttendanceRecord, bool
 	var result_array []*models.AttendanceRecord
 
 	if err := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.AttendanceRecord{}).Where("manage_id >= ?", min_id).Where("manage_id <= ?", max_id).Find(&result_array).Error; err != nil {
+		if err := tx.Preload("Emp").Preload("TimeRecords").Preload("Location").Preload("Post").Where("manage_id >= ?", min_id).Where("manage_id <= ?", max_id).Find(&result_array).Error; err != nil {
 			return err
 		}
 		return nil

@@ -104,7 +104,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             >
                 <CardHeader >
                     <CardDescription className="text-sm text-gray-500">
-                        {PlanName(timeRecord?.PlanNo)} {new Date(timeRecord?.PlanTime).toLocaleString()}
+                        {PlanName(timeRecord?.PlanNo)} {new Date(timeRecord?.PlanTime).toDateString()} {timeRecord.ManageID}
                     </CardDescription> 
                     <CardTitle className="text-lg font-semibold">
                         {employeeRecord?.Name}

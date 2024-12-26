@@ -43,8 +43,8 @@ func init() {
 	SetUpRepository()
 	time.Sleep(2 * time.Second)
 	log.Println("リポジトリキャッシュ作成完了 -> サンプルデータの作成開始")
-	GenerateSampleData(DB)
-	log.Println("サンプルデータの作成に成功しました。")
+	// GenerateSampleData(DB)
+	// log.Println("サンプルデータの作成に成功しました。")
 
 }
 
