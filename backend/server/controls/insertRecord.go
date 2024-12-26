@@ -257,6 +257,7 @@ func NewTemp() *Temp {
 func (t *Temp) AttendaceInsert(target models.AttendanceRecord) {
 	_, ok := t.Map[target.ManageID]
 	if !ok {
+		target.TimeRecords = []models.TimeRecord{} //初期化して空にする。
 		t.Map[target.ManageID] = &target
 	}
 }

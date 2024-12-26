@@ -1,6 +1,7 @@
 package models
 
 import (
+	timeModule "backend-app/server/timeModlule"
 	"errors"
 	"log"
 	"time"
@@ -66,9 +67,9 @@ func SetUpRepository() {
 		for _, employee_record := range employee_records {
 			repo.Cache.Map.Store(employee_record.EmpID, &employee_record)
 		}
-
 		log.Printf("初期値を設定しました。employee_recordsの数:%v", len(employee_records))
 	})
+
 	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
 		//社員キャッシュに関連したバックグランドで動作するごルーチン
 
@@ -105,8 +106,8 @@ func SetUpRepository() {
 		//初期値を設定する。
 		NewQuerySession().Transaction(func(tx *gorm.DB) error {
 			time_records := []*TimeRecord{}
-			before_time := time.Now().Add(-1 * time.Hour)
-			after_time := time.Now().Add(8 * time.Hour)
+			before_time := timeModule.GetNowTimeAsJapanese().Add(-1 * time.Hour)
+			after_time := timeModule.GetNowTimeAsJapanese().Add(8 * time.Hour)
 			tx.Where("plan_time >= ? AND paln_time <= ?", before_time, after_time).Find(&time_records)
 			if len(time_records) == 0 {
 				log.Println("初期値を初期化することができませんでした。time_recordsの数が0です")
@@ -164,12 +165,12 @@ func SetUpRepository() {
 
 			temp_time := <-ticker.C // 30秒おきに動作　なので30秒おきにキャッシュの中身を走査するゴルーチン
 			update_records := []*TimeRecord{}
-			currentTime := temp_time.Local()
+			currentTime := timeModule.ToJapaneseTime(temp_time)
 			log.Println("現在の時間", currentTime)
 			log.Println("現在のキャッシュの数（timeRecord）", repo.Cache.Len())
 			repo.Cache.Map.Range(func(key any, value any) bool { //キャッシュの中味を走査するコールバック関数　trueを返すと次の要素でそのコールバックを呼び出す。
 				time_record, ok := value.(*TimeRecord)
-
+				log.Println("time_recordの予定時刻", time_record.PlanTime)
 				if !ok {
 					log.Printf("Failed to convert to *TimeRecord for key %v", key)
 					return true
@@ -177,6 +178,7 @@ func SetUpRepository() {
 
 				//スキップ条件 無視か完了又はアラート対称外のどちらか
 				if time_record.IsComplete || time_record.IsOver {
+					log.Println("無視か完了又はアラート対称外のどちらか", time_record.IsComplete, time_record.IsOver, time_record.PlanTime)
 					return true
 				}
 
@@ -195,15 +197,18 @@ func SetUpRepository() {
 				//予定時刻の5分前より前か判定。
 				if time_record.PlanTime.Add(-5 * time.Minute).After(currentTime) {
 					//予定時刻（5分前）より前に現在時刻が存在するので何もしない。
+					log.Println("予定時刻（5分前）より前に現在時刻が存在するので何もしない。", time_record.PlanTime, currentTime)
 					return true
 				} else if time_record.PlanTime.After(currentTime) && !time_record.PreAlert {
 					//予定時刻の5分前	なので、予備アラートを発報 (無視の場合は除く)
+					log.Println("予定時刻の5分前なので、予備アラートを発報 (無視の場合は除く)", time_record.PlanTime, currentTime)
 					time_record.PreAlert = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
 				} else if time_record.PlanTime.Before(currentTime) && !time_record.IsAlert {
 					//予定時刻の後に現在時刻が存在するのでアラートを発報
+					log.Println("予定時刻の後に現在時刻が存在するのでアラートを発報", time_record.PlanTime, currentTime)
 					time_record.IsAlert = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
@@ -228,8 +233,8 @@ func SetUpRepository() {
 		//1時間おきに動作するゴルーチン
 		for {
 			currentTime := <-ticker.C
-			before_time := currentTime.Local().Add(-5 * time.Hour)
-			after_time := currentTime.Local().Add(16 * time.Hour)
+			before_time := timeModule.ToJapaneseTime(currentTime).Add(-5 * time.Hour)
+			after_time := timeModule.ToJapaneseTime(currentTime).Add(16 * time.Hour)
 
 			repo.Cache.Map.Range(func(key any, value any) bool {
 				time_record, ok := value.(*TimeRecord)
@@ -293,6 +298,31 @@ func SetUpRepository() {
 			}
 
 			repo.Sender <- attRecordActionDTO
+		}
+	})
+
+	ATTENDANCE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[AttendanceRecord]) {
+		//勤怠記録の監視範囲を1時間おきに不用な対象レコードを外す（DBから消すわけではない）
+		ticker := time.NewTicker(20 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			currentTime := <-ticker.C
+			before_time := timeModule.ToJapaneseTime(currentTime).Add(-5 * time.Hour)
+			after_time := timeModule.ToJapaneseTime(currentTime).Add(16 * time.Hour)
+
+			repo.Cache.Map.Range(func(key any, value any) bool {
+				attendance_record, ok := value.(*AttendanceRecord)
+				if !ok {
+					log.Printf("Failed to convert to *AttendanceRecord for key %v", key)
+					return true
+				}
+				if attendance_record.TimeRecords[0].PlanTime.Before(before_time) || attendance_record.TimeRecords[0].PlanTime.After(after_time) {
+					repo.Cache.Map.Delete(key)
+					repo.Sender <- CreateActionDTO[AttendanceRecord]("ATTENDANCE_RECORD/DELETE", attendance_record)
+				}
+				return true
+			})
 		}
 	})
 

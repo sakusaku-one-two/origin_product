@@ -2,7 +2,7 @@ package controls
 
 import (
 	"backend-app/server/models"
-
+	timeModule "backend-app/server/timeModlule"
 	"log"
 	"strconv"
 	"strings"
@@ -52,7 +52,7 @@ func CreateDateTime(date_str string, time_string string) time.Time {
 	month := time.Month(to_month(date_str))
 	day := to_day(date_str)
 	hour, minute := to_hour_minute(time_string)
-	return time.Date(year, month, day, hour, minute, 0, 0, time.Local)
+	return time.Date(year, month, day, hour, minute, 0, 0, timeModule.JAPANESE_TIME_ZONE_OFFSET)
 }
 
 func CreateDepartPlanTime(row map[string]*Value) *time.Time {
