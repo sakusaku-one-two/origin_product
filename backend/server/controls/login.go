@@ -44,8 +44,15 @@ func LoginHandler(c echo.Context) error {
 	}
 	// 該当するユーザを探す。
 	var user User
-	result := models.GetDB().Where("user_name = ?", requestData.UserName).First(&user) //IDからユーザーレコード構造体（ORM）を取得
-	if result.Error != nil {
+	result := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		result_tx := tx.Where("user_name = ?", requestData.UserName).First(&user) //IDからユーザーレコード構造体（ORM）を取得
+		if result_tx.Error != nil {
+			return result_tx.Error
+		}
+		return nil
+	})
+
+	if result != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "not found user"})
 	}
 

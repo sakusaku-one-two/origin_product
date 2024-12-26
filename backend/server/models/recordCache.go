@@ -59,6 +59,7 @@ func (rc *RecordsCache[ModelType]) InsertMany(payloadArray []*ModelType, fetchId
 				log.Printf("Failed to fetch ID for payload: %v", payload)
 				continue
 			}
+
 			rc.Map.Store(id, payload)
 		}
 		return nil
