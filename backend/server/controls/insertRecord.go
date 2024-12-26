@@ -35,15 +35,18 @@ func InsertRecordsHandler(c echo.Context) error {
 	insert_records := []*models.AttendanceRecord{}
 
 	for _, target := range registoryData.InsertRecords {
-		for _, time_record := range target.TimeRecords {
+		//値渡しでコピー
+		temp_target := target
+
+		//未保存の時間レコードを一旦まとめる。（ポンタで渡すので後のDB保存した際、ID値が格納された状態になる）
+		for _, time_record := range temp_target.TimeRecords {
 			time_records = append(time_records, &time_record)
 		}
-
-		temp_target := target
 
 		temp_target.Emp = models.EmployeeRecord{}
 		temp_target.Location = models.LocationRecord{}
 		temp_target.Post = models.PostRecord{}
+		temp_target.TimeRecords = []models.TimeRecord{}
 		insert_records = append(insert_records, &temp_target)
 	}
 
@@ -207,13 +210,14 @@ func InsertRecordsHandler(c echo.Context) error {
 	go func() {
 		tick := time.NewTicker(time.Second) //一秒置きに配信する。
 		time.Sleep(5 * time.Second)         //遅延して配信する。
-		for _, target := range registoryData.InsertRecords {
+		attr_list := sanwitchRecords(registoryData.InsertRecords, time_records)
+		for _, target := range attr_list {
 			<-tick.C //１秒置きに配信処理をおこなう。
 			fmt.Println("配信内容", target.Emp.Name, target.Location.ClientName, target.Location.LocationName, target.TimeRecords[0].PlanTime)
 
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
 				Action:  "ATTENDANCE_RECORD/UPDATE",
-				Payload: &target,
+				Payload: target,
 			}
 		}
 	}()
@@ -238,4 +242,50 @@ func DuplicateDelete[ModelType any](targetArray []*ModelType, FetchID getId[Mode
 		return_array = append(return_array, value)
 	}
 	return return_array, nil
+}
+
+//-------------------------------------[一旦分離したTimeRecordとAttendanceRecordを再度接合する。]--------------------------------------------------------
+
+type Temp struct {
+	Map map[uint]*models.AttendanceRecord
+}
+
+func NewTemp() *Temp {
+	return &Temp{Map: map[uint]*models.AttendanceRecord{}}
+}
+
+func (t *Temp) AttendaceInsert(target models.AttendanceRecord) {
+	_, ok := t.Map[target.ManageID]
+	if !ok {
+		t.Map[target.ManageID] = &target
+	}
+}
+
+func (t *Temp) TimeInsert(target *models.TimeRecord) {
+	target_record, ok := t.Map[target.ManageID]
+	if ok {
+		target_record.TimeRecords = append(target_record.TimeRecords, *target)
+	}
+}
+
+func (t *Temp) Dump() []*models.AttendanceRecord {
+	result := []*models.AttendanceRecord{}
+	for _, val := range t.Map {
+		result = append(result, val)
+	}
+	return result
+}
+
+func sanwitchRecords(attRecords []models.AttendanceRecord, time_reocrds []*models.TimeRecord) []*models.AttendanceRecord {
+	dict := NewTemp()
+
+	for _, att := range attRecords {
+		dict.AttendaceInsert(att)
+	}
+
+	for _, time := range time_reocrds {
+		dict.TimeInsert(time)
+	}
+	result := dict.Dump()
+	return result
 }

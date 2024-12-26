@@ -50,6 +50,7 @@ export type TimeRecordWithOtherRecord = {
     timeRecord:TimeRecord,
     employeeRecord:EmployeeRecord | null,
     locationRecord:LocationRecord | null,
+    postRecord :PostRecord | null,//PostRecordが抜けていた。
     isSelected:boolean
 };
 

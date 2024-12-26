@@ -88,6 +88,12 @@ func CreateFinalyPlanTime(row map[string]*Value) *time.Time {
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本終了時間"].To_string()
 	result := CreateDateTime(date_str, time_str)
+
+	//もし開始時刻より前に終了時刻があった場合、終了時刻翌日の時間となる。
+	start_time := CreateStartTime(row)
+	if result.Before(*start_time) {
+		result = result.Add(24 * time.Hour)
+	}
 	return &result
 }
 

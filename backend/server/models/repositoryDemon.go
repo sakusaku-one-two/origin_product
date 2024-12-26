@@ -228,8 +228,8 @@ func SetUpRepository() {
 		//1時間おきに動作するゴルーチン
 		for {
 			currentTime := <-ticker.C
-			before_time := currentTime.Local().Add(-1 * time.Hour)
-			after_time := currentTime.Local().Add(8 * time.Hour)
+			before_time := currentTime.Local().Add(-5 * time.Hour)
+			after_time := currentTime.Local().Add(16 * time.Hour)
 
 			repo.Cache.Map.Range(func(key any, value any) bool {
 				time_record, ok := value.(*TimeRecord)

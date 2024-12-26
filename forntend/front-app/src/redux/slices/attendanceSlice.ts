@@ -25,9 +25,9 @@ export const AttendanceSlice = createSlice({
         UPDATE:(state,action:PayloadAction<AttendanceRecord>)=>{ //ウェブソケットからの受信(更新/新規)
             
             const targetRecord:AttendanceRecord | undefined = state.AttendanceRecords.find((record:AttendanceRecord)=>record.ManageID === action.payload.ManageID);
-            if(targetRecord){
+            if(targetRecord){//置き換え
                 state.AttendanceRecords.splice(state.AttendanceRecords.indexOf(targetRecord),1,action.payload as AttendanceRecord);
-            }else{
+            }else{//追加
                 state.AttendanceRecords.push(action.payload as AttendanceRecord);
             }
         },

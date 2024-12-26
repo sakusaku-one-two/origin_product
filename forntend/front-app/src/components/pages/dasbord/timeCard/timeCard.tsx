@@ -14,6 +14,18 @@ const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
 }   
 
+
+//日付の文字列を日付フォーマット文字列に変換
+export const ShowTime = (raw_time:string|Date):string => {
+    const time =  raw_time instanceof Date ? raw_time : new Date(raw_time);
+    
+    const month = String(time.getMonth() +1).padStart(2,'0');
+    const day = String(time.getDate()).padStart(2,'0');
+    const hours = String(time.getHours()).padStart(2,'0');
+    const miuntes = String(time.getMinutes()).padStart(2,'0');
+    return `${month}/${day} ${hours}:${miuntes}`
+};
+
 const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType }> = ({ record,cardType }) => {
     const dispatch = useTimeDispatch(); 
     // const selectedRecord = useSelectedRecordsSelector();
@@ -21,7 +33,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
     const timeRecord = record.timeRecord;
     const employeeRecord = record.employeeRecord;
     const locationRecord = record.locationRecord;
-    
+    const postRecord = record.postRecord;
+
     const isSelectedSelf = cardType === CardType.ControlPanel;
 
    
@@ -104,7 +117,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             >
                 <CardHeader >
                     <CardDescription className="text-sm text-gray-500">
-                        {PlanName(timeRecord?.PlanNo)} {new Date(timeRecord?.PlanTime).toDateString()} {timeRecord.ManageID}
+                        {PlanName(timeRecord?.PlanNo)} {ShowTime(timeRecord?.PlanTime)} {postRecord?.PostName} id:{timeRecord.ID}
                     </CardDescription> 
                     <CardTitle className="text-lg font-semibold">
                         {employeeRecord?.Name}
