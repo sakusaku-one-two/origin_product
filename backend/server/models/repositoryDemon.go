@@ -108,7 +108,7 @@ func SetUpRepository() {
 			time_records := []*TimeRecord{}
 			before_time := timeModule.GetNowTimeAsJapanese().Add(-1 * time.Hour)
 			after_time := timeModule.GetNowTimeAsJapanese().Add(8 * time.Hour)
-			tx.Where("plan_time >= ? AND paln_time <= ?", before_time, after_time).Find(&time_records)
+			tx.Where("plan_time >= ? AND plan_time <= ?", before_time, after_time).Find(&time_records)
 			if len(time_records) == 0 {
 				log.Println("初期値を初期化することができませんでした。time_recordsの数が0です")
 				return nil
@@ -308,8 +308,8 @@ func SetUpRepository() {
 
 		for {
 			currentTime := <-ticker.C
-			before_time := timeModule.ToJapaneseTime(currentTime).Add(-5 * time.Hour)
-			after_time := timeModule.ToJapaneseTime(currentTime).Add(16 * time.Hour)
+			before_time := timeModule.ToJapaneseTime(currentTime).Add(-24 * time.Hour)
+			after_time := timeModule.ToJapaneseTime(currentTime).Add(24 * time.Hour)
 
 			repo.Cache.Map.Range(func(key any, value any) bool {
 				attendance_record, ok := value.(*AttendanceRecord)
@@ -317,9 +317,24 @@ func SetUpRepository() {
 					log.Printf("Failed to convert to *AttendanceRecord for key %v", key)
 					return true
 				}
-				if attendance_record.TimeRecords[0].PlanTime.Before(before_time) || attendance_record.TimeRecords[0].PlanTime.After(after_time) {
-					repo.Cache.Map.Delete(key)
+
+				target_depart_time, ok := GetEntryTime(attendance_record)
+				if !ok {
+					return true
+				}
+
+				target_last_time, ok := GetEndTime(attendance_record)
+				if !ok {
+					return true
+				}
+
+				if target_depart_time.Before(before_time) || target_last_time.After(after_time) {
+					//キャッシュからの削除対象
 					repo.Sender <- CreateActionDTO[AttendanceRecord]("ATTENDANCE_RECORD/DELETE", attendance_record)
+					repo.Cache.Map.Delete(key)
+					for _, time_reocrd := range attendance_record.TimeRecords {
+						TIME_RECORD_REPOSITORY.Cache.Delete(time_reocrd.ID)
+					}
 				}
 				return true
 			})

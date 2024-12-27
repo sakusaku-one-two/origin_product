@@ -2,7 +2,7 @@ package controls
 
 import (
 	"backend-app/server/models"
-
+	timeModule "backend-app/server/timeModlule"
 	"fmt"
 	"net/http"
 	"time"
@@ -209,10 +209,32 @@ func InsertRecordsHandler(c echo.Context) error {
 	//キャッシュに登録したデータをクライアントに配信
 	go func() {
 		tick := time.NewTicker(time.Second) //一秒置きに配信する。
-		time.Sleep(5 * time.Second)         //遅延して配信する。
 		attr_list := sanwitchRecords(registoryData.InsertRecords, time_records)
+
+		current_tick_time := <-tick.C                                    //１秒置きに配信処理をおこなう。
+		current_tick_time = timeModule.ToJapaneseTime(current_tick_time) //UTCから日本時間に変換
+
 		for _, target := range attr_list {
-			<-tick.C //１秒置きに配信処理をおこなう。
+			// <-tick.C //一秒待機
+
+			endTime, ok := models.GetEndTime(target)
+			if !ok { //時間の取得に失敗した場合はスキップ
+
+				continue
+			}
+
+			depart_time, ok := models.GetEntryTime(target)
+			if !ok { //時間の取得に失敗した場合はスキップ
+
+				continue
+			}
+
+			//対象の範囲外であればスキップ 終了時間に+1ｈ時刻に対して現在時刻が後にある場合　又は　開始時間から-10ｈした時刻に対して現在時刻が前にある場合
+			if endTime.Add(1 * time.Hour).Before(current_tick_time) {
+				fmt.Println("終了時間", endTime, "出発時間", depart_time, "現在時間", current_tick_time)
+				continue
+			}
+
 			fmt.Println("配信内容", target.Emp.Name, target.Location.ClientName, target.Location.LocationName, target.TimeRecords[0].PlanTime)
 
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{

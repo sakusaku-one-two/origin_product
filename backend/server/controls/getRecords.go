@@ -2,6 +2,7 @@ package controls
 
 import (
 	"backend-app/server/models"
+	timeModule "backend-app/server/timeModlule"
 	"log"
 	"net/http"
 	"time"
@@ -23,9 +24,9 @@ func GetRecords(c echo.Context) error {
 func GetAttendanceRecord() []models.AttendanceRecord {
 	var attendance_records []models.AttendanceRecord
 	db := models.NewQuerySession()
-	current_time := time.Now().Local()
-	twentyFourHoursLater := current_time.Add(1 * time.Hour)
-	before_time := current_time.Add(-5 * time.Minute)
+	current_time := timeModule.GetNowTimeAsJapanese()
+	twentyFourHoursLater := current_time.Add(48 * time.Hour) //現在時刻から４８時間後
+	before_time := current_time.Add(-1 * time.Minute)
 	if err := db.Preload("Emp").Preload("TimeRecords", "plan_time >= ? AND plan_time <= ?", before_time, twentyFourHoursLater).Preload("Location").Preload("Post").Find(&attendance_records).Error; err != nil {
 		log.Println(err)
 		return nil
