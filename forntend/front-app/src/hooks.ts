@@ -61,18 +61,37 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
     const locationRecords = state.LOCATION_RECORDS.locationList as LocationRecord[];
     const postRecords = state.POST_RECORDS.postList as PostRecord[];
 
-    console.log(postRecords);
-    
-    return timeRecords.map((timeRecord)=>{
+    const fetchList:number[] = [];    
+    const result:TimeRecordWithOtherRecord[] = timeRecords.map((timeRecord)=>{
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
-        console.log(targetAttendanceRecord);
-        console.log(targetAttendanceRecord?.PostID);
-        console.log(postRecords);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
         const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.Location.ID);
         const targetPostRecord = postRecords.find((postRecord)=>postRecord.PostID === targetAttendanceRecord?.PostID);
+
+        if (targetEmployeeRecord === null || targetLocationRecord === null || targetPostRecord === null) {
+            fetchList.push(timeRecord.ManageID);
+        }
+
         return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null,isSelected:true};
     }); 
+
+    // データがない場合はサーバーにデータを送信する
+    if (fetchList.length > 0) {
+        fetch("/import",{
+            method:"POST",
+            body:JSON.stringify({
+                manage_ids:fetchList
+            })
+        }).then((res)=>{
+            return res.json();
+        }).then((data)=>{
+            if (data.message === "success") {
+                useAttendanceDispatch()(INSERT_ATTENDANCE_MESSAGE(data.attendances));
+            }
+        })
+    }
+    return result;
+
 }
 
 export const useGetTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.TimeRecords,state));
