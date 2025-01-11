@@ -1,8 +1,10 @@
 package controls
 
 import (
-	"net/http"
 	"backend-app/server/models"
+	"net/http"
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -38,16 +40,21 @@ func ImportRecordsHandler(c echo.Context) error {
 	}
 
 	if len(attendances) == 0 {
-		return c.JSON(http.StatusOK,map[string]string{
-			"message":"no data",
-		})
+
+		go func() {
+			time.Sleep(3 * time.Second)
+			for _, record := range attendances {
+				models.ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
+					Action:  "ATTENDANCE_REOCORD_UPDATE",
+					Payload: &record,
+				}
+			}
+		}()
+
 	}
 
-	
-	// models.ATTENDANCE_RECORD_REPOSITORY.cache.Sender <- modeles.ActionDTO[models.AttendanceRecord]{
-	// 	Action:"ATTENDANCE_REOCORD_UPDATE",
-	// 	Data:attendances,
-	// }
-	return c.JSON(http.StatusOK,ImportRecrodsResponse{Attendances:attendances})
-	
+	return c.JSON(http.StatusOK, map[string]bool{
+		"success": true,
+	})
+
 }
