@@ -216,16 +216,19 @@ type LocationToEmployeeRecord struct {
 	LocationID uint `gorm:"primaryKey;autoIncrement:false"`
 	ClientID   uint `gorm:"primaryKey;autoIncrement:false"`
 	EmpID      uint `gorm:"primaryKey;autoIncrement:false"`
+	Duration   int  `gorm:"default:90"`
 }
 
 func NewLocationToEmployeeRecord(
 	Location_ID uint,
 	Client_ID uint,
 	Emp_ID uint,
+	Duration int,
 ) *LocationToEmployeeRecord {
 	return &LocationToEmployeeRecord{
 		LocationID: Location_ID,
 		ClientID:   Client_ID,
 		EmpID:      Emp_ID,
+		Duration:   Duration,
 	}
 }

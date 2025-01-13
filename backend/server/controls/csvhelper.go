@@ -149,6 +149,12 @@ func TimerecordsEqual(recordArray1, recordArray2 []models.TimeRecord) bool {
 }
 
 func TimeRecordEqual(record1, record2 models.TimeRecord) bool {
+	if record1.PlanTime == nil || record2.PlanTime == nil {
+		return false
+	}
+	if record1.ResultTime == nil || record2.ResultTime == nil {
+		return false
+	}
 	return record1.PlanTime.Equal(*record2.PlanTime) &&
 		record1.ResultTime.Equal(*record2.ResultTime)
 }

@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: SAKUSAKU
       POSTGRES_DB: ORIGINAL_PROJECTS
     volumes:
-      - original-project_db-data:/var/lib/postgresql/data
+      # - original-project_db-data:/var/lib/postgresql/data
       - ./backend/store/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./backend/store/pg_hba.conf:/etc/postgresql/pg_hba.conf
       - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -54,8 +54,8 @@ services:
     networks:
       - backend-network
 
-volumes:
-  original-project_db-data:
+# volumes:
+#   original-project_db-data:
 networks:
   backend-network:
     driver: bridge
