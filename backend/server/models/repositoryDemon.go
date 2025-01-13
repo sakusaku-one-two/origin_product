@@ -26,11 +26,12 @@ import (
 */
 
 var (
-	EMPLOYEE_RECORD_REPOSITORY   *Repository[EmployeeRecord]
-	TIME_RECORD_REPOSITORY       *Repository[TimeRecord]
-	ATTENDANCE_RECORD_REPOSITORY *Repository[AttendanceRecord]
-	LOCATION_RECORD_REPOSITORY   *Repository[LocationRecord]
-	POST_RECORD_REPOSITORY       *Repository[PostRecord]
+	EMPLOYEE_RECORD_REPOSITORY             *Repository[EmployeeRecord]
+	TIME_RECORD_REPOSITORY                 *Repository[TimeRecord]
+	ATTENDANCE_RECORD_REPOSITORY           *Repository[AttendanceRecord]
+	LOCATION_RECORD_REPOSITORY             *Repository[LocationRecord]
+	POST_RECORD_REPOSITORY                 *Repository[PostRecord]
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY *Repository[LocationToEmployeeRecord]
 )
 
 // // 各種設定の呼び出し
@@ -431,4 +432,36 @@ func SetUpRepository() {
 		}
 	})
 
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY := CreateRepositry[LocationToEmployeeRecord]("ACTION_LOCATION_TO_EMPLOYEE_RECORD", 100)
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationToEmployeeRecord]) {
+
+		for locationToEmployeeRecordActionDTO := range repo.Reciver {
+			switch locationToEmployeeRecordActionDTO.Action {
+			case "LOCATION_TO_EMPLOYEE_RECORD/UPDATE":
+				repo.Cache.loadAndSave(locationToEmployeeRecordActionDTO.Payload.LocationID, locationToEmployeeRecordActionDTO.Payload)
+			case "LOCATION_TO_EMPLOYEE_RECORD/DELETE":
+				repo.Cache.Delete(locationToEmployeeRecordActionDTO.Payload.LocationID)
+			default:
+				continue
+			}
+
+			repo.Sender <- locationToEmployeeRecordActionDTO
+		}
+
+	})
+	//初期値のセットアップ
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationToEmployeeRecord]) {
+		NewQuerySession().Transaction(func(tx *gorm.DB) error {
+			locationToEmployeeRecords := []*LocationToEmployeeRecord{}
+			tx.Find(&locationToEmployeeRecords)
+			if len(locationToEmployeeRecords) == 0 {
+				log.Println("初期値を初期化することができませんでした。locationToEmployeeRecordsの数が0です")
+				return nil
+			}
+			for _, locationToEmployeeRecord := range locationToEmployeeRecords {
+				repo.Cache.Map.Store(locationToEmployeeRecord.LocationID, locationToEmployeeRecord)
+			}
+			return nil
+		})
+	})
 }

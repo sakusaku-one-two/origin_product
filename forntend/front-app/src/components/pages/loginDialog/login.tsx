@@ -32,8 +32,7 @@ const Login:React.FC = () => {
     const SampleExecute = () => {//サンプルデータでのお試し
       navigate("/dashbord");
       setOpenDialog(false);
-      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {//サンプルデータを更新
-        console.log(value);
+      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {//サンプルデータを更
         dispatch(ATTENDANCE_UPDATE(value));
       });
       setTimeout(()=>{//アラートを表示
@@ -66,7 +65,6 @@ const Login:React.FC = () => {
 
         if (response.ok) {
             const data = await response.json();
-            console.log(data.records.action,data.records.payload);
             dispatch(INSERT_ATTENDANCE_MESSAGE(
               data.records.payload
             ));
@@ -82,7 +80,6 @@ const Login:React.FC = () => {
               }
             } catch (error:unknown) {
               alert("サーバーが正常に動作していません");
-              console.error(error);
             }
 
             // ログイン成功後にダッシュボードに遷移

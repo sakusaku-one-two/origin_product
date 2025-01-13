@@ -38,7 +38,7 @@ func Mingrate() error {
 		&TimeRecord{},
 		&User{},
 		&AttendanceRecord{},
-		&LocationToEmployee{},
+		&LocationToEmployeeRecord{},
 	}
 	for _, model := range mygrate_models {
 		if err := DB.AutoMigrate(model); err != nil {
@@ -211,19 +211,19 @@ func NewAttendanceRecord(
 
 //--------------------------------[ユーザーテーブル]-------------------------------------------
 
-type LocationToEmployee struct {
+type LocationToEmployeeRecord struct {
 	gorm.Model
 	LocationID uint `gorm:"primaryKey;autoIncrement:false"`
 	ClientID   uint `gorm:"primaryKey;autoIncrement:false"`
 	EmpID      uint `gorm:"primaryKey;autoIncrement:false"`
 }
 
-func NewLocationToEmployee(
+func NewLocationToEmployeeRecord(
 	Location_ID uint,
 	Client_ID uint,
 	Emp_ID uint,
-) *LocationToEmployee {
-	return &LocationToEmployee{
+) *LocationToEmployeeRecord {
+	return &LocationToEmployeeRecord{
 		LocationID: Location_ID,
 		ClientID:   Client_ID,
 		EmpID:      Emp_ID,
