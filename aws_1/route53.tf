@@ -1,10 +1,9 @@
-
-data "aws_route53_zone" "demo_app_zone_next" {
-    name = "sakusaku-demo-app.com"
+resource "aws_route53_zone" "demo_app_zone" {
+  name = "sakusaku-demo-app.com"
 }
 
 resource "aws_route53_record" "demo_app_dns_next" {
-    zone_id = data.aws_route53_zone.demo_app_zone_next.zone_id
+    zone_id = aws_route53_zone.demo_app_zone.zone_id
     name = "demo-app.sakusaku-demo-app.com"
     type = "A"
     

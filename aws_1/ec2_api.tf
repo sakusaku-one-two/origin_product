@@ -3,16 +3,27 @@ resource "aws_instance" "demo_app_api" {
   instance_type = "t2.micro"
   subnet_id = aws_subnet.demo_app_public_subnet[0].id
   key_name = aws_key_pair.demo_my_key_pair.key_name
-  security_groups = [aws_security_group.demo_app_api_security_group.id]
+  vpc_security_group_ids = [aws_security_group.demo_app_api_security_group.id]
+  associate_public_ip_address = true
+  depends_on = [aws_db_instance.example]
+
   connection {
     type = "ssh"
-    host = self.public_ip
+    host = coalesce(self.public_ip, self.private_ip)
     user = "ec2-user"
     private_key = tls_private_key.example.private_key_pem
   }
 
   provisioner "remote-exec" {
     inline = [
+         #!/bin/bash
+      "echo export DB_HOST=${aws_db_instance.example.address} >> ~/.bashrc",
+      "echo export DB_USER=${var.db_user} >> ~/.bashrc",
+      "echo export DB_PASSWORD=${var.db_password} >> ~/.bashrc",
+      "echo export DB_NAME=${var.db_name} >> ~/.bashrc",
+      "echo export DB_PORT=${var.db_port} >> ~/.bashrc",
+      "echo export DB_SSL=${var.db_ssl} >> ~/.bashrc",
+      "echo export DB_TIMEZONE=${var.db_timezone} >> ~/.bashrc",
       "sudo apt-get update",
       "wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz",
       "sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz",

@@ -1,7 +1,7 @@
 
 //EC2インスタンス　Nginxをインストールする
 resource "aws_instance" "demo_app_nginx" {
-  ami = "ami-0c55b159cbfafe1f0"
+  ami = "ami-08f52b2e87cebadd9"
   instance_type = "t2.micro"
   subnet_id = aws_subnet.demo_app_public_subnet[0].id
   vpc_security_group_ids = [aws_security_group.demo_app_nginx_sg.id]
@@ -20,7 +20,7 @@ resource "aws_instance" "demo_app_nginx" {
   }
 
   provisioner "file" {
-    source = "${path.module}/../../forntend/front-app/dist"
+    source = "${path.module}/../forntend/front-app/dist"
     destination = "/usr/share/nginx/html"
   }
 

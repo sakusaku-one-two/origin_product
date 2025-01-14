@@ -1,17 +1,58 @@
+variable "db_host" {
+  description = "The database host"
+  default     = "my_host"
+}
+
+variable "db_user" {
+  description = "The database user"
+  default     = "my_user"
+}
+
+variable "db_password" {
+  description = "The database password"
+  default     = "my_password"
+}
+
+variable "db_name" {
+  description = "The database name"
+  default     = "sakusakudb"
+}
+
+variable "db_port" {
+  description = "The database port"
+  default     = 5432
+}
+
+variable "db_ssl" {
+  description = "The SSL mode for the database connection"
+  default     = "disable"
+}
+
+variable "db_timezone" {
+  description = "The timezone for the database"
+  default     = "Asia/Tokyo"
+}
+
+
+
 resource "aws_db_instance" "example" {
   allocated_storage    = 20
-  engine               = "postgres"
-  engine_version       = "17.2"
-  instance_class       = "db.t3.micro"
-  identifier           = "exampledb"
-  username             = "MY_USER"  # 環境変数 DB_USER に対応
-  password             = "SAKUSAKU" # 環境変数 DB_PASSWORD に対応
-  parameter_group_name = "default.postgres13"
+  db_name                 = "postgres"
+  storage_type            = "gp2"
+  engine                  = "postgres"
+  engine_version          = "15.7"
+  instance_class          = "db.t3.small"
+  identifier           = var.db_name
+  username             = var.db_user
+  password             = var.db_password
+  parameter_group_name = "default.postgres15"
   skip_final_snapshot  = true
+  deletion_protection = false
+  final_snapshot_identifier = "final-snapshot"
   publicly_accessible  = false
   vpc_security_group_ids = [aws_security_group.demo_app_rds_security_group.id]
   db_subnet_group_name = aws_db_subnet_group.demo_app_rds_subnet_group.name
-  port                 = 5432       # 環境変数 DB_PORT に対応
+  port                 = var.db_port       # 環境変数 DB_PORT に対応
   # timezone             = "Asia/Tokyo" # 環境変数 DB_TIMEZONE に対応
 }
 
