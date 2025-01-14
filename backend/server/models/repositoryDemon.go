@@ -32,6 +32,7 @@ var (
 	LOCATION_RECORD_REPOSITORY             *Repository[LocationRecord]
 	POST_RECORD_REPOSITORY                 *Repository[PostRecord]
 	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY *Repository[LocationToEmployeeRecord]
+
 )
 
 // // 各種設定の呼び出し

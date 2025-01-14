@@ -156,13 +156,22 @@ func (rc *RecordsCache[ModelType]) Insert(id uint, targetData *ModelType) (bool,
 	return true, nil
 }
 
-func (rc *RecordsCache[ModelType]) InsertNonID(targetData *ModelType) error {
+type getID[ModelType any] func(targetData *ModelType) (uint, error)
 
+func (rc *RecordsCache[ModelType]) InsertNonID(targetData *ModelType, getID getID[ModelType]) error {
+	if targetData == nil {
+		return errors.New("挿入するデータが存在しませんでした。")
+	}
+	fmt.Println("InsertNonID", targetData)
 	err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(targetData).Error; err != nil {
+		if err := tx.Save(targetData).Error; err != nil {
 			return err
 		}
-		rc.Map.Store(targetData.ID, targetData)
+		id, err := getID(targetData)
+		if err != nil {
+			return err
+		}
+		rc.Map.Store(id, targetData)
 		return nil
 	})
 

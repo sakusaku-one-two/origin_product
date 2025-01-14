@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"fmt"
 )
 
 func to_year(date_str string) int {
@@ -56,28 +57,44 @@ func CreateDateTime(date_str string, time_string string) time.Time {
 }
 
 func CreateDepartPlanTime(row map[string]*Value) *time.Time {
-
+	fmt.Println("CreateDepartPlanTime開始")
 	var target_location_to_employee_record *models.LocationToEmployeeRecord
-	models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Map.Range(func(key, value any) bool {
-		location_to_employee_record := value.(*models.LocationToEmployeeRecord)
-		if location_to_employee_record.LocationID == row["配置先番号"].To_int() && location_to_employee_record.EmpID == row["隊員番号"].To_int() && location_to_employee_record.ClientID == row["得意先番号"].To_int() {
+	fmt.Println("CreateDepartPlanTime開始1")
+
+	if len( models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Dump()) == 0{
+		fmt.Println("CreateDepartPlanTimeループ",models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Dump())	
+	}
+	models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Map.Range(func(key any, value any) bool {
+		fmt.Println("CreateDepartPlanTimeループ",key,value)
+		location_to_employee_record,ok := value.(*models.LocationToEmployeeRecord)
+		if ok && location_to_employee_record.LocationID == row["配置先番号"].To_int() && location_to_employee_record.EmpID == row["隊員番号"].To_int() && location_to_employee_record.ClientID == row["得意先番号"].To_int() {
 			target_location_to_employee_record = location_to_employee_record
 			return false
 		}
 		return true
 	})
+	fmt.Println("CreateDepartPlanTime終了")
 	var duration time.Duration
 	if target_location_to_employee_record == nil {
 		duration = time.Duration(time.Minute * -90)
-		models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.InsertNonID( models.NewLocationToEmployeeRecord(row["配置先番号"].To_int(), row["得意先番号"].To_int(), row["隊員番号"].To_int(), -90))
-	} else {
-		duration = time.Duration(time.Minute * time.Duration(target_location_to_employee_record.Duration))
+		err := models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.InsertNonID( models.NewLocationToEmployeeRecord(row["配置先番号"].To_int(), row["得意先番号"].To_int(), row["隊員番号"].To_int()), func(targetData *models.LocationToEmployeeRecord) (uint, error) {
+			return targetData.ID, nil
+		})
+		fmt.Println("CreateDepartPlanTime終了2")
+		if err != nil {
+			log.Println("配置先番号、得意先番号、隊員番号の組み合わせが存在しません。")
+		}
+		} else {
+		duration = time.Duration(time.Minute * time.Duration(target_location_to_employee_record.Duration)	)
+		fmt.Println("CreateDepartPlanTime終了3")
 	}
-
+	fmt.Println("CreateDepartPlanTime終了4")
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本開始時間"].To_string()
 	job_start_time := CreateDateTime(date_str, time_str)
+	fmt.Println("CreateDepartPlanTime終了5")
 	result := job_start_time.Add(duration)
+	fmt.Println("CreateDepartPlanTime終了6")
 	return &result
 }
 
