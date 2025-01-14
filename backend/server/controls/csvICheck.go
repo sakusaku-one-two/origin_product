@@ -147,10 +147,7 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 
 	createToAttendacneRecord := func(row map[string]*Value) *models.AttendanceRecord {
-		time_records, err := CreateTimeRecord(row)
-		if err != nil {
-			return nil
-		}
+		
 		emp, ok := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Get(row["隊員番号"].To_int())
 		if !ok {
 			//社員が存在しないので新しく作成して、キャッシュに登録
@@ -223,6 +220,11 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 			models.POST_RECORD_REPOSITORY.Cache.Insert(post_record.PostID, post_record)
 		}
 
+		//社員や配置先、依頼主が先に存在した上で、時間レコードを作製する。（社員と派遣先の時間指定との兼ね合い）
+		time_records, err := CreateTimeRecord(row)
+		if err != nil {
+			return nil
+		}
 		//ここまでで、必要なデータを全て取得したので、AttendanceRecordを作製
 		return &models.AttendanceRecord{
 			ManageID:   row["管制番号"].To_int(), //これが基本となる値。

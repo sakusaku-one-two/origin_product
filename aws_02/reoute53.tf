@@ -9,7 +9,7 @@ resource "aws_route53_record" "demo_app_dns" {
     type = "A"
     
     ttl = 300
-    records = [aws_ecs_service.demo_app_ecs_service.load_balancer[0].dns_name]
+    records = [aws_ecr_repository.demo_app_ecr_repository.repository_url]
 }
 
 

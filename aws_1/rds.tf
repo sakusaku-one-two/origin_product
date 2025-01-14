@@ -12,7 +12,7 @@ resource "aws_db_instance" "example" {
   vpc_security_group_ids = [aws_security_group.demo_app_rds_security_group.id]
   db_subnet_group_name = aws_db_subnet_group.demo_app_rds_subnet_group.name
   port                 = 5432       # 環境変数 DB_PORT に対応
-  timezone             = "Asia/Tokyo" # 環境変数 DB_TIMEZONE に対応
+  # timezone             = "Asia/Tokyo" # 環境変数 DB_TIMEZONE に対応
 }
 
 resource "aws_db_subnet_group" "demo_app_rds_subnet_group" {

@@ -1,16 +1,14 @@
-
-
-
 resource "aws_instance" "demo_app_api" {
   ami = "ami-08f52b2e87cebadd9"
   instance_type = "t2.micro"
-  subnet_id = aws_subnet.demo_app_dmz_subnet[0].id
-  key_name = aws_key_pair.demo_key_pair.key_name
+  subnet_id = aws_subnet.demo_app_public_subnet[0].id
+  key_name = aws_key_pair.demo_my_key_pair.key_name
   security_groups = [aws_security_group.demo_app_api_security_group.id]
   connection {
     type = "ssh"
     host = self.public_ip
     user = "ec2-user"
+    private_key = tls_private_key.example.private_key_pem
   }
 
   provisioner "remote-exec" {
