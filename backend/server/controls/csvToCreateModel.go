@@ -69,7 +69,7 @@ func CreateDepartPlanTime(row map[string]*Value) *time.Time {
 	var duration time.Duration
 	if target_location_to_employee_record == nil {
 		duration = time.Duration(time.Minute * -90)
-		models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Insert(row["配置先番号"].To_int(), models.NewLocationToEmployeeRecord(row["配置先番号"].To_int(), row["得意先番号"].To_int(), row["隊員番号"].To_int(), -90))
+		models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.InsertNonID( models.NewLocationToEmployeeRecord(row["配置先番号"].To_int(), row["得意先番号"].To_int(), row["隊員番号"].To_int(), -90))
 	} else {
 		duration = time.Duration(time.Minute * time.Duration(target_location_to_employee_record.Duration))
 	}

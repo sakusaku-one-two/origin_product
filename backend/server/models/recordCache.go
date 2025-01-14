@@ -156,6 +156,23 @@ func (rc *RecordsCache[ModelType]) Insert(id uint, targetData *ModelType) (bool,
 	return true, nil
 }
 
+func (rc *RecordsCache[ModelType]) InsertNonID(targetData *ModelType) error {
+
+	err := NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(targetData).Error; err != nil {
+			return err
+		}
+		rc.Map.Store(targetData.ID, targetData)
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (rc *RecordsCache[ModelType]) Dump() []ModelType {
 	result := []ModelType{}
 	rc.Map.Range(func(key, value any) bool {
