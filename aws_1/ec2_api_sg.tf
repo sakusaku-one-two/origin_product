@@ -30,6 +30,7 @@ resource "aws_security_group" "demo_app_api_security_group" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = [
+      "0.0.0.0/0",
       aws_subnet.demo_app_dmz_subnet[0].cidr_block,
       aws_subnet.demo_app_dmz_subnet[1].cidr_block,
       aws_subnet.demo_app_private_subnet[0].cidr_block,

@@ -8,7 +8,7 @@ resource "aws_security_group" "demo_app_nginx_sg" {
         from_port = 80
         to_port = 80
         protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = [aws_subnet.demo_app_public_subnet[0].cidr_block]//ALBが配置されているサブネットからの通信を許可
     }
     
     ingress {
@@ -22,6 +22,13 @@ resource "aws_security_group" "demo_app_nginx_sg" {
         from_port = 22
         to_port = 22
         protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
         cidr_blocks = ["0.0.0.0/0"]
     }
 }

@@ -5,7 +5,7 @@ resource "aws_lb_target_group" "demo_app_nginx_tg" {
     vpc_id = aws_vpc.demo_app_vpc.id
     target_type = "instance"
     health_check {
-        path = "/"
+        path = "/nginx/health"
         port = "traffic-port"
         protocol = "HTTP"
         healthy_threshold = 3
@@ -23,7 +23,7 @@ resource "aws_lb_listener" "demo_app_nginx_lis" {
     port = 443
     protocol = "HTTPS"
     ssl_policy = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
-    certificate_arn = aws_acm_certificate_validation.demo_app_certificate_validation.certificate_arn
+    certificate_arn = data.aws_acm_certificate.demo_app_certificate.arn
     default_action {
         type = "forward"
         target_group_arn = aws_lb_target_group.demo_app_nginx_tg.arn

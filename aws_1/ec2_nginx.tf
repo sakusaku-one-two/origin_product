@@ -1,4 +1,3 @@
-
 //EC2インスタンス　Nginxをインストールする
 resource "aws_instance" "demo_app_nginx" {
   ami = "ami-08f52b2e87cebadd9"
@@ -15,28 +14,37 @@ resource "aws_instance" "demo_app_nginx" {
     
   }
   provisioner "file" {
-    source = "${path.module}/reverce_proxy_server/nginx.conf"
-    destination = "/tmp/nginx.conf"
+    source = "./reverce_proxy_server/user_data.sh"
+    destination = "/tmp/user_data.sh"
   }
 
   provisioner "file" {
-    source = "${path.module}/../forntend/front-app/dist"
-    destination = "/usr/share/nginx/html"
+    source = "../forntend/front-app/dist"
+    destination = "/tmp/dist"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf",
+      "sudo yum install -y nginx",
+      "sudo mkdir -p /etc/nginx",
+      "sudo mkdir -p /usr/share/nginx/html",
+      "sudo mv /tmp/user_data.sh /etc/nginx/user_data.sh",
+      "sudo chmod 755 /etc/nginx/user_data.sh",
       "sudo chmod 644 /etc/nginx/nginx.conf",
-      "sudo systemctl restart nginx"
+    
     ]
   }
 
-  user_data = templatefile("${path.module}/reverce_proxy_server/user_data.sh", {
-    api_server_name = aws_instance.demo_app_api.private_dns
-    api_server_private_ip = aws_instance.demo_app_api.private_ip
-    target_group_arn = aws_lb_target_group.demo_app_nginx_tg.arn
-  })
+  user_data = <<-EOF
+    #!/bin/bash
+    echo "export API_HOST=${aws_instance.demo_app_api.private_dns}" >> /etc/environment
+    echo "export DOMAIN_NAME=${aws_route53_record.demo_app_dns_next.fqdn}" >> /etc/environment
+    echo "export API_SERVER_PRIVATE_IP=${aws_instance.demo_app_api.private_ip}" >> /etc/environment
+    echo "export TARGET_GROUP_ARN=${aws_lb_target_group.demo_app_nginx_tg.arn}" >> /etc/environment
+    echo "export HEALTH_CHECK_PATH=/nginx/health" >> /etc/environment
+    sudo chmod 755 /etc/nginx/user_data.sh
+    sudo bash /etc/nginx/user_data.sh
+  EOF 
   user_data_replace_on_change = true
 
   tags = {

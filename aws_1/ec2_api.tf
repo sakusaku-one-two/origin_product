@@ -24,10 +24,9 @@ resource "aws_instance" "demo_app_api" {
       "echo export DB_PORT=${var.db_port} >> ~/.bashrc",
       "echo export DB_SSL=${var.db_ssl} >> ~/.bashrc",
       "echo export DB_TIMEZONE=${var.db_timezone} >> ~/.bashrc",
-      "sudo apt-get update",
+      "sudo yum update -y",
       "wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz",
       "sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz",
-      "export PATH=$PATH:/usr/local/go/bin",
       "echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc",
       "source ~/.bashrc",
       "go version"
@@ -36,13 +35,14 @@ resource "aws_instance" "demo_app_api" {
 
   provisioner "file" {
     source = "../backend"
-    destination = "/home/ubuntu/api"
+    destination = "/home/ec2-user/backend"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "cd /home/ubuntu/api",
-      "go build -o main main.go"
+      "cd /home/ec2-user/backend",
+      "go build -o main main.go",
+    
     ]
   }
 

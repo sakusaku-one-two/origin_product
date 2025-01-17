@@ -1,22 +1,25 @@
-#! /bin/bash
+#!/bin/bash
 
-yum update -y
-yum install -y nginx
-
-# nginxの起動
-systemctl start nginx
-
-# nginxの自動起動設定
-systemctl enable nginx
+# ユーザーをnginxに設定
+sudo usermod -aG nginx ec2-user
+sudo su - nginx
+sudo mkdir 
 
 # nginxの設定ファイルを作成
 cat <<EOF > /etc/nginx/nginx.conf
 user nginx;
+
+# エラーログのパスを設定
 error_log /var/log/nginx/error.log;
 
 events {
     worker_connections 1024;
 }
+
+env API_HOST;
+env DOMAIN_NAME;
+env API_SERVER_PRIVATE_IP;
+env TARGET_GROUP_ARN;
 
 http {
     include /etc/nginx/mime.types;
@@ -35,19 +38,15 @@ http {
         ''      close;
     }
 
-    # server {
-    #     listen 80;
-    #     server_name api localhost;
-    #     # HTTPからHTTPSへのリダイレクト
-    #     return 301 https://$host$request_uri;
-    # }
+    
 
     server {
         # ポート番号
+        # listen 443 ssl; 
         listen 80;
-        server_name ${api_server_name};
+        server_name ${DOMAIN_NAME};
 
-        # SSL証明書の設定
+        # # SSL証明書の設定
         # ssl_certificate /etc/nginx/certificate.crt;
         # ssl_certificate_key /etc/nginx/private.key;
 
@@ -61,7 +60,7 @@ http {
         
         # WebSocketの設定
         location /api/wss/ {
-            proxy_pass http://${api_server_name}:8080/; # クライアントからのリクエストを内部のWebSocketサーバーに送ります。
+            proxy_pass http://${API_HOST}:8080/; # クライアントからのリクエストを内部のWebSocketサーバーに送ります。
             proxy_http_version 1.1; # 通信に使用するHTTPのバージョンを1.1に設定します。
             proxy_set_header Cookie $http_cookie;
             proxy_set_header Upgrade $http_upgrade; # 接続をWebSocketにアップグレードするためのヘッダーを設定します。
@@ -78,7 +77,7 @@ http {
 
         # 通常のAPIリクエストの設定
         location /api/ {
-            proxy_pass http://${api_server_name}:8080/;
+            proxy_pass http://${API_HOST}:8080/;
             proxy_set_header Host $host;
             proxy_set_header Cookie $http_cookie;
             proxy_set_header X-Real-IP $remote_addr;
@@ -86,10 +85,18 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-        location / {
+        location /nginx/health {
+            return 200;
+        }
+
+        location ~ {
             root /usr/share/nginx/html;
-            index index.html index.htm;
+            index index.html;
         }   
     }
 }
 EOF
+
+# nginxを起動
+sudo systemctl enable nginx
+sudo systemctl start nginx
