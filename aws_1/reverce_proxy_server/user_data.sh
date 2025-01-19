@@ -3,7 +3,7 @@
 # ユーザーをnginxに設定
 sudo usermod -aG nginx ec2-user
 sudo su - nginx
-sudo mkdir 
+
 
 # nginxの設定ファイルを作成
 cat <<EOF > /etc/nginx/nginx.conf

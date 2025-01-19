@@ -31,7 +31,10 @@ resource "aws_instance" "demo_app_nginx" {
       "sudo mv /tmp/user_data.sh /etc/nginx/user_data.sh",
       "sudo chmod 755 /etc/nginx/user_data.sh",
       "sudo chmod 644 /etc/nginx/nginx.conf",
-    
+      "sudo mv /tmp/dist /usr/share/nginx/html",
+      "sudo chown -R nginx:nginx /usr/share/nginx/html",
+      "sudo systemctl enable nginx",
+      "sudo systemctl start nginx"
     ]
   }
 
@@ -44,6 +47,7 @@ resource "aws_instance" "demo_app_nginx" {
     echo "export HEALTH_CHECK_PATH=/nginx/health" >> /etc/environment
     sudo chmod 755 /etc/nginx/user_data.sh
     sudo bash /etc/nginx/user_data.sh
+    sudo systemctl restart nginx
   EOF 
   user_data_replace_on_change = true
 

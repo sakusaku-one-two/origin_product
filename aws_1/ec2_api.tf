@@ -17,6 +17,8 @@ resource "aws_instance" "demo_app_api" {
   provisioner "remote-exec" {
     inline = [
          #!/bin/bash
+      "echo export API_HOST=${aws_instance.demo_app_api.private_ip} >> ~/.bashrc",
+      "echo export API_PORT=8080 >> ~/.bashrc",
       "echo export DB_HOST=${aws_db_instance.example.address} >> ~/.bashrc",
       "echo export DB_USER=${var.db_user} >> ~/.bashrc",
       "echo export DB_PASSWORD=${var.db_password} >> ~/.bashrc",
@@ -42,7 +44,6 @@ resource "aws_instance" "demo_app_api" {
     inline = [
       "cd /home/ec2-user/backend",
       "go build -o main main.go",
-    
     ]
   }
 
