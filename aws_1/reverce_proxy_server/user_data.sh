@@ -28,7 +28,7 @@ http {
     keepalive_timeout 65;
 
     # WebSocketの設定
-    map "\$http_upgrade" "\$connection_upgrade" {
+    map \$http_upgrade \$connection_upgrade {
         default upgrade;
         ''      close;
     }
@@ -44,16 +44,20 @@ http {
         add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'; report-uri /csp-violation-report-endpoint" always;
         add_header Referrer-Policy "strict-origin-when-cross-origin";
         
+        root /usr/share/nginx/html/dist;
+        index index.html index.htm;
+
+
         location /api/wss/ {
             proxy_pass http://${API_HOST}:8080/;
             proxy_http_version 1.1;
-            proxy_set_header Cookie "\$http_cookie";
-            proxy_set_header Upgrade "\$http_upgrade";
-            proxy_set_header Connection "\$connection_upgrade";
-            proxy_set_header Host "\$host";
-            proxy_set_header X-Real-IP "\$remote_addr";
-            proxy_set_header X-Forwarded-For "\$proxy_add_x_forwarded_for";
-            proxy_set_header X-Forwarded-Proto "\$scheme";
+            proxy_set_header Cookie \$http_cookie;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection \$connection_upgrade;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
             proxy_buffering off;
             proxy_redirect off;
             proxy_read_timeout 86400;
@@ -62,11 +66,11 @@ http {
 
         location /api/ {
             proxy_pass http://${API_HOST}:8080/;
-            proxy_set_header Host "\$host";
-            proxy_set_header Cookie "\$http_cookie";
-            proxy_set_header X-Real-IP "\$remote_addr";
-            proxy_set_header X-Forwarded-For "\$proxy_add_x_forwarded_for";
-            proxy_set_header X-Forwarded-Proto "\$scheme";
+            proxy_set_header Host \$host;
+            proxy_set_header Cookie \$http_cookie;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
         }
 
         location /nginx/health {
@@ -74,8 +78,7 @@ http {
         }
 
         location ~ {
-            root /usr/share/nginx/html;
-            index index.html;
+            try_files \$uri \$uri/ /index.html;
         }   
     }
 }

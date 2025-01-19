@@ -23,31 +23,42 @@ resource "aws_instance" "demo_app_nginx" {
     destination = "/tmp/dist"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum install -y nginx",
-      "sudo mkdir -p /etc/nginx",
-      "sudo mkdir -p /usr/share/nginx/html",
-      "sudo mv /tmp/user_data.sh /etc/nginx/user_data.sh",
-      "sudo chmod 755 /etc/nginx/user_data.sh",
-      "sudo chmod 644 /etc/nginx/nginx.conf",
-      "sudo mv /tmp/dist /usr/share/nginx/html",
-      "sudo chown -R nginx:nginx /usr/share/nginx/html",
-      "sudo systemctl enable nginx",
-      "sudo systemctl start nginx"
-    ]
-  }
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "sudo yum install -y nginx",
+  #     "sudo mkdir -p /etc/nginx",
+  #     "sudo mkdir -p /usr/share/nginx/html",
+  #     "sudo mv /tmp/user_data.sh /etc/nginx/user_data.sh",
+  #     "sudo chmod 755 /etc/nginx/user_data.sh",
+  #     "sudo chmod 644 /etc/nginx/nginx.conf",
+  #     "sudo mv /tmp/dist /usr/share/nginx/html",
+  #     "sudo bash /etc/nginx/user_data.sh",
+  #     "sudo chown -R nginx:nginx /usr/share/nginx/html",
+  #     "sudo systemctl enable nginx",
+  #     "sudo systemctl start nginx"
+  #   ]
+  # }
 
   user_data = <<-EOF
     #!/bin/bash
-    echo "export API_HOST=${aws_instance.demo_app_api.private_dns}" >> /etc/environment
+    sudo yum install -y nginx
+    sudo mkdir -p /etc/nginx
+    sudo mkdir -p /usr/share/nginx/html
+    sudo mv /tmp/user_data.sh /etc/nginx/user_data.sh
+    sudo chmod 755 /etc/nginx/user_data.sh
+    sudo chmod 644 /etc/nginx/nginx.conf
+    sudo mv /tmp/dist /usr/share/nginx/html
+    sudo chmod 755 /usr/share/nginx/html/dist
+    echo "export API_HOST=${aws_instance.demo_app_api.private_ip}" >> /etc/environment
     echo "export DOMAIN_NAME=${aws_route53_record.demo_app_dns_next.fqdn}" >> /etc/environment
     echo "export API_SERVER_PRIVATE_IP=${aws_instance.demo_app_api.private_ip}" >> /etc/environment
     echo "export TARGET_GROUP_ARN=${aws_lb_target_group.demo_app_nginx_tg.arn}" >> /etc/environment
     echo "export HEALTH_CHECK_PATH=/nginx/health" >> /etc/environment
     sudo chmod 755 /etc/nginx/user_data.sh
     sudo bash /etc/nginx/user_data.sh
-    sudo systemctl restart nginx
+    sudo chown -R nginx:nginx /usr/share/nginx/html
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
   EOF 
   user_data_replace_on_change = true
 

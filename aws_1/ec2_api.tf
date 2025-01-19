@@ -14,38 +14,36 @@ resource "aws_instance" "demo_app_api" {
     private_key = tls_private_key.example.private_key_pem
   }
 
-  provisioner "remote-exec" {
-    inline = [
-         #!/bin/bash
-      "echo export API_HOST=${aws_instance.demo_app_api.private_ip} >> ~/.bashrc",
-      "echo export API_PORT=8080 >> ~/.bashrc",
-      "echo export DB_HOST=${aws_db_instance.example.address} >> ~/.bashrc",
-      "echo export DB_USER=${var.db_user} >> ~/.bashrc",
-      "echo export DB_PASSWORD=${var.db_password} >> ~/.bashrc",
-      "echo export DB_NAME=${var.db_name} >> ~/.bashrc",
-      "echo export DB_PORT=${var.db_port} >> ~/.bashrc",
-      "echo export DB_SSL=${var.db_ssl} >> ~/.bashrc",
-      "echo export DB_TIMEZONE=${var.db_timezone} >> ~/.bashrc",
-      "sudo yum update -y",
-      "wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz",
-      "sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz",
-      "echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc",
-      "source ~/.bashrc",
-      "go version"
-    ]
-  }
+  user_data = <<EOF
+  #!/bin/bash
+  sudo yum update -y
+  wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
+  sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
+
+  echo "export API_PORT=8080" >> ~/.bashrc
+  echo "export DB_HOST=${aws_db_instance.example.address}" >> ~/.bashrc
+  echo "export DB_USER=${var.db_user}" >> ~/.bashrc
+  echo "export DB_PASSWORD=${var.db_password}" >> ~/.bashrc
+  echo "export DB_NAME=${var.db_name}" >> ~/.bashrc
+  echo "export DB_PORT=${var.db_port}" >> ~/.bashrc
+  echo "export DB_SSL=${var.db_ssl}" >> ~/.bashrc
+  echo "export DB_TIMEZONE=${var.db_timezone}" >> ~/.bashrc
+  sudo yum update -y
+  wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
+  sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
+  echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+  source ~/.bashrc
+  go version
+  cd /home/ec2-user/backend
+  go build -o main main.go
+  sudo ./main
+  EOF
 
   provisioner "file" {
     source = "../backend"
     destination = "/home/ec2-user/backend"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "cd /home/ec2-user/backend",
-      "go build -o main main.go",
-    ]
-  }
 
   provisioner "local-exec" {
     command = "echo ${aws_instance.demo_app_api.public_ip} > public_ip.txt"
