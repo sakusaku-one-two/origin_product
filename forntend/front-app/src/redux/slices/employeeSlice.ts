@@ -1,7 +1,7 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { EmployeeRecord ,AttendanceRecord} from "../recordType";
 import { UPDATE as ATTENDANCE_RECORD_UPDATE,
-         DELETE as ATTENDANCE_RECORD_DELETE ,
+         DELETE as ATTENDANCE_RECORD_DELETE,
         INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP} from "./attendanceSlice";
 
 // -----------------------[EmployeeRecordの初期値]-----------------------------

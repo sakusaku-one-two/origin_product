@@ -18,7 +18,7 @@ const EmployeeTable:React.FC = () => {
     useEffect(()=>{
         try {
             const fetchEmp = async () => {
-                await fetch("api/employeeList",{   
+                const response = await fetch("api/employeeList",{   
                     method:"POST",
                     headers:{
                         "Content-Type":"application/json"
@@ -27,10 +27,16 @@ const EmployeeTable:React.FC = () => {
                         "startDate":startDate?.toISOString(),
                         "endDate":endDate?.toISOString()
                     })
-                })
-                .then((res)=>res.json())
-                .then((data)=>setEmployeeRecords(data));
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setEmployeeRecords(data);
+                } else {
+                    alert("社員データの取得に失敗しました。");
+                }
             }
+            
             fetchEmp();
         } catch (error:unknown) {
             alert("社員データの取得に失敗しました。");

@@ -32,7 +32,6 @@ var (
 	LOCATION_RECORD_REPOSITORY             *Repository[LocationRecord]
 	POST_RECORD_REPOSITORY                 *Repository[PostRecord]
 	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY *Repository[LocationToEmployeeRecord]
-
 )
 
 // // 各種設定の呼び出し
@@ -433,6 +432,7 @@ func SetUpRepository() {
 		}
 	})
 
+	// --------------------[配置先記録のリポジトリ]--------------------------------
 	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY := CreateRepositry[LocationToEmployeeRecord]("ACTION_LOCATION_TO_EMPLOYEE_RECORD", 100)
 	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationToEmployeeRecord]) {
 

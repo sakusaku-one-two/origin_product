@@ -236,7 +236,7 @@ func InsertRecordsHandler(c echo.Context) error {
 			}
 
 			fmt.Println("配信内容", target.Emp.Name, target.Location.ClientName, target.Location.LocationName, target.TimeRecords[0].PlanTime)
-
+			//webSocketで送信
 			ATTENDANCE_RECORD_REPOSITORY.Sender <- models.ActionDTO[models.AttendanceRecord]{
 				Action:  "ATTENDANCE_RECORD/UPDATE",
 				Payload: target,
