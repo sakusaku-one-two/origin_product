@@ -37,6 +37,7 @@ resource "aws_instance" "demo_app_api" {
   cd /home/ec2-user/backend
   go build -o main main.go
   sudo ./main
+  
   EOF
 
   provisioner "file" {
