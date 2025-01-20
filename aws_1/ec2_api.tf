@@ -20,24 +20,22 @@ resource "aws_instance" "demo_app_api" {
   wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
   sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
 
-  echo "export API_PORT=8080" >> ~/.bashrc
-  echo "export DB_HOST=${aws_db_instance.example.address}" >> ~/.bashrc
-  echo "export DB_USER=${var.db_user}" >> ~/.bashrc
-  echo "export DB_PASSWORD=${var.db_password}" >> ~/.bashrc
-  echo "export DB_NAME=${var.db_name}" >> ~/.bashrc
-  echo "export DB_PORT=${var.db_port}" >> ~/.bashrc
-  echo "export DB_SSL=${var.db_ssl}" >> ~/.bashrc
-  echo "export DB_TIMEZONE=${var.db_timezone}" >> ~/.bashrc
-  sudo yum update -y
-  wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
-  sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
-  echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
-  source ~/.bashrc
+  echo "export API_PORT=8080" >> /etc/environment
+  echo "export DB_HOST=${aws_db_instance.example.address}" >> /etc/environment
+  echo "export DB_USER=${var.db_user}" >> /etc/environment
+  echo "export DB_PASSWORD=${var.db_password}" >> /etc/environment
+  echo "export DB_NAME=${var.db_name}" >> /etc/environment
+  echo "export DB_PORT=${var.db_port}" >> /etc/environment
+  echo "export DB_SSL=${var.db_ssl}" >> /etc/environment
+  echo "export DB_TIMEZONE=${var.db_timezone}" >> /etc/environment
+  echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/environment
+  source /etc/environment
   go version
   cd /home/ec2-user/backend
   go build -o main main.go
-  sudo ./main
-  
+  chmod +x main
+  nohup sudo ./main &
+
   EOF
 
   provisioner "file" {
