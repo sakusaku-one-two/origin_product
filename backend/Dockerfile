@@ -34,6 +34,12 @@ FROM golang:1.23.0
 # ワークディレクトリを/appに設定
 WORKDIR /app
 
+# entrypoint.shをコピー
+COPY entrypoint.sh /entrypoint.sh
+
+# entrypoint.shを実行可能にする
+RUN chmod +x /entrypoint.sh
+
 # go.modとgo.sumをコピーして依存関係を整理
 COPY go.mod go.sum ./
 RUN go mod tidy

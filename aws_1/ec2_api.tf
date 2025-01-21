@@ -27,6 +27,7 @@ resource "aws_instance" "demo_app_api" {
   echo "export DB_NAME=${var.db_name}" >> /etc/environment
   echo "export DB_PORT=${var.db_port}" >> /etc/environment
   echo "export DB_SSL=${var.db_ssl}" >> /etc/environment
+  echo "export AllowOrigin=${data.aws_route53_zone.demo_app_zone.name}" >> /etc/environment
   echo "export DB_TIMEZONE=${var.db_timezone}" >> /etc/environment
   echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/environment
   source /etc/environment

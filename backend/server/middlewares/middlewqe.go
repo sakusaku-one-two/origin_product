@@ -13,9 +13,16 @@ func SetUpMiddlewares(e *echo.Echo) {
 	e.Use(middleware.Recover())
 
 	// CORSミドルウェアの設定
+	// CORSミドルウェアの設定
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		// 許可するオリジンを環境変数から取得
 		AllowOrigins: []string{os.Getenv("AllowOrigin")},
+		// 許可するHTTPメソッドを指定
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
+		// 許可するHTTPヘッダーを指定
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		// 認証情報の共有を許可
+		AllowCredentials: false, // AllowCredentialsは、クッキーや認証ヘッダーなどの認証情報をリクエストに含めることを許可する設定です。例えば、家の鍵を持っている人だけが家に入れるように、特定の情報を持っている人だけがアクセスできるようにするイメージです。
 	}))
 
 	// その他のミドルウェア

@@ -47,8 +47,10 @@ func LoginHandler(c echo.Context) error {
 	result := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
 		result_tx := tx.Where("user_name = ?", requestData.UserName).First(&user) //IDからユーザーレコード構造体（ORM）を取得
 		if result_tx.Error != nil {
+			log.Println("ユーザーが見つからない")
 			return result_tx.Error
 		}
+		log.Println("ユーザーが見つかった")
 		return nil
 	})
 
@@ -58,8 +60,10 @@ func LoginHandler(c echo.Context) error {
 
 	//パスワードを確認
 	if !user.CheckPassword(requestData.Password) {
+		log.Println("パスワードが違う")
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid password"})
 	}
+	log.Println("パスワードが合っている")
 	//以下はパスワードの確認完了したブロック
 	user.IsLogin = true
 	models.NewQuerySession().Save(&user)
