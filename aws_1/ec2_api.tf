@@ -18,7 +18,8 @@ resource "aws_instance" "demo_app_api" {
   sudo yum update -y
   wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
   sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
-  
+  sudo amazon-linux-extras install postgresql15
+  sudo yum install postgresql
   echo "export API_PORT=8080" >> /etc/environment
   echo "export DB_HOST=${aws_db_instance.example.address}" >> /etc/environment
   echo "export DB_USER=${var.db_user}" >> /etc/environment
@@ -29,9 +30,11 @@ resource "aws_instance" "demo_app_api" {
   echo "export AllowOrigin=${aws_route53_record.demo_app_dns_next.name}" >> /etc/environment
   echo "export DB_TIMEZONE=${var.db_timezone}" >> /etc/environment
   echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"' >> /etc/environment
+  
   cd /home/ec2-user/backend
+  sudo chmod +x ec2_api_user_data.sh
+  bash ec2_api_user_data.sh
   go mod tidy
-
   go build -v -o main main.go
   chmod +x main
   ./main
@@ -43,6 +46,16 @@ resource "aws_instance" "demo_app_api" {
     destination = "/home/ec2-user/backend"
   }
 
+  provisioner "file" {
+    source = "./ec2_api_user_data.sh"
+    destination = "/home/ec2-user/backend/ec2_api_user_data.sh"
+  }
+
+  provisioner "file" {
+    source = "./ec2_api_rds.sql"
+    destination = "/home/ec2-user/backend/ec2_api_rds.sql"
+    
+  }
 
   provisioner "local-exec" {
     command = "echo ${aws_instance.demo_app_api.public_ip} > public_ip.txt"
