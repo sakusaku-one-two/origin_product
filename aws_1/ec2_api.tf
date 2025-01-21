@@ -13,13 +13,12 @@ resource "aws_instance" "demo_app_api" {
     user = "ec2-user"
     private_key = tls_private_key.example.private_key_pem
   }
-
-  user_data = <<EOF
+  user_data = <<-EOF
   #!/bin/bash
   sudo yum update -y
   wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
   sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
-
+  
   echo "export API_PORT=8080" >> /etc/environment
   echo "export DB_HOST=${aws_db_instance.example.address}" >> /etc/environment
   echo "export DB_USER=${var.db_user}" >> /etc/environment
@@ -27,18 +26,18 @@ resource "aws_instance" "demo_app_api" {
   echo "export DB_NAME=${var.db_name}" >> /etc/environment
   echo "export DB_PORT=${var.db_port}" >> /etc/environment
   echo "export DB_SSL=${var.db_ssl}" >> /etc/environment
-  echo "export AllowOrigin=${data.aws_route53_zone.demo_app_zone.name}" >> /etc/environment
+  echo "export AllowOrigin=${aws_route53_record.demo_app_dns_next.name}" >> /etc/environment
   echo "export DB_TIMEZONE=${var.db_timezone}" >> /etc/environment
-  echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/environment
-  source /etc/environment
-  go version
+  echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"' >> /etc/environment
   cd /home/ec2-user/backend
-  go build -o main main.go
-  chmod +x main
-  nohup sudo ./main &
+  go mod tidy
 
+  go build -v -o main main.go
+  chmod +x main
+  ./main
   EOF
 
+  user_data_replace_on_change = true
   provisioner "file" {
     source = "../backend"
     destination = "/home/ec2-user/backend"
