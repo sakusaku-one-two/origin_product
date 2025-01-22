@@ -11,6 +11,8 @@ variable "db_user" {
 variable "db_password" {
   description = "The database password"
   default     = "my_password"
+  type = string
+  sensitive = true
 }
 
 variable "db_name" {
@@ -33,6 +35,10 @@ variable "db_timezone" {
   default     = "Asia/Tokyo"
 }
 
+variable "db_ssl" {
+  description = "value"
+  default = "disable"
+}
 
 
 resource "aws_db_instance" "example" {
@@ -45,7 +51,7 @@ resource "aws_db_instance" "example" {
   identifier           = var.db_name
   username             = var.db_user
   password             = var.db_password
-  parameter_group_name = "default.postgres"
+  parameter_group_name ="default.postgres15"
   skip_final_snapshot  = true
   deletion_protection = false
   final_snapshot_identifier = "final-snapshot"
@@ -53,7 +59,7 @@ resource "aws_db_instance" "example" {
   vpc_security_group_ids = [aws_security_group.demo_app_rds_security_group.id]
   db_subnet_group_name = aws_db_subnet_group.demo_app_rds_subnet_group.name
   port                 = var.db_port       # 環境変数 DB_PORT に対応
-  # timezone             = "Asia/Tokyo" # 環境変数 DB_TIMEZONE に対応
+  timezone             = var.db_timezone # 環境変数 DB_TIMEZONE に対応
 }
 
 
