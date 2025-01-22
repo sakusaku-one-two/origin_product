@@ -62,7 +62,7 @@ resource "aws_db_instance" "example" {
 
 resource "aws_db_parameter_group" "example_group" {
   name = "example-parameter-group"
-  family = "postgres15"
+  family = "postgres17"
   description = "Example parameter group"
 
   parameter {
