@@ -18,8 +18,6 @@ resource "aws_instance" "demo_app_api" {
   sudo yum update -y
   wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
   sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
-  sudo amazon-linux-extras install postgresql15
-  sudo yum install postgresql
   echo "export API_PORT=8080" >> /etc/environment
   echo "export DB_HOST=${aws_db_instance.example.address}" >> /etc/environment
   echo "export DB_USER=${var.db_user}" >> /etc/environment
@@ -36,7 +34,7 @@ resource "aws_instance" "demo_app_api" {
   
   cd /home/ec2-user/backend
   sudo chmod +x ec2_api_user_data.sh
-  bash ec2_api_user_data.sh
+  ./ec2_api_user_data.sh
   go mod tidy
   go build -v -o main main.go
   chmod +x main

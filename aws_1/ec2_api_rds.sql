@@ -1,21 +1,23 @@
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT FROM pg_catalog.pg_roles WHERE rolname = ':db_user'
+        SELECT FROM pg_catalog.pg_roles WHERE rolname = ":'db_user'"
     ) THEN
-        CREATE ROLE :db_user WITH PASSWORD ':db_password' LOGIN;
+        CREATE ROLE :'db_user' WITH PASSWORD :'db_password';
+        -- EXECUTE format('CREATE ROLE %I WITH PASSWORD %L LOGIN', :'db_user', :'db_password');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE NOTICE ':db_user role already exists';
+        RAISE NOTICE '%のロールは既に存在します', :'db_user';
 END $$;
 
 DO $$ BEGIN
     IF NOT EXISTS (
-        SELECT FROM pg_catalog.pg_database WHERE datname = ':db_name'
+        SELECT FROM pg_catalog.pg_database WHERE datname = ":'db_name'"
     ) THEN
-        CREATE DATABASE :db_name OWNER :db_user;
+        CREATE DATABASE :'db_name' OWNER :'db_user';
+        -- EXECUTE format('CREATE DATABASE %I OWNER %I', :'db_name', :'db_user');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE NOTICE ':db_name database already exists';
+        RAISE NOTICE '%のデータベースは既に存在します', :'db_name';
 END $$;

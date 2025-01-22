@@ -35,10 +35,6 @@ variable "db_timezone" {
   default     = "Asia/Tokyo"
 }
 
-variable "db_ssl" {
-  description = "value"
-  default = "disable"
-}
 
 
 resource "aws_db_instance" "example" {
@@ -46,20 +42,21 @@ resource "aws_db_instance" "example" {
   db_name                 = "exampledb"
   storage_type            = "gp2"
   engine                  = "postgres"
-  engine_version          = "15.7"
+  engine_version          = "17.2"
   instance_class          = "db.t3.micro"
   identifier           = var.db_name
   username             = var.db_user
   password             = var.db_password
-  parameter_group_name ="default.postgres15"
+  parameter_group_name = aws_db_parameter_group.example_group.name
   skip_final_snapshot  = true
+  backup_retention_period = 1
   deletion_protection = false
   final_snapshot_identifier = "final-snapshot"
   publicly_accessible  = false
   vpc_security_group_ids = [aws_security_group.demo_app_rds_security_group.id]
   db_subnet_group_name = aws_db_subnet_group.demo_app_rds_subnet_group.name
   port                 = var.db_port       # 環境変数 DB_PORT に対応
-  timezone             = var.db_timezone # 環境変数 DB_TIMEZONE に対応
+  # timezone             = var.db_timezone # 環境変数 DB_TIMEZONE に対応
 }
 
 
@@ -71,9 +68,13 @@ resource "aws_db_parameter_group" "example_group" {
   parameter {
     name = "rds.force_ssl"
     value = "0"
+
   }
   
-
+  parameter {
+    name = "timezone"
+    value = "Asia/Tokyo"
+  }
 
 
 }
