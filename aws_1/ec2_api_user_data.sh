@@ -98,7 +98,7 @@ check_required_files "./ec2_api_rds.sql"
 #     exit 1
 # fi
 sudo dnf update -y
-sudo dnf install postgresql17 -y
+sudo dnf install postgresql16 -y
 echo "✓ PostgreSQLクライアントのインストールが完了しました"
 
 # RDSへの接続を待機
@@ -106,10 +106,11 @@ MAX_TRIES=30
 COUNTER=0
 
 echo "RDSへの接続を確認しています..."
-while ! PGPASSWORD="$DB_PASSWORD" psql \
-    -h "$DB_HOST" \
-    -U "$DB_USER" \
-    -d "postgres" \
+while ! PGPASSWORD=$DB_PASSWORD psql \
+    -h $DB_HOST \
+    -U $DB_USER \
+    -d postgres \
+    -p $DB_PORT \
     -c '\q' 2>/dev/null
 do
     if [ $COUNTER -eq $MAX_TRIES ]; then
@@ -143,11 +144,12 @@ echo "✓ SQLテンプレートの処理が完了しました"
 
 # データベースセットアップの実行
 echo "データベースをセットアップしています..."
-if ! PGPASSWORD="$DB_PASSWORD" psql \
-    -h "$DB_HOST" \
-    -U "$DB_USER" \
-    -d "postgres" \
-    -f "$FINAL_SQL"; then
+if ! PGPASSWORD=$DB_PASSWORD psql \
+    -h $DB_HOST \
+    -U $DB_USER \
+    -d postgres \
+    -p $DB_PORT \
+    -f $FINAL_SQL; then
     echo "Error: データベースセットアップに失敗しました"
     exit 1
 fi
@@ -156,10 +158,10 @@ echo "✓ データベースのセットアップが完了しました"
 # スキーマの適用（存在する場合）
 if [ -f "schema.sql" ]; then
     echo "テーブルを作成しています..."
-    if ! PGPASSWORD="$DB_PASSWORD" psql \
-        -h "$DB_HOST" \
-        -U "$DB_USER" \
-        -d "$DB_NAME" \
+    if ! PGPASSWORD=$DB_PASSWORD psql \
+        -h $DB_HOST \
+        -U $DB_USER \
+        -d $DB_NAME \
         -f "schema.sql"; then
         echo "Error: テーブル作成に失敗しました"
         exit 1

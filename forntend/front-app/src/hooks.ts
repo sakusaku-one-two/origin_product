@@ -54,6 +54,8 @@ export type TimeRecordWithOtherRecord = {
     isSelected:boolean
 };
 
+
+
 //TimeRecordとEmployeeRecordを結合する
 export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootState):TimeRecordWithOtherRecord[]{
     const attendanceRecords = state.ATTENDANCE_RECORDS.AttendanceRecords as AttendanceRecord[];
@@ -68,25 +70,34 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
         const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.Location.ID);
         const targetPostRecord = postRecords.find((postRecord)=>postRecord.PostID === targetAttendanceRecord?.PostID);
 
-        if (targetEmployeeRecord === null || targetLocationRecord === null || targetPostRecord === null) {
+        if (targetEmployeeRecord === undefined || targetLocationRecord === undefined || targetPostRecord === undefined) {
+            console.log("存在しないtargetEmployeeRecord",targetEmployeeRecord);
+            console.log("存在しないtargetLocationRecord",targetLocationRecord);
+            console.log("存在しないtargetPostRecord",targetPostRecord);
             fetchList.push(timeRecord.ManageID);
         }
 
         return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null,isSelected:true};
     }); 
 
-    // データがない場合はサーバーにデータを送信する
+    // データがない場合はサーバーにデータを送信する 返り値はwebsocketで受信する。
     if (fetchList.length > 0) {
-        fetch("/import",{
+        console.log("fetchList",fetchList);
+        fetch("/api/import",{
             method:"POST",
             body:JSON.stringify({
                 manage_ids:fetchList
-            })
+            }),
+            headers:{
+                "Content-Type":"application/json"
+            }
         }).then((res)=>{
             return res.json();
         }).then((data)=>{
+            
             if (data.message === "success") {
-                useAttendanceDispatch()(INSERT_ATTENDANCE_MESSAGE(data.attendances));
+                alert("データをインポートしました。");
+                // useAttendanceDispatch()(INSERT_ATTENDANCE_MESSAGE(data.attendances));
             }
         })
     }

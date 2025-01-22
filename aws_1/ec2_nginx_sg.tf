@@ -15,7 +15,9 @@ resource "aws_security_group" "demo_app_nginx_sg" {
         from_port = 8080
         to_port = 8080
         protocol = "tcp"
-        cidr_blocks = [aws_subnet.demo_app_dmz_subnet[0].cidr_block]
+        cidr_blocks = [aws_subnet.demo_app_public_subnet[0].cidr_block,
+                       aws_subnet.demo_app_public_subnet[1].cidr_block,
+                       ]
     }
 
     ingress {

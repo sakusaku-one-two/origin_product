@@ -74,6 +74,7 @@ http {
         }
 
         location /nginx/health {
+            
             return 200;
         }
 

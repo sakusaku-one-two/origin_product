@@ -243,7 +243,7 @@ func SetUpRepository() {
 					log.Printf("Failed to convert to *TimeRecord for key %v", key)
 					return true
 				}
-				//監視範囲外の場合は削除する （予定時刻から1時間を超えている場合は削除する
+				//監視範囲外の場合は削除する
 				if time_record.PlanTime.Before(before_time) || time_record.PlanTime.After(after_time) {
 					repo.Cache.Map.Delete(key)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/DELETE", time_record) //実施際にDB内のデータを削除するわけではないが、クライアント側のredux-reducerに削除するというアクションを送信する
