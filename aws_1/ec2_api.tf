@@ -35,57 +35,55 @@ resource "aws_instance" "demo_app_api" {
   cd /home/ec2-user/backend
   sudo chmod +x ec2_api_user_data.sh
   ./ec2_api_user_data.sh
+
+
+  go mod tidy
+  go build -v -o main_aws main.go
+  chmod +x main_aws
+  ./ec2_api_user_data.sh
+  cat <<'SERVICEEOF' > /etc/systemd/system/api.service
+  [Unit]
+  Description=Go Application Service
+  After=network.target
+  [Service]
+  Type=simple
+  User=root
+  WorkingDirectory=/home/ec2-user/backend
+  Environment=API_PORT=8080
+  Environment=DB_HOST=${aws_db_instance.example.address}
+  Environment=DB_USER=${var.db_user}
+  Environment=DB_PASSWORD=${var.db_password}
+  Environment=DB_NAME=${var.db_name}
+  Environment=DB_PORT=${var.db_port}
+  Environment=DB_SSL=${var.db_ssl}
+  ExecStart=/home/ec2-user/backend/main_aws
+  Restart=always
+  StandardOutput=append:/var/log/api/application.log
+  StandardError=append:/var/log/api/error.log
+  [Install]
+  WantedBy=multi-user.target",
+       
+  
+  # サービスの起動
+  sudo systemctl daemon-reload
+  sudo systemctl enable api
+  sudo systemctl start api
+
+  sudo cat <<EOF > /etc/logrotate.d/myapp
+  /var/log/myapp/*.log {
+  daily
+  rotate 7
+  compress
+  delaycompress
+  missingok
+  notifempty
+  create 0640 root root
+  }   
   
   EOF
 
   user_data_replace_on_change = true
   
-  provisioner "remote-exec" {
-    inline = [
-      "go mod tidy",
-      "go build -v -o main_aws main.go",
-      "chmod +x main_aws",
-      "./ec2_api_user_data.sh",
-      "cat <<'SERVICEEOF' > /etc/systemd/system/api.service",
-      "[Unit]",
-      "Description=Go Application Service",
-      "After=network.target",
-      "[Service]",
-      "Type=simple",
-      "User=root",
-      "WorkingDirectory=/home/ec2-user/backend",
-      "Environment=API_PORT=8080",
-      "Environment=DB_HOST=${aws_db_instance.example.address}",
-      "Environment=DB_USER=${var.db_user}",
-      "Environment=DB_PASSWORD=${var.db_password}",
-      "Environment=DB_NAME=${var.db_name}",
-      "Environment=DB_PORT=${var.db_port}",
-      "Environment=DB_SSL=${var.db_ssl}",
-      "ExecStart=/home/ec2-user/backend/main_aws",
-      "Restart=always",
-      "StandardOutput=append:/var/log/api/application.log",
-      "StandardError=append:/var/log/api/error.log",
-      "[Install]",
-      "WantedBy=multi-user.target",
-       
-  
-  # サービスの起動
-  "sudo systemctl daemon-reload",
-  "sudo systemctl enable api",
-  "sudo systemctl start api",
-
-  "sudo cat <<EOF > /etc/logrotate.d/myapp",
-  "/var/log/myapp/*.log {",
-  "daily",
-  "rotate 7",
-  "compress",
-  "delaycompress",
-  "missingok",
-  "notifempty",
-  "create 0640 root root",
-  "}" 
-  ]
-  }
   
   provisioner "file" {
     source = "../backend"

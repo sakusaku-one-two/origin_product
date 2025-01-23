@@ -17,6 +17,7 @@ events {
 }
 
 http {
+
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
     log_format main '\$remote_addr - \$remote_user [\$time_local] "\$request" '
@@ -36,6 +37,8 @@ http {
     server {
         listen 80;
         server_name ${DOMAIN_NAME};
+        
+        client_max_body_size 20M;
 
         add_header X-Content-Type-Options nosniff;
         add_header X-Frame-Options SAMEORIGIN;
@@ -65,6 +68,7 @@ http {
         }
 
         location /api/ {
+
             proxy_pass http://${API_HOST}:8080/;
             proxy_set_header Host \$host;
             proxy_set_header Cookie \$http_cookie;
@@ -78,7 +82,7 @@ http {
             return 200;
         }
 
-        location ~ {
+        location / {
             try_files \$uri \$uri/ /index.html;
         }   
     }
