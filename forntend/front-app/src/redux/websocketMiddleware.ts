@@ -3,10 +3,10 @@ import type { AttendanceRecord,EmployeeRecord,LocationRecord,TimeRecord } from "
 import { RootState } from "./store";
 import { TimeRecordWithOtherRecord } from "@/hooks";
 import { Store } from "@reduxjs/toolkit";
+import { RecordRequest } from './webSocketHelper';
 
-
-type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
-type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
+export type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
+export type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
 type RecordArrayType = RecordType[];
 let socket:WebSocket;
 
@@ -48,8 +48,9 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
         const state = store.getState();
         const selectedRecord:TimeRecordWithOtherRecord | null = state.SELECTED_RECORDS.selectedRecords;
         const persedEvent = JSON.parse(event.data);
-        const actionObject = {type:persedEvent["Action"],payload:persedEvent["Payload"]} as ActionType;  
-        
+        const actionObject = {type:persedEvent["Action"] as string,payload:persedEvent["Payload"] as RecordType} as ActionType;  
+        RecordRequest(state,actionObject);
+
         // ミドルウエアのチェーンに受信したアクションオブジェクトを渡す
         next(actionObject);
 
