@@ -27,7 +27,7 @@ http {
 
     sendfile on;
     keepalive_timeout 65;
-
+    
     # WebSocketの設定
     map \$http_upgrade \$connection_upgrade {
         default upgrade;
@@ -52,6 +52,9 @@ http {
 
 
         location /api/wss/ {
+           
+            proxy_buffering off;
+
             proxy_pass http://${API_HOST}:8080/;
             proxy_http_version 1.1;
             proxy_set_header Cookie \$http_cookie;
@@ -63,8 +66,10 @@ http {
             proxy_set_header X-Forwarded-Proto \$scheme;
             proxy_buffering off;
             proxy_redirect off;
-            proxy_read_timeout 86400;
-            proxy_send_timeout 86400;
+            proxy_read_timeout 10h;  # 10時間
+            proxy_send_timeout 10h;  # 10時間
+            keepalive_timeout 10h;  # 10時間
+            proxy_connect_timeout 60s;  # 60秒
         }
 
         location /api/ {

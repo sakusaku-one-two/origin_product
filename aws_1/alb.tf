@@ -5,7 +5,7 @@ resource "aws_lb" "demo_app_lb_next" {
     subnets = [aws_subnet.demo_app_public_subnet[0].id,aws_subnet.demo_app_public_subnet[1].id]
     security_groups = [aws_security_group.demo_app_alb_security_group.id]
     
-    
+    idle_timeout = 4000
 }
 
 
