@@ -16,8 +16,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
+  // CommandSeparator,
+  // CommandShortcut,
 } from "../../ui/command";
 
 import { FindDialogOpen } from "../../../state/openClose";
@@ -26,14 +26,14 @@ import { TimeRecordWithOtherRecord } from "../../../hooks";
 import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
 import TimeCard from "../dasbord/timeCard/timeCard";
 
-import { useSelectedRecordsSelector,useSelectedRecordsDispatch } from "../../../hooks";
+import {useSelectedRecordsDispatch } from "../../../hooks";
 import { CardType } from "../dasbord/timeCard/cardHelper";
 
 
 const FindTask:FC =() => {
   
   const [open,setIsOpen] = useRecoilState(FindDialogOpen);
-  const selectedRecords = useSelectedRecordsSelector();
+  // const selectedRecords = useSelectedRecordsSelector();
   const dispatch = useSelectedRecordsDispatch();
   const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
 

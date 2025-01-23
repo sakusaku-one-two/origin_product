@@ -63,7 +63,7 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
     const locationRecords = state.LOCATION_RECORDS.locationList as LocationRecord[];
     const postRecords = state.POST_RECORDS.postList as PostRecord[];
 
-    const fetchList:number[] = [];    
+      
     const result:TimeRecordWithOtherRecord[] = timeRecords.map((timeRecord)=>{
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
@@ -74,34 +74,13 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
             console.log("存在しないtargetEmployeeRecord",targetEmployeeRecord);
             console.log("存在しないtargetLocationRecord",targetLocationRecord);
             console.log("存在しないtargetPostRecord",targetPostRecord);
-            fetchList.push(timeRecord.ManageID);
+            
         }
 
         return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null,isSelected:true};
     }); 
 
-    // データがない場合はサーバーにデータを送信する 返り値はwebsocketで受信する。
-    if (fetchList.length > 0) {
-        console.log("fetchList",fetchList);
-        fetch("/api/import",{
-            method:"POST",
-            body:JSON.stringify({
-                manage_ids:fetchList
-            }),
-            headers:{
-                "Content-Type":"application/json"
-            }
-        }).then((res)=>{
-            return res.json();
-        }).then((data)=>{
-            
-            if (data.message === "success") {
-                alert("データをインポートしました。");
-                // useAttendanceDispatch()(INSERT_ATTENDANCE_MESSAGE(data.attendances));
-            }
-        })
-    }
-    return result;
+        return result;
 
 }
 
