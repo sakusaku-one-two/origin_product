@@ -1,13 +1,13 @@
 import {FC,useEffect} from "react";
 
-import {
-  Calculator,
+// import {
+//   Calculator,
   
-  CreditCard,
-  Settings,
+//   CreditCard,
+//   Settings,
   
-  User,
-} from "lucide-react";
+//   User,
+// } from "lucide-react";
 
 import {
   CommandDialog,
@@ -75,32 +75,7 @@ const FindTask:FC =() => {
               dispatch({type:"SELECTED_RECORDS/UPDATE",payload:null});
               setIsOpen(false);
             }}>
-              <Calculator />
-              <span>Calculator</span>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Settings">
-            <CommandItem>
-              <User />
-              <span>Profile</span>
-              <CommandShortcut>⌘P</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <CreditCard />
-              <span>Billing</span>
-              <CommandShortcut>⌘B</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <Settings />
-              <span>現在選択中のデータ</span>
-              <CommandShortcut>⌘S</CommandShortcut>
-                {
-                  selectedRecords && (
-                    <TimeCard record={selectedRecords as TimeRecordWithOtherRecord} cardType={CardType.ControlPanel} />
-                  )
-                }
-            </CommandItem>
+                </CommandItem>
           </CommandGroup>
         </CommandList>
       </CommandDialog>
