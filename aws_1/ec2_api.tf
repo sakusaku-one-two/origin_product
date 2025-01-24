@@ -32,56 +32,70 @@ resource "aws_instance" "demo_app_api" {
   # ログディレクトリの作成
   sudo mkdir -p /var/log/myapp
   
-  cd /home/ec2-user/backend
-  sudo chmod +x ec2_api_user_data.sh
-  ./ec2_api_user_data.sh
+  EOF     
 
+  provisioner "remote-exec" {
+   
 
-  go mod tidy
-  go build -v -o main_aws main.go
-  chmod +x main_aws
-  ./ec2_api_user_data.sh
-  cat <<'SERVICEEOF' > /etc/systemd/system/api.service
-  [Unit]
-  Description=Go Application Service
-  After=network.target
-  [Service]
-  Type=simple
-  User=root
-  WorkingDirectory=/home/ec2-user/backend
-  Environment=API_PORT=8080
-  Environment=DB_HOST=${aws_db_instance.example.address}
-  Environment=DB_USER=${var.db_user}
-  Environment=DB_PASSWORD=${var.db_password}
-  Environment=DB_NAME=${var.db_name}
-  Environment=DB_PORT=${var.db_port}
-  Environment=DB_SSL=${var.db_ssl}
-  ExecStart=/home/ec2-user/backend/main_aws
-  Restart=always
-  StandardOutput=append:/var/log/api/application.log
-  StandardError=append:/var/log/api/error.log
-  [Install]
-  WantedBy=multi-user.target",
-       
+    inline = [
+      "cd /home/ec2-user/backend",
+      "sudo chmod +x ec2_api_user_data.sh",
+      "./ec2_api_user_data.sh",
+      "go mod tidy",
+      "go build -v -o main_aws main.go",
+      "chmod +x main_aws",
+      
+      # ログディレクトリの作成
+      "sudo mkdir -p /var/log/api",
+      "sudo chown -R ec2-user:ec2-user /var/log/api",
+      
+      # サービス設定ファイルの作成
+      "sudo bash -c 'cat > /etc/systemd/system/api.service << EOL",
+      "[Unit]",
+      "Description=Go Application Service",
+      "After=network.target",
+      
+      "[Service]",
+      "Type=simple",
+      "User=root",
+      "WorkingDirectory=/home/ec2-user/backend",
+      "Environment=API_PORT=8080",
+      "Environment=\"DB_HOST=${aws_db_instance.example.address}\"",
+      "Environment=\"DB_USER=${var.db_user}\"",
+      "Environment=\"DB_PASSWORD=${var.db_password}\"",
+      "Environment=\"DB_NAME=${var.db_name}\"",
+      "Environment=\"DB_PORT=${var.db_port}\"",
+      "Environment=\"DB_SSL=${var.db_ssl}\"",
+      "ExecStart=/home/ec2-user/backend/main_aws",
+      "Restart=always",
+      "StandardOutput=append:/var/log/api/application.log",
+      "StandardError=append:/var/log/api/error.log",
+      
+      "[Install]",
+      "WantedBy=multi-user.target",
+      "EOL'",
+      
+      # サービスの起動
+      "sudo systemctl daemon-reload",
+      "sudo systemctl enable api",
+      "sudo systemctl start api",
+      
+      # ログローテーション設定
+      "sudo bash -c 'cat > /etc/logrotate.d/api << EOL",
+      "/var/log/api/*.log {",
+      "    daily",
+      "    rotate 7",
+      "    compress",
+      "    delaycompress",
+      "    missingok",
+      "    notifempty",
+      "    create 0640 root root",
+      "}",
+      "EOL'"
+    ]
+  }
   
-  # サービスの起動
-  sudo systemctl daemon-reload
-  sudo systemctl enable api
-  sudo systemctl start api
-
-  sudo cat <<EOF > /etc/logrotate.d/myapp
-  /var/log/myapp/*.log {
-  daily
-  rotate 7
-  compress
-  delaycompress
-  missingok
-  notifempty
-  create 0640 root root
-  }   
   
-  EOF
-
   user_data_replace_on_change = true
   
   

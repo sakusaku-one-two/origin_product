@@ -53,7 +53,7 @@ http {
 
         location /api/wss/ {
            
-            proxy_buffering off;
+            
 
             proxy_pass http://${API_HOST}:8080/;
             proxy_http_version 1.1;

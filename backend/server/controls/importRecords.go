@@ -20,7 +20,6 @@ type ImportRecrodsResponse struct {
 func ImportRecordsHandler(c echo.Context) error {
 	var req ImportRecordsRequest
 	if err := c.Bind(&req); err != nil {
-
 		fmt.Println("ImportRecordsHandlerで、バインドエラー", err, req)
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -30,7 +29,6 @@ func ImportRecordsHandler(c echo.Context) error {
 		err := tx.Preload("Emp").Preload("Location").Preload("Post").Where("manage_id IN (?)", req.ManageIDs).Find(&attendances).Error
 
 		if err != nil {
-
 			return err
 		}
 		return nil

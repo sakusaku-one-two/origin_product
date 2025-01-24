@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,7 +25,7 @@ func GetAttendanceRecord() []models.AttendanceRecord {
 	db := models.NewQuerySession()
 	current_time := timeModule.GetNowTimeAsJapanese()
 	twentyFourHoursLater := current_time.Add(48 * time.Hour) //現在時刻から４８時間後
-	before_time := current_time.Add(-1 * time.Minute)
+	before_time := current_time.Add(-2 * time.Minute)
 	if err := db.Preload("Emp").Preload("TimeRecords", "plan_time >= ? AND plan_time <= ?", before_time, twentyFourHoursLater).Preload("Location").Preload("Post").Find(&attendance_records).Error; err != nil {
 		log.Println(err)
 		return nil
