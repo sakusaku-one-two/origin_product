@@ -27,14 +27,17 @@ export type ComfirmationRecords = {
         //     FromDb:new Map(),
         //     UniqueRecord:[]
         // };
+export interface RowType {
+    [ManageID:number]:AttendanceRecord;
+}
 
 //CSVをサーバーに送るページ
 const ImportPage:React.FC = () => {
 
     //選択されたレコードを保持
     // const [isLeft,setIsLeft] = useState<boolean>(checkedData.IsLeft);
-    const [fromCsv,setFromCsv] = useState<Map<number,AttendanceRecord[]>>(new Map());
-    const [fromDb,setFromDb] = useState<Map<number,AttendanceRecord[]>>(new Map());
+    const [fromCsv,setFromCsv] = useState<RowType>({});
+    const [fromDb,setFromDb] = useState<RowType>({});
     const [selectedRecord,setSelectedRecord] = useState<AttendanceRecord[]>([]);
     
 
@@ -65,7 +68,11 @@ const ImportPage:React.FC = () => {
             }
             
             const result:ComfirmationRecords|any = await response.json();
-            console.log(result);
+            
+            // console.log("FromCsv",result.FromCsv,result.FromCsv.size);
+            // console.log("FromDb",result.FromDb,result.FromDb.size);
+            // console.log("UniqueRecord",result.UniqueRecord,result.UniqueRecord.length);
+
             setFromCsv(result.FromCsv);
             setFromDb(result.FromDb);
             setSelectedRecord(result.UniqueRecord);
@@ -98,15 +105,26 @@ const ImportPage:React.FC = () => {
     return (
         <div className=''>
             <div className=''>
-                <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
+                <div className='mb-4'>
+                    <input 
+                        type="file" 
+                        accept='text/csv' 
+                        onChange={SetCsvHandler} 
+                        className='border border-gray-300 p-2 rounded'
+                    />
+                </div>
             </div>
-            <ResizablePanelGroup direction='horizontal' className='h-full'>
+            <ResizablePanelGroup direction='horizontal' className='h-full space-x-2'>
                 <ResizablePanel defaultSize={30}>
                     <div className='flex flex-col items-center justify-center h-full'>
-                        <h1>CSV</h1>
+                        <h1 className='text-xl font-semibold mb-4'>CSV</h1>
                             {
-                                Array.from(fromCsv.values()).flat().map((record) => (
-                                    <AttendanceCard record={record} />
+                                fromCsv &&
+                                Object.values(fromCsv).map((record) => (
+                                    <div className='flex flex-col items-center justify-center mb-2 w-full' key={`${record.ManageID}-fromcsv`}>
+                                        <h1 className='text-xl font-semibold mb-4'>{record.ManageID}</h1>
+                                        <AttendanceCard record={record} />
+                                    </div>
                                 ))
                             }
                         </div>
@@ -116,8 +134,12 @@ const ImportPage:React.FC = () => {
                     <div className='flex flex-col items-center justify-center h-full'>
                         <h1>DB</h1>
                             {
-                                Array.from(fromDb.values()).flat().map((record) => (
-                                    <AttendanceCard record={record} />
+                                fromDb &&
+                                
+                                Object.values(fromDb).map((record) => (
+                                    <div className='flex flex-col items-center justify-center' key={`${record.ManageID}-fromdb`}>
+                                        <AttendanceCard record={record} />
+                                    </div>
                                 ))
                             }
                     </div>
@@ -126,10 +148,17 @@ const ImportPage:React.FC = () => {
                 <ResizablePanel defaultSize={30}>   
                     <div className='flex flex-col items-center justify-center h-full'>
                         <h1>Unique</h1>
-                        <button onClick={SetToDBHandler}>DBに登録</button>
+                        <button 
+                            onClick={SetToDBHandler} 
+                            className='mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+                        >
+                            DBに登録
+                        </button>
                             {
                                 selectedRecord.map((record) => (
-                                    <AttendanceCard record={record} />
+                                    <div className='flex flex-col items-center justify-center' key={`${record.ManageID}-unique`}>
+                                        <AttendanceCard record={record} />
+                                    </div>
                                 ))
                             }
                         </div>

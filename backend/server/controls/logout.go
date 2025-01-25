@@ -38,7 +38,7 @@ func LogoutHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "ユーザーを更新できませんでした")
 	}
 	go func() {
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 		UserLogout(userID)
 	}()
 
