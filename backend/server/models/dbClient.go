@@ -32,7 +32,7 @@ func init() {
 		log.Println("管理者の作成に成功しました。")
 	}
 
-	if _, err := CreateUser(NewQuerySession(), 1, "user", "user"); err != nil {
+	if _, err := CreateUser(NewQuerySession(), 2, "user", "user"); err != nil {
 		log.Println("ユーザーの作成に失敗しました。")
 		panic(err)
 	} else {

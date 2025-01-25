@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
@@ -30,8 +31,15 @@ func JWTMiddleware() echo.MiddlewareFunc {
 			// }
 			return false
 		},
-		SuccessHandler: func(c echo.Context) { //トークンの検証が成功したら実行される
-			log.Println("トークンの検証が成功した")
+		SuccessHandler: func(c echo.Context) { //トークンの検証が成功したら実行される トークンの内容をコンテキストに格納
+			token := c.Get("user").(*jwt.Token)
+			claims, ok := token.Claims.(jwt.MapClaims)
+			if !ok {
+				log.Println("トークンのクレーム取得失敗")
+				return
+			}
+			c.Set(USER_CONTEXT_KEY, claims["userID"])
+			log.Println("ユーザーID", claims["userID"])
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
 			log.Println("JWTエラー", err)

@@ -5,10 +5,11 @@ import { TimeRecordWithOtherRecord } from "@/hooks";
 import { Store } from "@reduxjs/toolkit";
 import { RecordRequest } from './webSocketHelper';
 
+
 export type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
 export type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
 type RecordArrayType = RecordType[];
-let socket:WebSocket;
+let socket:WebSocket|null;
 
 // WebSocketのインスタンスを取得
 function getSocket():WebSocket {
@@ -17,6 +18,10 @@ function getSocket():WebSocket {
     }
     return socket;
 };
+
+function deleteSocket():void {
+    socket = null;
+}
 
 // サーバーリアルタイム接続の初期化 
 function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):void{
@@ -37,11 +42,26 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
             type:"WEBSOCKET/ERROR",
             payload:"websocketの接続に失敗しました。"
         });
-
+        fetch(`api/logout`,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            }
+        });
+        next({  
+            type:"LOGIN/UPDATE",
+            payload:{
+                userName:"",
+                isLogin:false
+            }
+        });
+        socket.close();
+        
     };  
 
     socket.onclose = () => {
         alert("リアルタイム同期が切断されました。再度ログインしてください。");
+        deleteSocket();
     };
     // サーバーからのメッセージを受信してREDUXのリデューサーに届ける
     socket.onmessage = (event:MessageEvent<string>)=>{

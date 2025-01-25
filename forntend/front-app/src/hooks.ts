@@ -11,6 +11,8 @@ import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from "./redux/slices/attend
 import type { PostRecord } from "./redux/recordType";
 import { SET_SELECTED_RECORDS } from "./redux/slices/selectedRecordsSlice";
 
+import { UPDATE as LOGIN_UPDATE,LoginInfo } from "./redux/slices/loginSlice";
+
 
 
 // -----------------------[AttendanceRecordのディスパッチとセレクターのカスタムフック]-----------------------------
@@ -119,3 +121,16 @@ export const usePostDispatch = () => useDispatch<AppDispatch>();
 export const usePostSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const useGetPostRecords = ():[PostRecord[],boolean] => useSelector((state:RootState) => [state.POST_RECORDS.postList,state.POST_RECORDS.isLoading]);
+
+
+// -----------------------[LoginInfoのディスパッチとセレクターのカスタムフック]-----------------------------
+
+export const useLoginDispatch = () => useDispatch<AppDispatch>();
+export const useLoginSelector: TypedUseSelectorHook<RootState> = useSelector;
+
+export const useGetLoginInfo = ():LoginInfo => useSelector((state:RootState) => state.LOGIN);
+export const useSetLoginInfo = ():{setLoginInfo:(loginInfo:LoginInfo)=>void} => {
+    const dispatch = useLoginDispatch();
+    const setLoginInfo = useCallback((loginInfo:LoginInfo) => dispatch(LOGIN_UPDATE(loginInfo)),[dispatch]);
+    return {setLoginInfo};
+};

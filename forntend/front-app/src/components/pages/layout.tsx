@@ -6,31 +6,41 @@ import Login from './loginDialog/login';
 import { Button } from '../ui/button';
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../state/openClose';
-import { useLogin } from '@/state/loginState';
-import { LogOut } from 'lucide-react';
+import { LogOut,User } from 'lucide-react';
+import { useGetLoginInfo,useSetLoginInfo } from '@/hooks';
+import { LoginInfo } from '@/redux/slices/loginSlice';
+
 const Layout:React.FC = ()=> {
   const [loginOpen,setLoginOpen] = useRecoilState(LoginDialogOpen);
-  const [loginState,setLoginState] =useLogin();
+  const loginInfo = useGetLoginInfo();
+  const {setLoginInfo} = useSetLoginInfo();
   const loginModaleOpen = () => {
     setLoginOpen(!loginOpen);
   }
 
-  const loguoutHandler = async () => {
-    const response = await fetch(`/api/logout`,{
+  const loguoutHandler = () => {
+    fetch(`/api/logout`,{
       method:'POST'
+    }).then(response => {
+      if (response.ok) {
+        const loginState:LoginInfo = {
+          isLogin:false as boolean,
+          userName:'' as string
+        };
+        setLoginInfo(loginState);
+        alert("server - > ログアウトしました");
+      }
+    }).catch((_:Error) => {
+      alert("ログアウトに失敗しました");
     });
 
-    if (response.ok) {
-      setLoginState({
-        isLogin:false,
-        userName:''
-      });
-    }
+  
+    
 
   };
 
-  const loginButton = loginState.isLogin ?   <Button onClick={loguoutHandler}>ログアウト<LogOut/></Button>:<Button onClick={loginModaleOpen}>ログイン</Button>
-
+  const loginButton = loginInfo.isLogin ?   <Button onClick={loguoutHandler}>ログアウト<LogOut/></Button> : <Button onClick={loginModaleOpen}>ログイン<User/></Button>
+  console.log(loginInfo);
   return (
     
     <SidebarProvider>

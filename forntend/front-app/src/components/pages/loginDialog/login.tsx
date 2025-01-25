@@ -12,12 +12,11 @@ import { Button } from '../../ui/button';
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../../state/openClose';
 import { useNavigate } from 'react-router-dom';
-import { useAttendanceDispatch } from '@/hooks';
+import { useAttendanceDispatch, useSetLoginInfo } from '@/hooks';
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE,UPDATE as ATTENDANCE_UPDATE } from '../../../redux/slices/attendanceSlice';
 import { UPDATE } from '@/redux/slices/timeSlice';
 import { sampleAttendanceRecords } from '@/redux/slices/sampleRecords';
 import { AttendanceRecord } from '@/redux/recordType';
-import { useLogin} from '@/state/loginState';
 // import { AttendanceRecord } from '../../../redux/recordType';
 // const API_URL = import.meta.env.VITE_API_URL;
 
@@ -26,7 +25,9 @@ const Login:React.FC = () => {
     const [openDialog,setOpenDialog] = useRecoilState(LoginDialogOpen);
     const navigate = useNavigate();
     const dispatch = useAttendanceDispatch();
-    const [_,setLoginState] = useLogin();
+    
+    const {setLoginInfo} = useSetLoginInfo();
+
 
     const [userName,setUserName] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
@@ -70,23 +71,11 @@ const Login:React.FC = () => {
             dispatch(INSERT_ATTENDANCE_MESSAGE(
               data.records.payload
             ));
-            setLoginState({
-              isLogin:true,
-              userName:data.user.userName
-            })
-            try {
-              const response = await fetch(`/api/health`, {
-                method: "GET",
-              });
-              if (response.ok) {
-                alert("サーバーが正常に動作しています");
-              } else {
-                alert("サーバーが正常に動作していません");
-              }
-            } catch (error:unknown) {
-              alert("サーバーが正常に動作していません");
-            }
-
+              setLoginInfo({
+                isLogin:true,
+                userName:data.user.userName
+              })
+           
             // ログイン成功後にダッシュボードに遷移
             navigate("/dashbord");
             setOpenDialog(false);
