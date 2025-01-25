@@ -17,6 +17,7 @@ import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE,UPDATE as ATTENDANCE_UPDATE }
 import { UPDATE } from '@/redux/slices/timeSlice';
 import { sampleAttendanceRecords } from '@/redux/slices/sampleRecords';
 import { AttendanceRecord } from '@/redux/recordType';
+import { useLogin} from '@/state/loginState';
 // import { AttendanceRecord } from '../../../redux/recordType';
 // const API_URL = import.meta.env.VITE_API_URL;
 
@@ -25,6 +26,7 @@ const Login:React.FC = () => {
     const [openDialog,setOpenDialog] = useRecoilState(LoginDialogOpen);
     const navigate = useNavigate();
     const dispatch = useAttendanceDispatch();
+    const [_,setLoginState] = useLogin();
 
     const [userName,setUserName] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
@@ -68,7 +70,10 @@ const Login:React.FC = () => {
             dispatch(INSERT_ATTENDANCE_MESSAGE(
               data.records.payload
             ));
-
+            setLoginState({
+              isLogin:true,
+              userName:data.user.userName
+            })
             try {
               const response = await fetch(`/api/health`, {
                 method: "GET",

@@ -6,14 +6,30 @@ import Login from './loginDialog/login';
 import { Button } from '../ui/button';
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../state/openClose';
-
+import { useLogin } from '@/state/loginState';
+import { LogOut } from 'lucide-react';
 const Layout:React.FC = ()=> {
   const [loginOpen,setLoginOpen] = useRecoilState(LoginDialogOpen);
-    
+  const [loginState,setLoginState] =useLogin();
   const loginModaleOpen = () => {
     setLoginOpen(!loginOpen);
   }
 
+  const loguoutHandler = async () => {
+    const response = await fetch(`/api/logout`,{
+      method:'POST'
+    });
+
+    if (response.ok) {
+      setLoginState({
+        isLogin:false,
+        userName:''
+      });
+    }
+
+  };
+
+  const loginButton = loginState.isLogin ?   <Button onClick={loguoutHandler}>ログアウト<LogOut/></Button>:<Button onClick={loginModaleOpen}>ログイン</Button>
 
   return (
     
@@ -25,7 +41,7 @@ const Layout:React.FC = ()=> {
                  backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   <div className='container flex  items-center gap-5'>
                   <SidebarTrigger />
-                  <Button onClick={loginModaleOpen}>ログイン</Button>   
+                     {loginButton}
                   </div>
          </header>
          <main className='w-full'>

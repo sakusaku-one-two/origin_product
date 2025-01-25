@@ -50,7 +50,10 @@ const ImportPage:React.FC = () => {
             formData.append('file',data);
             console.log(formData);
             const response = await fetch('api/Csvcheck',{
-                method:'POST',
+                // method:'POST',
+                // headers:{
+                //     "Content-Type":"CSV"
+                // },
                 body:formData,//formDataを送信(ファイルを送信するために必要)
             });
 
@@ -94,7 +97,9 @@ const ImportPage:React.FC = () => {
 
     return (
         <div className=''>
-            <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
+            <div className=''>
+                <input type="file" accept='text/csv' onChange={SetCsvHandler}/>
+            </div>
             <ResizablePanelGroup direction='horizontal' className='h-full'>
                 <ResizablePanel defaultSize={30}>
                     <div className='flex flex-col items-center justify-center h-full'>
