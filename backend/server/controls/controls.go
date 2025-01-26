@@ -21,5 +21,7 @@ func SetupHandlers(e *echo.Echo) *echo.Echo {
 	//GET
 	e.GET("/sync", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
 	e.GET("/health", HealthCheckHandler)   //ヘルスチェック用のエンドポイント
+	e.GET("/logRecord", LogRecordHandler)
+	
 	return e
 }
