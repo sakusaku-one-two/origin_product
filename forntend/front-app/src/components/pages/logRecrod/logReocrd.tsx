@@ -1,5 +1,15 @@
 import React, { useState,useEffect } from 'react';
 import { AttendanceRecord, TimeRecord } from '../../../redux/recordType';
+import { 
+    Table,
+    TableHeader,
+    TableRow,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableFooter,
+} from '@/components/ui/table';
+import { PlanName } from '@/components/pages/dasbord/timeCard/timeCard';
 
 const today = new Date();
 const yesterday = new Date(today);
@@ -35,32 +45,47 @@ const LogRecord:React.FC = () => {
     
     return (
         <div>
-            <input type="date" value={endDate.toISOString().split('T')[0]} onChange={(e)=>setEndDate(new Date(e.target.value))} />
-            <button onClick={()=>setEndDate(new Date())}>Today</button>
-        <table className='table-auto'>
-            <thead className='bg-gray-200'>
-                <tr className='text-left'>
-                    <th>報告タイプ</th>
-                    <th>指名</th>
-                    <th>予定時間</th>
-                    <th>実績時間</th>
-                    <th>結果</th>
-                </tr>
-            </thead>
-            <tbody className='bg-gray-100'>
-                {records.map((record:AttendanceRecord)=>(
-                    record.TimeRecords.map((timeRecord:TimeRecord)=>(
-                    <tr key={`${record.ManageID}${timeRecord.ID}`}>
-                        <td>{record.Emp.Name}</td>
-                        <td>{timeRecord.PlanNo}</td>
-                        <td>{timeRecord.PlanTime.toLocaleString()}</td>
-                        <td>{timeRecord.ResultTime.toLocaleString()}</td>
-                        <td>{timeRecord.IsComplete ? '完了' : '未完了'}</td>
-                    </tr>
+            <div className='flex items-center mb-4 space-x-2'>
+                <input
+                    type="date"
+                    value={endDate.toISOString().split('T')[0]}
+                    onChange={(e) => setEndDate(new Date(e.target.value))}
+                    className='border border-gray-300 p-2 rounded'
+                />
+                <button
+                    onClick={() => setEndDate(new Date())}
+                    className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+                >
+                    Today
+                </button>
+            </div>
+        <Table className='w-full'>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>報告タイプ</TableHead>
+                    <TableHead>指名</TableHead>
+                    <TableHead>予定時間</TableHead>
+                    <TableHead>実績時間</TableHead>
+                    <TableHead>結果</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {records.map((record: AttendanceRecord) => (
+                    record.TimeRecords.map((timeRecord: TimeRecord) => (
+                        <TableRow key={`${record.ManageID}${timeRecord.ID}`} className='hover:bg-gray-200'>
+                            <TableCell>{record.Emp.Name}</TableCell>
+                            <TableCell>{PlanName(timeRecord.PlanNo)}</TableCell>
+                            <TableCell>{new Date(timeRecord.PlanTime).toLocaleString()}</TableCell>
+                            <TableCell>{new Date(timeRecord.ResultTime).toLocaleString()}</TableCell>
+                            <TableCell>{timeRecord.IsComplete ? '完了' : '未完了'}</TableCell>
+                        </TableRow>
                     ))
                 ))}
-            </tbody>
-        </table>    
+            </TableBody>
+            <TableFooter>
+                {/* フッターに追加の行が必要な場合はここに記述 */}
+            </TableFooter>
+        </Table>    
         
         </div>
     )

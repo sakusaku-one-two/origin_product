@@ -10,7 +10,8 @@ import { Button } from '../../../ui/button';
 import { SetAlertAnimation } from './cardHelper';
 import { CardType } from './cardHelper';
 
-const PlanName = (planNo: number) => {
+//計画名を取得
+export const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
 }   
 

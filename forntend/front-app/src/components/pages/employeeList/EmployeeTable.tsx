@@ -2,6 +2,14 @@ import React, { useEffect, useState } from "react";
 import { EmployeeRecord } from "../../../redux/recordType";
 import { useDispatch } from "react-redux";
 import { UPDATE } from "../../../redux/slices/employeeSlice";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableCell,
+    TableHead,
+} from "@/components/ui/table";
 
 
 //社員データの表示
@@ -44,31 +52,31 @@ const EmployeeTable: React.FC = () => {
         <div className='container mx-auto p-4'>
             <h1 className='text-2xl font-bold mb-4 text-center'>社員一覧</h1>
             <div className='overflow-x-auto'>
-                <table className='min-w-full bg-white border border-gray-200'>
-                    <thead>
-                        <tr>
-                            <th className='py-2 px-4 border-b'>社員ID</th>
-                            <th className='py-2 px-4 border-b'>名前</th>
-                            <th className='py-2 px-4 border-b'>アクション</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table className='min-w-full bg-white border border-gray-200'>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className='py-2 px-4 border-b'>社員ID</TableHead>
+                            <TableHead className='py-2 px-4 border-b'>名前</TableHead>
+                            <TableHead className='py-2 px-4 border-b'>アクション</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {employeeRecords.map((record) => (
-                            <tr key={record.EmpID} className='hover:bg-gray-100'>
-                                <td className='py-2 px-4 border-b text-center'>{record.EmpID}</td>
-                                <td className='py-2 px-4 border-b'>{record.Name}</td>
-                                <td className='py-2 px-4 border-b text-center'>
+                            <TableRow key={record.EmpID} className='hover:bg-gray-100'>
+                                <TableCell className='py-2 px-4 border-b text-center'>{record.EmpID}</TableCell>
+                                <TableCell className='py-2 px-4 border-b'>{record.Name}</TableCell>
+                                <TableCell className='py-2 px-4 border-b text-center'>
                                     <button
                                         onClick={() => UpdateHandler(record)}
                                         className='bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600'
                                     >
                                         更新
                                     </button>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );
