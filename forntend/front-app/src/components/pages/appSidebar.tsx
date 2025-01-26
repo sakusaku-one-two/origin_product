@@ -56,7 +56,7 @@ const AppSidebar:React.FC = () => {
     },
     {
         title:"打刻履歴",
-        url:"attendanceRecordLog",
+        url:"recordLog",
         icon:Crosshair,
         description:"打刻履歴を表示します。"
     },
