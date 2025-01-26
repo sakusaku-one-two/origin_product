@@ -25,7 +25,7 @@ func LogRecordHandler(c echo.Context) error {
 
 	var logRecords []models.AttendanceRecord
 	err := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
-		err :=tx.Preload("Emp").Preload("TimeRecord","planTime >= ?", req.endDate).Preload("Location").Preload("Client").Find(&logRecords).Error
+		err :=tx.Preload("Emp").Preload("TimeRecords","planTime >= ?", req.endDate).Preload("Location").Preload("Post").Find(&logRecords).Error
 		if err != nil {
 			return err
 		}
