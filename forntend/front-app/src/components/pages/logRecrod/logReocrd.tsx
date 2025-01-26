@@ -8,18 +8,25 @@ const LogRecord:React.FC = () => {
     
     useEffect(()=>{
         const fetchRecords = async () => {
-            const response = await fetch('/api/logRecord',{
-                method:'GET',
-                headers:{
+            try {
+                const response = await fetch('/api/logRecord',{
+                    method:'POST',
+                    headers:{
                     'Content-Type':'application/json',
                 },
                 body:JSON.stringify({
-                    endDate:endDate.toISOString(),
+                    endDate:endDate.toJSON(),
                 }),
             });
+
             const data = await response.json();
+            
+            
             setRecords(data.records as AttendanceRecord[]);
+        } catch (error:Error|any) {
+            console.error('Error fetching log records:', error);
         };
+    };
         fetchRecords();
     },[endDate])
     

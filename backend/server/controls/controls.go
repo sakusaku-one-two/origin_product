@@ -18,10 +18,11 @@ func SetupHandlers(e *echo.Echo) *echo.Echo {
 	e.POST("/createUser", CreateUser)              //ユーザーの作成
 	e.POST("/employeeList", EmployeeListHandler)   //隊員一覧の取得
 	e.POST("/import", ImportRecordsHandler) //時間レコードから社員や勤怠のレコードが見つからなかった場合、取得するためのAPI
+	e.POST("/logRecord", LogRecordHandler)
 	//GET
 	e.GET("/sync", ActionWebSocketHandler) //ウェブソケット用のアップグレード用のエンドポイント
 	e.GET("/health", HealthCheckHandler)   //ヘルスチェック用のエンドポイント
-	e.GET("/logRecord", LogRecordHandler)
+	
 	
 	return e
 }
