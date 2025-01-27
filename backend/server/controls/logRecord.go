@@ -2,7 +2,6 @@ package controls
 
 import (
 	"backend-app/server/models"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -14,8 +13,9 @@ type LogRecordReq struct {
 	endDate time.Time `json:"endDate"`
 }
 
+// 勤怠記録の取得
 func LogRecordHandler(c echo.Context) error {
-	fmt.Println("log record handler start")
+
 	req := new(LogRecordReq)
 	if err := c.Bind(req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})

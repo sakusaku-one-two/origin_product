@@ -22,7 +22,7 @@ func SetUpMiddlewares(e *echo.Echo) {
 		// 許可するHTTPヘッダーを指定
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		// 認証情報の共有を許可
-		AllowCredentials: false, // AllowCredentialsは、クッキーや認証ヘッダーなどの認証情報をリクエストに含めることを許可する設定です。例えば、家の鍵を持っている人だけが家に入れるように、特定の情報を持っている人だけがアクセスできるようにするイメージです。
+		AllowCredentials: false, // AllowCredentialsは、クッキーや認証ヘッダーなどの認証情報をリクエストに含めることを許可する設定
 	}))
 
 	// その他のミドルウェア
