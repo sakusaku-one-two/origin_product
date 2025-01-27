@@ -10,6 +10,7 @@ import {
     TableCell,
     TableHead,
 } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 
 
 //社員データの表示
@@ -45,6 +46,8 @@ const EmployeeTable: React.FC = () => {
 
     //更新ハンドラ
     const UpdateHandler = (record: EmployeeRecord) => {
+        record.IsInTerm = !record.IsInTerm;
+        console.log(record);
         dispatch(UPDATE(record));
     };
 
@@ -57,7 +60,7 @@ const EmployeeTable: React.FC = () => {
                         <TableRow>
                             <TableHead className='py-2 px-4 border-b'>社員ID</TableHead>
                             <TableHead className='py-2 px-4 border-b'>名前</TableHead>
-                            <TableHead className='py-2 px-4 border-b'>アクション</TableHead>
+                            <TableHead className='py-2 px-4 border-b'>外国人雇用者</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -66,12 +69,10 @@ const EmployeeTable: React.FC = () => {
                                 <TableCell className='py-2 px-4 border-b text-center'>{record.EmpID}</TableCell>
                                 <TableCell className='py-2 px-4 border-b'>{record.Name}</TableCell>
                                 <TableCell className='py-2 px-4 border-b text-center'>
-                                    <button
-                                        onClick={() => UpdateHandler(record)}
-                                        className='bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600'
-                                    >
-                                        更新
-                                    </button>
+                                    <Switch
+                                        defaultChecked={record.IsInTerm}
+                                        onCheckedChange={() => UpdateHandler(record)}
+                                    />
                                 </TableCell>
                             </TableRow>
                         ))}

@@ -15,9 +15,7 @@ resource "aws_instance" "demo_app_api" {
   }
   user_data = <<-EOF
   #!/bin/bash
-  sudo yum update -y
-  wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
-  sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
+  
   echo "export API_PORT=8080" >> /etc/environment
   echo "export DB_HOST=${aws_db_instance.example.address}" >> /etc/environment
   echo "export DB_USER=${var.db_user}" >> /etc/environment
@@ -30,7 +28,7 @@ resource "aws_instance" "demo_app_api" {
   echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin"' >> /etc/environment
   
   # ログディレクトリの作成
-  sudo mkdir -p /var/log/myapp
+  sudo mkdir -p /var/log/api
   
   EOF     
 
@@ -38,6 +36,10 @@ resource "aws_instance" "demo_app_api" {
    
 
     inline = [
+      "sudo yum update -y",
+      "wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz",
+      "sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz",
+      
       "cd /home/ec2-user/backend",
       "sudo chmod +x ec2_api_user_data.sh",
       "./ec2_api_user_data.sh",

@@ -2,9 +2,10 @@ package controls
 
 import (
 	"backend-app/server/models"
+	"fmt"
 	"net/http"
 	"time"
-	"fmt"
+
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -12,9 +13,6 @@ import (
 type LogRecordReq struct {
 	endDate time.Time `json:"endDate"`
 }
-
-
-
 
 func LogRecordHandler(c echo.Context) error {
 	fmt.Println("log record handler start")
@@ -25,7 +23,7 @@ func LogRecordHandler(c echo.Context) error {
 
 	var logRecords []models.AttendanceRecord
 	err := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
-		err :=tx.Preload("Emp").Preload("TimeRecords","planTime >= ?", req.endDate).Preload("Location").Preload("Post").Find(&logRecords).Error
+		err := tx.Preload("Emp").Preload("TimeRecords", "plan_time >= ?", req.endDate).Preload("Location").Preload("Post").Find(&logRecords).Error
 		if err != nil {
 			return err
 		}
@@ -34,6 +32,6 @@ func LogRecordHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch log records"})
 	}
-	fmt.Println("log record handler データの取得完了",logRecords)
+
 	return c.JSON(http.StatusOK, map[string]interface{}{"reocrds": logRecords})
 }
