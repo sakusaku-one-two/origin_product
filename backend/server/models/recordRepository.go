@@ -44,8 +44,8 @@ func CreateRepositry[ModelType any](channelName string, broadcastCount int) *Rep
 
 type RepoGorutin[T any] func(repo *Repository[T])
 
-func (rp *Repository[ModelType]) BackgroundKicker(func_as_background RepoGorutin[ModelType]) {
-	go func_as_background(rp)
+func (rp *Repository[ModelType]) BackgroundKicker(func_for_background RepoGorutin[ModelType]) {
+	go func_for_background(rp)
 }
 
 func (rp *Repository[ModelType]) Get(id uint) (*ModelType, bool) {

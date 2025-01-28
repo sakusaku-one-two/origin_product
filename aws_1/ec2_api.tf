@@ -37,6 +37,7 @@ resource "aws_instance" "demo_app_api" {
 
     inline = [
       "sudo yum update -y",
+      "sleep 30",
       "wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz",
       "sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz",
       
@@ -49,7 +50,7 @@ resource "aws_instance" "demo_app_api" {
       
       # ログディレクトリの作成
       "sudo mkdir -p /var/log/api",
-      "sudo chown -R ec2-user:ec2-user /var/log/api",
+      "sudo chown -R root:root /var/log/api",
       
       # サービス設定ファイルの作成
       "sudo bash -c 'cat > /etc/systemd/system/api.service << EOL",

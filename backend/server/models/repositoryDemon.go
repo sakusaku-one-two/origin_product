@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 	"time"
-	"fmt"
+
 	"gorm.io/gorm"
 )
 
@@ -60,6 +60,7 @@ func SetUpRepository() {
 		session := NewQuerySession()
 		employee_records := []EmployeeRecord{}
 		session.Find(&employee_records)
+
 		if len(employee_records) == 0 {
 			log.Println("初期値を設定することができませんでした。employee_recordsの数が0です。")
 			return
@@ -75,7 +76,7 @@ func SetUpRepository() {
 		//社員キャッシュに関連したバックグランドで動作するごルーチン
 
 		for action_emp_dto := range repo.Reciver {
-			
+
 			switch action_emp_dto.Action {
 			case "EMPLOYEE_RECORD/UPDATE":
 				repo.Cache.loadAndSave(action_emp_dto.Payload.EmpID, action_emp_dto.Payload)
