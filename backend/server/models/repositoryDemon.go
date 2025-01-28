@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 	"time"
-
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -75,7 +75,7 @@ func SetUpRepository() {
 		//社員キャッシュに関連したバックグランドで動作するごルーチン
 
 		for action_emp_dto := range repo.Reciver {
-
+			
 			switch action_emp_dto.Action {
 			case "EMPLOYEE_RECORD/UPDATE":
 				repo.Cache.loadAndSave(action_emp_dto.Payload.EmpID, action_emp_dto.Payload)

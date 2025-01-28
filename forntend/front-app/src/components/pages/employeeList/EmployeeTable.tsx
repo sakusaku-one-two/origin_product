@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { EmployeeRecord } from "../../../redux/recordType";
-import { useDispatch } from "react-redux";
-import { UPDATE } from "../../../redux/slices/employeeSlice";
+import { useDispatch,useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
+import { UPDATE as UPDATE_EMPLOYEE } from "../../../redux/slices/employeeSlice";
 import {
     Table,
     TableHeader,
@@ -12,43 +13,19 @@ import {
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 
-
 //社員データの表示
 const EmployeeTable: React.FC = () => {
-    const [employeeRecords, setEmployeeRecords] = useState<EmployeeRecord[]>([]);//社員データの格納
+    
+    const localemps:EmployeeRecord[] = useSelector((state:RootState) => state.EMPLOYEE_RECORDS.employeeList);
+    
     const dispatch = useDispatch();//websocketで更新
 
-    useEffect(() => {
-        //社員データを取得する副作用
-        try {
-            const fetchEmp = async () => {
-                const response = await fetch("api/employeeList", {   
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setEmployeeRecords(data);
-                } else {
-                    alert("社員データの取得に失敗しました。");
-                }
-            }
-            
-            fetchEmp();
-        } catch (error: unknown) {
-            alert("社員データの取得に失敗しました。");
-            console.error(error);
-        }
-    }, []);
 
     //更新ハンドラ
     const UpdateHandler = (record: EmployeeRecord) => {
-        record.IsInTerm = !record.IsInTerm;
-        console.log(record);
-        dispatch(UPDATE(record));
+        const newRecord = {...record,IsInTerm:!record.IsInTerm};
+        console.log(newRecord);
+        dispatch(UPDATE_EMPLOYEE(newRecord));
     };
 
     return (
@@ -64,7 +41,7 @@ const EmployeeTable: React.FC = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {employeeRecords.map((record) => (
+                        {localemps.map((record) => (
                             <TableRow key={record.EmpID} className='hover:bg-gray-100'>
                                 <TableCell className='py-2 px-4 border-b text-center'>{record.EmpID}</TableCell>
                                 <TableCell className='py-2 px-4 border-b'>{record.Name}</TableCell>
