@@ -3,12 +3,13 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../..
 import { TimeRecordWithOtherRecord } from '../../../../hooks';
 import { useSetSelectedRecords } from '../../../../hooks';
 import { useTimeDispatch } from '../../../../hooks';
-import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
+import { UPDATE as UPDATE_TIME_RECORD} from '../../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';
 import { PlanNames } from '../helper';
 import { Button } from '../../../ui/button';
 import { SetAlertAnimation } from './cardHelper';
 import { CardType } from './cardHelper';
+import { Input } from '@/components/ui/input';
 
 //計画名を取得
 export const PlanName = (planNo: number) => {
@@ -65,6 +66,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
         };
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
     }
+
+    
 
     const handleAlertIgnore = () => {
         if (timeRecord.IsAlert) {
@@ -134,12 +137,19 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
                                 定時打刻
                             </Button>
 
-                            <Button
-                                onClick={() => dispatch(DELETE_TIME_RECORD(timeRecord))}
+                            <Input
+                                type="datetime-local"
+                                value={new Date(timeRecord.PlanTime).toISOString().slice(0, -1)}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                                    const newTimeRecord = {
+                                        ...timeRecord,
+                                        ResultTime: new Date(event.target.value),
+                                        IsComplete: true
+                                    };
+                                    dispatch(UPDATE_TIME_RECORD(newTimeRecord));
+                                }}
                                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
-                            >
-                                打刻（指定）
-                            </Button>
+                            />
 
                             <Button
                                 onClick={handleAlertIgnore}
