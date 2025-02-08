@@ -76,11 +76,12 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             handlePreAlertIgnore();
         }
     };
-    const handleSelect = () => {
-        if (isSelectedSelf) {
-            setSelectedRecords(null);
+    const handleSelect = (e:React.MouseEvent) => {
+        const clickedElement = e.target as HTMLElement;
+        if (clickedElement.tagName === 'INPUT') {
             return;
-        } 
+        }
+        
 
         setSelectedRecords(null);
         setTimeout(() => {

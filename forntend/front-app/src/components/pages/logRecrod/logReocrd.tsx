@@ -32,14 +32,20 @@ const LogRecord:React.FC = () => {
                 }),
             });
 
-            const data:{reocrds:AttendanceRecord[]} = await response.json();
+                const reuslt = await response.json();
+                if (response.ok) {
+                    const data:{reocrds:AttendanceRecord[]} = reuslt;
+                    console.log(data);
+                    setRecords(data.reocrds);
+                } else {
+                    alert("loginしてください。");
+                }
             
-            console.log(data);
-            setRecords(data.reocrds);
             } catch (error:Error|any) {
-            console.error('Error fetching log records:', error);
+                alert(error.message);
             }
         };
+        
         fetchRecords();
     },[endDate])
     

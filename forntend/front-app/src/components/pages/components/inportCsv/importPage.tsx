@@ -13,11 +13,14 @@ import {
 //     CarouselPrevious,
 //   } from "@/components/ui/carousel";
 import AttendanceCard from './attendanceCard';
+import DuplicateRecord from './dupulicateRecord';
+
+
 
 export type ComfirmationRecords = {
     IsLeft:boolean,
-    FromCsv:Map<number,AttendanceRecord[]>,
-    FromDb:Map<number,AttendanceRecord[]>,
+    FromCsv:Map<string,AttendanceRecord[]>,
+    FromDb:Map<string,AttendanceRecord[]>,
     UniqueRecord:AttendanceRecord[]
 };
 
@@ -28,7 +31,7 @@ export type ComfirmationRecords = {
         //     UniqueRecord:[]
         // };
 export interface RowType {
-    [ManageID:number]:AttendanceRecord;
+    [ManageID:string]:AttendanceRecord;
 }
 
 //CSVをサーバーに送るページ
@@ -39,7 +42,14 @@ const ImportPage:React.FC = () => {
     const [fromCsv,setFromCsv] = useState<RowType>({});
     const [fromDb,setFromDb] = useState<RowType>({});
     const [selectedRecord,setSelectedRecord] = useState<AttendanceRecord[]>([]);
-    
+
+    const addRecord = (record:AttendanceRecord) => {
+        setSelectedRecord([...selectedRecord,record]);
+    };
+
+    // const removeRecord = (record:AttendanceRecord) => {
+    //     setSelectedRecord(selectedRecord.filter((r) => r.ManageID !== record.ManageID));
+    // };
 
     const SetCsvHandler = (event:HTMLInputElement|any) => {
         if (!(event.target instanceof HTMLInputElement)) return;
@@ -72,7 +82,8 @@ const ImportPage:React.FC = () => {
             // console.log("FromCsv",result.FromCsv,result.FromCsv.size);
             // console.log("FromDb",result.FromDb,result.FromDb.size);
             // console.log("UniqueRecord",result.UniqueRecord,result.UniqueRecord.length);
-
+            console.log("from csv",result.FromCsv);
+            console.log("from db",result.FromDb);
             setFromCsv(result.FromCsv);
             setFromDb(result.FromDb);
             setSelectedRecord(result.UniqueRecord);
@@ -117,31 +128,11 @@ const ImportPage:React.FC = () => {
             <ResizablePanelGroup direction='horizontal' className='h-full space-x-2'>
                 <ResizablePanel defaultSize={30}>
                     <div className='flex flex-col items-center justify-center h-full'>
-                        <h1 className='text-xl font-semibold mb-4'>CSV</h1>
-                            {
-                                fromCsv &&
-                                Object.values(fromCsv).map((record) => (
-                                    <div className='flex flex-col items-center justify-center mb-2 w-full' key={`${record.ManageID}-fromcsv`}>
-                                        <h1 className='text-xl font-semibold mb-4'>{record.ManageID}</h1>
-                                        <AttendanceCard record={record} />
-                                    </div>
-                                ))
-                            }
-                        </div>
-                </ResizablePanel>
-                <ResizableHandle />
-                <ResizablePanel defaultSize={30}>
-                    <div className='flex flex-col items-center justify-center h-full'>
-                        <h1>DB</h1>
-                            {
-                                fromDb &&
-                                
-                                Object.values(fromDb).map((record) => (
-                                    <div className='flex flex-col items-center justify-center' key={`${record.ManageID}-fromdb`}>
-                                        <AttendanceCard record={record} />
-                                    </div>
-                                ))
-                            }
+                        <DuplicateRecord 
+                            recordFromDb={fromDb}
+                            recordFromCsv={fromCsv}
+                            addRecord={addRecord}
+                        />
                     </div>
                 </ResizablePanel>
                 <ResizableHandle />
