@@ -5,7 +5,7 @@ import { Card,CardHeader,CardContent, CardTitle, CardDescription } from '../../u
 import { Checkbox } from '@/components/ui/checkbox';
 // サブタイムレコード 選択されたレコードと同じ計画番号のレコードを表示するためのカード
 const SubTimeRecord:React.FC<{record:TimeRecordWithOtherRecord}> = ({record})=>{
-    console.log("SubTimeRecord",record);
+
     return (
     <Card>
         <div className='flex items-center'>

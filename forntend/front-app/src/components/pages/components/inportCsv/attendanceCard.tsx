@@ -5,18 +5,19 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 
 const AttendanceCard:React.FC<{record:AttendanceRecord}> = ({record}) => {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{record.Emp.Name}</CardTitle>
-                <CardDescription>{record.TimeRecords[0].PlanTime.toString()}</CardDescription>
-                <CardDescription>{record.Post.PostName}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {record.TimeRecords.map((timeRecord,index) => (
-                    <p key={index}>{timeRecord.PlanTime.toString()}</p>
-                ))}
-            </CardContent>
-        </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>{record.Emp.Name}</CardTitle>
+                    <CardDescription>{record.TimeRecords[0].PlanTime.toString()}</CardDescription>
+                    <CardDescription>{record.Post.PostName}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {record.TimeRecords.map((timeRecord,index) => (
+                        <p key={index}>{timeRecord.PlanTime.toString()}</p>
+                    ))}
+                </CardContent>
+            </Card>
+       
     );
 };
 

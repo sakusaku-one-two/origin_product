@@ -14,6 +14,7 @@ import {
 //   } from "@/components/ui/carousel";
 import AttendanceCard from './attendanceCard';
 import DuplicateRecord from './dupulicateRecord';
+import { AnimatePresence,motion } from "framer-motion";
 
 
 
@@ -127,7 +128,8 @@ const ImportPage:React.FC = () => {
             </div>
             <ResizablePanelGroup direction='horizontal' className='h-full space-x-2'>
                 <ResizablePanel defaultSize={30}>
-                    <div className='flex flex-col items-center justify-center h-full'>
+
+                    <div className='flex flex-col items-center h-full'>
                         <DuplicateRecord 
                             recordFromDb={fromDb}
                             recordFromCsv={fromCsv}
@@ -137,7 +139,7 @@ const ImportPage:React.FC = () => {
                 </ResizablePanel>
                 <ResizableHandle />
                 <ResizablePanel defaultSize={30}>   
-                    <div className='flex flex-col items-center justify-center h-full'>
+                    <div className='flex flex-col items-center h-full'>
                         <h1>Unique</h1>
                         <button 
                             onClick={SetToDBHandler} 
@@ -145,13 +147,23 @@ const ImportPage:React.FC = () => {
                         >
                             DBに登録
                         </button>
-                            {
+                        <AnimatePresence>
+                            { 
                                 selectedRecord.map((record) => (
-                                    <div className='flex flex-col items-center justify-center' key={`${record.ManageID}-unique`}>
-                                        <AttendanceCard record={record} />
-                                    </div>
+                                    <motion.div
+                                        layoutId={record.ManageID.toString()}
+                                        key={record.ManageID.toString()}
+                                        animate={{opacity:1,y:0}}
+                                        exit={{opacity:0,y:20}}
+                                        transition={{duraiton:0.3}}
+                                    >
+                                        <div className='flex flex-col items-center justify-center' key={`${record.ManageID}-unique`}>
+                                            <AttendanceCard record={record} />
+                                        </div>
+                                    </motion.div>
                                 ))
                             }
+                            </AnimatePresence>
                         </div>
                     
                 </ResizablePanel>

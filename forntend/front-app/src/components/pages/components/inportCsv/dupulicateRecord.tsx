@@ -3,6 +3,7 @@ import { AttendanceRecord } from "@/redux/recordType";
 // import AttendanceCard from "./attendanceCard";
 import { RowType } from "./importPage";
 import DobleCards from "./dobleCards";
+import { AnimatePresence } from "framer-motion";
 
 export interface DuplicateRecordProps { 
     recordFromCsv:RowType;
@@ -47,14 +48,15 @@ export default function DuplicateRecord({ recordFromCsv, recordFromDb, addRecord
     
     return (
         <div className="w-hull h-hull">
-            {dobleCardList.map((value:DupCard) => {
-                return (
-                    <div key={`${value.no}-dup`}>
-                        <DobleCards Props={value} />
-                    </div>
-                );
-            })}
-
+            <AnimatePresence>
+                {dobleCardList.map((value:DupCard) => {
+                    return (
+                        <div key={`${value.no}-dup`}>
+                            <DobleCards Props={value} />
+                        </div>
+                    );
+                })}
+            </AnimatePresence>
         </div>
     )
 }
