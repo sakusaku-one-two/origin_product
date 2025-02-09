@@ -87,7 +87,7 @@ const LogRecord:React.FC = () => {
                         </TableRow>
                     ))
                 ))}
-            </TableBody>
+            </TableBody> 
             <TableFooter>
                 {/* フッターに追加の行が必要な場合はここに記述 */}
             </TableFooter>
