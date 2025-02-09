@@ -69,8 +69,14 @@ const Login:React.FC = () => {
         if (response.ok) {
             const data = await response.json();
             dispatch(INSERT_ATTENDANCE_MESSAGE(
+              [{
+                ManageID:0
+              } as AttendanceRecord]
+            ));
+            dispatch(INSERT_ATTENDANCE_MESSAGE(
               data.records.payload
             ));
+            
               setLoginInfo({
                 isLogin:true,
                 userName:data.user.userName
@@ -81,9 +87,7 @@ const Login:React.FC = () => {
             setOpenDialog(false);
             dispatch({type:"WEBSOCKET/SETUP",payload:data.records.payload});
         } else {
-            
-            const message = await response.json();
-            alert(message);
+            alert("ログイン不可です。");
         } 
       } catch (error:unknown) {
         alert("ログインに失敗しました。");

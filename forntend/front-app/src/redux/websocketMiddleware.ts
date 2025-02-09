@@ -69,8 +69,10 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
         const selectedRecord:TimeRecordWithOtherRecord | null = state.SELECTED_RECORDS.selectedRecords;
         const persedEvent = JSON.parse(event.data);
         const actionObject = {type:persedEvent["Action"] as string,payload:persedEvent["Payload"] as RecordType} as ActionType;  
+        RecordRequest(state,actionObject);
+        // ミドルウエアのチェーンに受信したアクションオブジェクトを渡す
         
-
+        next(actionObject);
         
         // 選択中のレコードが更新された場合は、選択中のレコードをクリアする
         if(selectedRecord !== null  && (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE")){
@@ -84,9 +86,8 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
             }
         };
 
-        // ミドルウエアのチェーンに受信したアクションオブジェクトを渡す
-        next(actionObject);
-        RecordRequest(state,actionObject);
+        
+        
         
         
     };
@@ -122,36 +123,24 @@ const WebSocketMiddleware:Middleware = (store)=> (next)=>{
                     
 
                     const currentSeletedReocrd:TimeRecordWithOtherRecord = store.getState().SELECTED_RECORDS.selectedRecords;
-                   console.log(
-                    "選択レコード",currentSeletedReocrd,
-                    "action object",actionObject
-                   )
+                
                     //時間に関わる更新か判定
                     if (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE") {
                         next(actionObject);     
                         const targetTimeReocrd = actionObject.payload as TimeRecord;
                         if (currentSeletedReocrd !== null &&(currentSeletedReocrd.timeRecord.ID === targetTimeReocrd.ID)) {
-                            console.log("delte current select record");    
+                                
                                 next({  
                                     type:"SELECTED_RECORDS/SET_SELECTED_RECORDS",
                                     payload:null
                                 });
-                            console.log(
-                                store.getState().SELECTED_RECORDS.selectedRecords
-                            )
-                            }
-                        return;
-                    } 
+                            
+                            return;
+                        } 
+                    }
 
-                    // if (currentSeletedReocrd == null || actionObject.type !== "SELECTED_RECORDS/SET_SELECTED_RECORDS") {
-
-                    // }
                     next(actionObject);
-
-                    
-
                 }
-            
         };
     };
 };

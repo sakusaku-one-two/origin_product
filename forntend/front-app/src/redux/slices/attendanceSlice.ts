@@ -8,7 +8,12 @@ export const fetchAttendanceRecords = createAsyncThunk("fetchAttendanceRecords",
     return response.json();
 });
 
-
+export const ResetChecker = (payload:AttendanceRecord[]):boolean => {
+    if (payload.length === 0) return false;
+    const target = payload[0];
+    if (target.ManageID === 0) return true;
+    return false;
+};
 
 //---------------------------[初期値]----------------------------
 export const initialAttendanceState = {
@@ -38,7 +43,13 @@ export const AttendanceSlice = createSlice({
             }
         },
         INSERT_SETUP:(state,action:PayloadAction<AttendanceRecord[]>)=>{//直接的に一括登録するケース。
+            
+            if( ResetChecker(action.payload)){
+                state.AttendanceRecords = [];
+                return;
+            }
             state.AttendanceRecords = [...state.AttendanceRecords,...action.payload];
+            
         }
     },
 });

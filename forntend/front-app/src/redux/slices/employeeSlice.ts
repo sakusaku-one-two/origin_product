@@ -2,7 +2,9 @@ import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { EmployeeRecord ,AttendanceRecord} from "../recordType";
 import { UPDATE as ATTENDANCE_RECORD_UPDATE,
          DELETE as ATTENDANCE_RECORD_DELETE,
-        INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP} from "./attendanceSlice";
+        INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP,
+        ResetChecker
+    } from "./attendanceSlice";
 
 // -----------------------[EmployeeRecordの初期値]-----------------------------
 export const initialEmployeeState = {
@@ -58,6 +60,10 @@ export const EmployeeSlice = createSlice({
             state.employeeList = deleteEmployeeRecords(state.employeeList,[action.payload.Emp]);
         })
         .addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
+            if (ResetChecker(action.payload)){
+                state.employeeList = [];
+                return;
+            }
             state.employeeList = updateAndInsertEmployeeRecords(state.employeeList,UniqueEmployeeRecords(action.payload.map((record)=>record.Emp)));
         })  
     }

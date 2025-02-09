@@ -78,12 +78,15 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
     };
     const handleSelect = (e:React.MouseEvent) => {
         const clickedElement = e.target as HTMLElement;
-        if (clickedElement.tagName === 'INPUT') {
+        if (['INPUT', 'BUTTON'].includes(clickedElement.tagName) && isSelectedSelf) {
             return;
         }
         
-        if (isSelectedSelf) return;
-        
+        if (isSelectedSelf) {
+            setSelectedRecords(null)
+            return ;
+        }
+
         setSelectedRecords(null);
         setTimeout(() => {
             setSelectedRecords(record);

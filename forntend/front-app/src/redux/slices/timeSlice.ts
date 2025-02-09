@@ -2,7 +2,9 @@ import {createSlice,PayloadAction} from "@reduxjs/toolkit";
 import { TimeRecord,AttendanceRecord } from "../recordType";
 import { UPDATE as ATTENDANCE_RECORD_UPDATE,
         DELETE as ATTENDANCE_RECORD_DELETE,
-        INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP} from "./attendanceSlice";
+        INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP,
+        ResetChecker
+    } from "./attendanceSlice";
 
 // -----------------------[TimeRecordの初期値]-----------------------------
 const initialTimeState = {
@@ -107,6 +109,12 @@ export const TimeSlice = createSlice({
             state.isUpdate = true;
         })
         .addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
+            if(ResetChecker(action.payload)){
+                state.TimeRecords = [];
+                separateTimeRecords(state,[]);
+                state.isUpdate = false
+                return;
+            }
             const insertTimeRecordArray:TimeRecord[] = action.payload.flatMap((record)=>record.TimeRecords);
             state.TimeRecords = updateAndInsertTimeRecords(state.TimeRecords,insertTimeRecordArray);      
             separateTimeRecords(state,state.TimeRecords);
