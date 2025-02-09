@@ -9,7 +9,7 @@ import {
     TableHead,
     TableFooter,
 } from '@/components/ui/table';
-import { PlanName } from '@/components/pages/dasbord/timeCard/timeCard';
+import { PlanName,ShowTime } from '@/components/pages/dasbord/timeCard/timeCard';
 
 const today = new Date();
 const yesterday = new Date(today);
@@ -67,22 +67,22 @@ const LogRecord:React.FC = () => {
             </div>
         <Table className='w-full'>
             <TableHeader>
-                <TableRow>
+                
                     <TableHead>報告タイプ</TableHead>
                     <TableHead>指名</TableHead>
                     <TableHead>予定時間</TableHead>
                     <TableHead>実績時間</TableHead>
                     <TableHead>結果</TableHead>
-                </TableRow>
+                
             </TableHeader>
             <TableBody>
                 {records.map((record: AttendanceRecord) => (
                     record.TimeRecords.map((timeRecord: TimeRecord) => (
                         <TableRow key={`${record.ManageID}${timeRecord.ID}`} className='hover:bg-gray-200'>
-                            <TableCell>{record.Emp.Name}</TableCell>
                             <TableCell>{PlanName(timeRecord.PlanNo)}</TableCell>
-                            <TableCell>{new Date(timeRecord.PlanTime).toLocaleString()}</TableCell>
-                            <TableCell>{new Date(timeRecord.ResultTime).toLocaleString()}</TableCell>
+                            <TableCell>{record.Emp.Name}</TableCell>
+                            <TableCell>{ShowTime(timeRecord.PlanTime)}</TableCell>
+                            <TableCell>{timeRecord.IsComplete ? ShowTime(timeRecord.ResultTime): '---'}</TableCell>
                             <TableCell>{timeRecord.IsComplete ? '完了' : '未完了'}</TableCell>
                         </TableRow>
                     ))

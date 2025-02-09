@@ -33,10 +33,12 @@ const DobleCards: React.FC<{Props:DupCard}> = ({Props}) => {
             transition={{duration:1}}
         >
             <Card className='flex flex-row py-5 px-5' >
-                <div className='hover:bg-gray-500' onClick={() => onSelected(fromCsv)}>   
+                <div className='hover:bg-gray-500' onClick={() => onSelected(fromCsv)}>
+                    <h1>CSVのみ存在</h1>   
                     {<AttendanceCard record={fromCsv} />}
                 </div>
                 <div className='hover:bg-gray-500' onClick={() => onSelected(fromDb)}>
+                    <h1>データベースに登録済み</h1>
                     {<AttendanceCard record={fromDb} />}
                 </div>
             </Card>
