@@ -13,6 +13,24 @@ resource "aws_instance" "demo_app_api" {
     user = "ec2-user"
     private_key = tls_private_key.example.private_key_pem
   }
+
+  provisioner "file" {
+    source = "../backend"
+    destination = "/home/ec2-user/backend"
+  }
+
+  provisioner "file" {
+    source = "./ec2_api_user_data.sh"
+    destination = "/home/ec2-user/backend/ec2_api_user_data.sh"
+  }
+
+  provisioner "file" {
+    source = "./ec2_api_rds.sql"
+    destination = "/home/ec2-user/backend/ec2_api_rds.sql"
+    
+  }
+
+
   user_data = <<-EOF
   #!/bin/bash
   
@@ -34,10 +52,9 @@ resource "aws_instance" "demo_app_api" {
 
   provisioner "remote-exec" {
    
-
     inline = [
       "sudo yum update -y",
-      "sleep 30",
+      "sleep 5",
       "wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz",
       "sudo tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz",
       
@@ -104,22 +121,7 @@ resource "aws_instance" "demo_app_api" {
   user_data_replace_on_change = true
   
   
-  provisioner "file" {
-    source = "../backend"
-    destination = "/home/ec2-user/backend"
-  }
-
-  provisioner "file" {
-    source = "./ec2_api_user_data.sh"
-    destination = "/home/ec2-user/backend/ec2_api_user_data.sh"
-  }
-
-  provisioner "file" {
-    source = "./ec2_api_rds.sql"
-    destination = "/home/ec2-user/backend/ec2_api_rds.sql"
-    
-  }
-
+  
   provisioner "local-exec" {
     command = "echo ${aws_instance.demo_app_api.public_ip} > public_ip.txt"
   }

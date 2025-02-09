@@ -142,8 +142,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
                             <Input
                                 type="datetime-local"
                                 value={targetTime}
-                                onChange={(event:React.ChangeEvent<HTMLInputElement>) => setTargetTime(event.target.value)}
-                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setTargetTime(event.target.value)}
+                                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300 text-sm w-full max-w-xs"
                             />
                             <Button
                             onClick={() => {
