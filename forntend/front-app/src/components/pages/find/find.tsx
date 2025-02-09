@@ -29,6 +29,9 @@ import TimeCard from "../dasbord/timeCard/timeCard";
 import {useSelectedRecordsDispatch } from "../../../hooks";
 import { CardType } from "../dasbord/timeCard/cardHelper";
 
+// import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';//エラー解決を諦めた。。
+
+
 
 const FindTask:FC =() => {
   
@@ -58,6 +61,7 @@ const FindTask:FC =() => {
           <span className="text-xs">⌘</span>J
         </kbd>
       </p>
+      
       <CommandDialog open={open} onOpenChange={setIsOpen}>
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
@@ -79,6 +83,7 @@ const FindTask:FC =() => {
           </CommandGroup>
         </CommandList>
       </CommandDialog>
+      
     </>
   )
 };

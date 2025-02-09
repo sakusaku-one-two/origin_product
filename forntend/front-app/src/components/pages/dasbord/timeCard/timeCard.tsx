@@ -1,4 +1,4 @@
-import React from 'react';
+import React ,{useState}from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../../ui/card';
 import { TimeRecordWithOtherRecord } from '../../../../hooks';
 import { useSetSelectedRecords } from '../../../../hooks';
@@ -20,12 +20,22 @@ export const PlanName = (planNo: number) => {
 //日付の文字列を日付フォーマット文字列に変換
 export const ShowTime = (raw_time:string|Date):string => {
     const time =  raw_time instanceof Date ? raw_time : new Date(raw_time);
+    const localTime = time.toLocaleTimeString(`ja-JP`,{timeZone:'Asia/Tokyo'});
+    const localDate = time.toLocaleDateString(`ja-JP`,{timeZone:'Asia/Tokyo'});
+
+    return `${localDate} ${localTime}`
     
-    const month = String(time.getMonth() +1).padStart(2,'0');
-    const day = String(time.getDate()).padStart(2,'0');
-    const hours = String(time.getHours()).padStart(2,'0');
-    const miuntes = String(time.getMinutes()).padStart(2,'0');
-    return `${month}/${day} ${hours}:${miuntes}`
+};
+//文字列をINPUTように整形
+const TolocalTimeFormat = (raw_time:string | Date):string => {
+    const date =  raw_time instanceof Date ? raw_time : new Date(raw_time);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
 const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType }> = ({ record,cardType }) => {
@@ -36,7 +46,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
     const employeeRecord = record.employeeRecord;
     const locationRecord = record.locationRecord;
     const postRecord = record.postRecord;
-
+    const [targetTime,setTargetTime] = useState<string>(TolocalTimeFormat(new Date()));
+    
     const isSelectedSelf = cardType === CardType.ControlPanel;
 
    
@@ -78,10 +89,11 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
     };
     const handleSelect = (e:React.MouseEvent) => {
         const clickedElement = e.target as HTMLElement;
+        
         if (['INPUT', 'BUTTON'].includes(clickedElement.tagName) && isSelectedSelf) {
             return;
         }
-        
+        setTargetTime(TolocalTimeFormat(new Date()));
         if (isSelectedSelf) {
             setSelectedRecords(null)
             return ;
@@ -92,22 +104,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             setSelectedRecords(record);
         }, 100);
     }
-    //アラート状態の場合
-    // if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
-    //     return (
-    //         <motion.div
-    //             layoutId={timeRecord.ID.toString()}
-    //             key={timeRecord.ID.toString()}
-    //             animate={{ scale: 1, opacity: 1 }}
-    //             exit={{ scale: 0.8, opacity: 0 }}
-    //             transition={{ duration: 0.3 }}
-    //             className='h-full'
-    //         >
-
-    //         </motion.div> 
-    //     );
-    // };
-
+    
 
 
 
@@ -126,7 +123,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             >
                 <CardHeader >
                     <CardDescription className="text-sm text-gray-500">
-                        {PlanName(timeRecord?.PlanNo)} {ShowTime(timeRecord?.PlanTime)} {postRecord?.PostName} id:{timeRecord.ID}
+                        {PlanName(timeRecord?.PlanNo)} {ShowTime(timeRecord?.PlanTime)} {postRecord?.PostName}
                     </CardDescription> 
                     <CardTitle className="text-lg font-semibold">
                         {employeeRecord?.Name}
@@ -144,17 +141,23 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
 
                             <Input
                                 type="datetime-local"
-                                value={new Date(timeRecord.PlanTime).toISOString().slice(0, -1)}
-                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                    const newTimeRecord = {
-                                        ...timeRecord,
-                                        ResultTime: new Date(event.target.value),
-                                        IsComplete: true
-                                    };
-                                    dispatch(UPDATE_TIME_RECORD(newTimeRecord));
-                                }}
+                                value={targetTime}
+                                onChange={(event:React.ChangeEvent<HTMLInputElement>) => setTargetTime(event.target.value)}
                                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
                             />
+                            <Button
+                            onClick={() => {
+                                const newTimeRecord = {
+                                    ...timeRecord,
+                                    ResultTime: new Date( targetTime ),
+                                    IsComplete: true
+                                };
+                                
+                                dispatch(UPDATE_TIME_RECORD(newTimeRecord));
+                            }}
+                            >
+                                指定時間での打刻
+                            </Button>
 
                             <Button
                                 onClick={handleAlertIgnore}
