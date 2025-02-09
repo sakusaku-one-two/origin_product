@@ -47,6 +47,7 @@ resource "aws_instance" "demo_app_api" {
       "go mod tidy",
       "go build -v -o main_aws main.go",
       "chmod +x main_aws",
+      "sudo nohup ./main_aws &",
       
       # ログディレクトリの作成
       "sudo mkdir -p /var/log/api",
@@ -95,6 +96,7 @@ resource "aws_instance" "demo_app_api" {
       "    create 0640 root root",
       "}",
       "EOL'"
+      
     ]
   }
   

@@ -122,6 +122,7 @@ do
     COUNTER=$((COUNTER+1))
 done
 echo "✓ RDSへの接続が確認できました"
+sudo chmod 777 ./ec2_api_rds.sql
 
 # テンプレートSQLファイルの処理
 TEMPLATE_SQL_FILE="./ec2_api_rds.sql"

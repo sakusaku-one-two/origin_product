@@ -82,7 +82,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             return;
         }
         
-
+        if (isSelectedSelf) return;
+        
         setSelectedRecords(null);
         setTimeout(() => {
             setSelectedRecords(record);
