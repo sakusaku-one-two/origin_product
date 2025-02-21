@@ -25,6 +25,7 @@
     "@radix-ui/react-tabs": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@reduxjs/toolkit": "^2.5.0",
+    "@stdlib/string-remove-utf8-bom": "^0.2.2",
     "@tanstack/react-table": "^8.20.5",
     "@types/babel__core": "^7.20.5",
     "axios": "^1.7.7",
@@ -51,7 +52,7 @@
     "@types/node": "^22.9.1",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^1.3.2",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.11.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
@@ -62,6 +63,6 @@
     "tailwindcss-animated": "^1.1.2",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.7.0",
-    "vite": "^5.4.9"
+    "vite": "^6.1.1"
   }
 }

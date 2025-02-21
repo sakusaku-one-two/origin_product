@@ -15,7 +15,7 @@ import {
 import AttendanceCard from './attendanceCard';
 import DuplicateRecord from './dupulicateRecord';
 import { AnimatePresence,motion } from "framer-motion";
-
+import Utf8Clean,{CleandUtf} from './importCsvHelper';
 
 
 export type ComfirmationRecords = {
@@ -25,12 +25,7 @@ export type ComfirmationRecords = {
     UniqueRecord:AttendanceRecord[]
 };
 
-        // const InitialSelectedRecord:ComfirmationRecords = {
-        //     IsLeft:false,
-        //     FromCsv:new Map(),
-        //     FromDb:new Map(),
-        //     UniqueRecord:[]
-        // };
+       
 export interface RowType {
     [ManageID:string]:AttendanceRecord;
 }
@@ -38,8 +33,7 @@ export interface RowType {
 //CSVをサーバーに送るページ
 const ImportPage:React.FC = () => {
 
-    //選択されたレコードを保持
-    // const [isLeft,setIsLeft] = useState<boolean>(checkedData.IsLeft);
+    
     const [fromCsv,setFromCsv] = useState<RowType>({});
     const [fromDb,setFromDb] = useState<RowType>({});
     const [selectedRecord,setSelectedRecord] = useState<AttendanceRecord[]>([]);
@@ -48,48 +42,46 @@ const ImportPage:React.FC = () => {
         setSelectedRecord([...selectedRecord,record]);
     };
 
-    // const removeRecord = (record:AttendanceRecord) => {
-    //     setSelectedRecord(selectedRecord.filter((r) => r.ManageID !== record.ManageID));
-    // };
-
+    
     const SetCsvHandler = (event:HTMLInputElement|any) => {
+        
         if (!(event.target instanceof HTMLInputElement)) return;
         if (!event.target.files) return;
 
-        const file = event.target.files[0];
-        
-        const setCsv = async (data:File|Blob) => {
+        const file:File = event.target.files[0];
+        const cleanUtf:CleandUtf = Utf8Clean(file);
+
+        if (!cleanUtf.result){
+            alert(cleanUtf.errorMessage);
+            return;
+        }
+
+
+
+
+        const setCsv = async (data:CleandUtf) => {
             
             const  formData = new FormData();
-            formData.append('file',data);
-            console.log(formData);
+            formData.append('file',data.text);
             const response = await fetch('api/Csvcheck',{
                 method:'POST',
-                // headers:{
-                //     "Content-Type":"multipart/form-data"
-                // },
                 body:formData,//formDataを送信(ファイルを送信するために必要)
             });
 
             if (!response.ok) {
                 alert("CSVに不備があります。");
                 const message = await response.json();
-                console.log(message);
+                console.log("CSVの不備",message);
                 return;
             }
             
             const result:ComfirmationRecords|any = await response.json();
             
-            // console.log("FromCsv",result.FromCsv,result.FromCsv.size);
-            // console.log("FromDb",result.FromDb,result.FromDb.size);
-            // console.log("UniqueRecord",result.UniqueRecord,result.UniqueRecord.length);
-            console.log("from csv",result.FromCsv);
-            console.log("from db",result.FromDb);
-            setFromCsv(result.FromCsv);
-            setFromDb(result.FromDb);
-            setSelectedRecord(result.UniqueRecord);
+            setFromCsv(result.FromCsv);//重複した箇所のCSV側
+            setFromDb(result.FromDb);//重複した箇所のDB側
+            setSelectedRecord(result.UniqueRecord);//重複してないCSVデータ
         };
-        setCsv(file);
+        setCsv(cleanUtf);
     };
 
     const SetToDBHandler = async () => {
@@ -104,16 +96,11 @@ const ImportPage:React.FC = () => {
             alert("DBに登録に失敗しました。");
             const message = await response.json();
             console.log(message);
-
             return;
-        }
+        };
         alert("DBに登録しました。");
     };
     
-    // const perseCsv = (dataFromCSV:string):string[][] => {
-    //     return dataFromCSV.split('/r/n').map((row) => row.split(','));
-    // };
-
     return (
         <div className=''>
             <div className=''>
@@ -140,7 +127,7 @@ const ImportPage:React.FC = () => {
                 <ResizableHandle />
                 <ResizablePanel defaultSize={30}>   
                     <div className='flex flex-col items-center h-full'>
-                        <h1>Unique</h1>
+                        <h1>重複無し</h1>
                         <button 
                             onClick={SetToDBHandler} 
                             className='mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
