@@ -18,21 +18,25 @@ export function GetGroupMemberRecord(record:TimeRecordWithOtherRecord | null,rec
   }
   const PlanNo:number = record.timeRecord.PlanNo;
   const PlanTime:Date|null = new Date(record.timeRecord.PlanTime);
-  const LocationID:number = record.locationRecord?.LocationID ?? 0;
-  const EmployeeID:number = record.employeeRecord?.EmpID ?? 0;
+  const ClinetID:number = record.locationRecord?.ClientID ?? -1;
+  const LocationID:number = record.locationRecord?.LocationID ?? -1;
+  const EmployeeID:number = record.employeeRecord?.EmpID ?? -1;
 
-  if (EmployeeID === 0 || LocationID === 0 || PlanNo === 0 || PlanTime === null) {
+  if (EmployeeID === -1 || LocationID === -1 || PlanNo === -1 || PlanTime === null || ClinetID === -1) {
     console.log("GetGroupMemberRecord in function",EmployeeID,LocationID,PlanNo,PlanTime);
     return [];
   }
   
   const result = records.filter((item:TimeRecordWithOtherRecord)=>{
-    const itemEmpID:number = item.employeeRecord?.EmpID ?? 0;
-    const itemLocationID:number = item.locationRecord?.LocationID ?? 0;
+    // const itemEmpID:number = item.employeeRecord?.EmpID ?? 0;
+    const itemLocationID:number = item.locationRecord?.LocationID ?? -1;
     const itemPlanNo:number = item.timeRecord.PlanNo;
     const itemPlanTime:Date = new Date(item.timeRecord.PlanTime);
-    if (itemEmpID === EmployeeID) return false;//同一社員はする無視する、
-    if (itemLocationID !== LocationID) return false;//同一現場は無視しない、
+    const itemClientID:number = item.locationRecord?.ClientID ?? -1;
+    // if (itemEmpID === EmployeeID) return false;//同一社員はする無視する、
+    if (itemClientID !== ClinetID) return false;//別の依頼元であれば無視、
+    if (itemLocationID !== LocationID) return false;//別の場所であれば無視、
+    if (PlanNo in [1,2]) return false; //出発報告と到着報告に関しては同一打刻の対象外
     if (itemPlanNo !== PlanNo) return false;//同一計画番号は無視しない、
     if (itemPlanTime.getTime() !== PlanTime.getTime()) return false;//同一計画時刻は無視しない、
     return true;

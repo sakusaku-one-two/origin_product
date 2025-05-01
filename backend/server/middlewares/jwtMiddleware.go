@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
@@ -30,37 +31,15 @@ func JWTMiddleware() echo.MiddlewareFunc {
 			// }
 			return false
 		},
-		SuccessHandler: func(c echo.Context) { //トークンの検証が成功したら実行される
-			log.Println("JWTの検証成功", c.Request().RequestURI)
-			log.Println(c.Request().Header)
-			//トークンからクレームを取得
-			// cookie, err := c.Cookie("jwt")
-			// if err != nil {
-			// 	c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing token"})
-			// }
-
-			// //トークンを検証
-			// token, err := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
-			// 	return SECRET_KEY, nil
-			// })
-
-			// if err != nil || !token.Valid {
-			// 	c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token"})
-			// 	return
-			// }
-
-			// //トークンからクレームを取得
-			// claims, ok := token.Claims.(jwt.MapClaims)
-			// if !ok {
-			// 	c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid claims"})
-			// 	return
-			// }
-			// //userIDを取得userID
-			// userID, ok := claims["userID"].(string)
-			// if !ok {
-			// 	c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid userID"})
-			// }
-			// c.Set(USER_CONTEXT_KEY, userID)
+		SuccessHandler: func(c echo.Context) { //トークンの検証が成功したら実行される トークンの内容をコンテキストに格納
+			token := c.Get("user").(*jwt.Token)
+			claims, ok := token.Claims.(jwt.MapClaims)
+			if !ok {
+				log.Println("トークンのクレーム取得失敗")
+				return
+			}
+			c.Set(USER_CONTEXT_KEY, claims["userID"])
+			log.Println("ユーザーID", claims["userID"])
 		},
 		ErrorHandler: func(c echo.Context, err error) error {
 			log.Println("JWTエラー", err)

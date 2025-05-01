@@ -1,6 +1,6 @@
 import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { LocationRecord,AttendanceRecord } from "../recordType";
-import { UPDATE as ATTENDANCE_RECORD_UPDATE,DELETE as ATTENDANCE_RECORD_DELETE,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP } from "./attendanceSlice";
+import { UPDATE as ATTENDANCE_RECORD_UPDATE,DELETE as ATTENDANCE_RECORD_DELETE,INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP,ResetChecker } from "./attendanceSlice";
 
 // -----------------------[LocationRecordの初期値]-----------------------------
 export const initialLocationState = {
@@ -56,6 +56,10 @@ export const LocationSlice = createSlice({
             state.locationList = deleteLocationRecords(state.locationList,[action.payload.Location]);
         })
         .addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord[]>)=>{
+            if(ResetChecker(action.payload)){
+                state.locationList = [];
+                return;
+            }
             state.locationList =updateLocationRecords( state.locationList,UniqueLocationRecords(action.payload.map((record)=>record.Location)));
         })
     }

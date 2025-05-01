@@ -2,6 +2,11 @@ package controls
 
 import (
 	"backend-app/server/models"
+<<<<<<< HEAD
+=======
+	timeModule "backend-app/server/timeModlule"
+	"fmt"
+>>>>>>> e70a4ed85096cdffd6923ea7ec67cdae0b28451f
 	"log"
 	"strconv"
 	"strings"
@@ -51,16 +56,55 @@ func CreateDateTime(date_str string, time_string string) time.Time {
 	month := time.Month(to_month(date_str))
 	day := to_day(date_str)
 	hour, minute := to_hour_minute(time_string)
-	return time.Date(year, month, day, hour, minute, 0, 0, time.Local)
+	return time.Date(year, month, day, hour, minute, 0, 0, timeModule.JAPANESE_TIME_ZONE_OFFSET)
 }
 
 func CreateDepartPlanTime(row map[string]*Value) *time.Time {
 
+<<<<<<< HEAD
+=======
+	// fmt.Println("CreateDepartPlanTime開始")
+	// var target_location_to_employee_record *models.LocationToEmployeeRecord
+	// fmt.Println("CreateDepartPlanTime開始1")
+
+	// if len(models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Dump()) == 0 {
+	// 	fmt.Println("CreateDepartPlanTimeループ", models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Dump())
+	// }
+
+	// fmt.Println("CreateDepartPlanTimeループ", models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Dump())
+	// models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.Map.Range(func(key any, value any) bool {
+	// 	fmt.Println("CreateDepartPlanTimeループ", key, value)
+	// 	location_to_employee_record, ok := value.(*models.LocationToEmployeeRecord)
+	// 	if ok && location_to_employee_record.LocationID == row["配置先番号"].To_int() && location_to_employee_record.EmpID == row["隊員番号"].To_int() && location_to_employee_record.ClientID == row["得意先番号"].To_int() {
+	// 		target_location_to_employee_record = location_to_employee_record
+	// 		return false
+	// 	}
+	// 	return true
+	// })
+	// fmt.Println("CreateDepartPlanTime終了")
+	// var duration time.Duration
+	// if target_location_to_employee_record == nil {
+	// 	duration = time.Duration(time.Minute * -90)
+	// 	err := models.LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.Cache.InsertNonID(models.NewLocationToEmployeeRecord(row["配置先番号"].To_int(), row["得意先番号"].To_int(), row["隊員番号"].To_int()), func(targetData *models.LocationToEmployeeRecord) (uint, error) {
+	// 		return targetData.ID, nil
+	// 	})
+	// 	fmt.Println("CreateDepartPlanTime終了2")
+	// 	if err != nil {
+	// 		log.Println("配置先番号、得意先番号、隊員番号の組み合わせが存在しません。")
+	// 	}
+	// } else {
+	// 	duration = time.Duration(time.Minute * time.Duration(target_location_to_employee_record.Duration))
+	// 	fmt.Println("CreateDepartPlanTime終了3")
+	// }
+>>>>>>> e70a4ed85096cdffd6923ea7ec67cdae0b28451f
 	duration := time.Duration(time.Minute * -90)
+	fmt.Println("CreateDepartPlanTime終了4")
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本開始時間"].To_string()
 	job_start_time := CreateDateTime(date_str, time_str)
+	fmt.Println("CreateDepartPlanTime終了5")
 	result := job_start_time.Add(duration)
+	fmt.Println("CreateDepartPlanTime終了6")
 	return &result
 }
 
@@ -87,10 +131,16 @@ func CreateFinalyPlanTime(row map[string]*Value) *time.Time {
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本終了時間"].To_string()
 	result := CreateDateTime(date_str, time_str)
+
+	//もし開始時刻より前に終了時刻があった場合、終了時刻翌日の時間となる。
+	start_time := CreateStartTime(row)
+	if result.Before(*start_time) {
+		result = result.Add(24 * time.Hour)
+	}
 	return &result
 }
 
-// Timeレコードを作製する。
+// Timeレコードを作製する IDは振らない。
 func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 
 	mange_id_from_row := row["管制番号"]

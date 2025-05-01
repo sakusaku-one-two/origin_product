@@ -32,7 +32,7 @@ func init() {
 		log.Println("管理者の作成に成功しました。")
 	}
 
-	if _, err := CreateUser(NewQuerySession(), 1, "user", "user"); err != nil {
+	if _, err := CreateUser(NewQuerySession(), 2, "user", "user"); err != nil {
 		log.Println("ユーザーの作成に失敗しました。")
 		panic(err)
 	} else {
@@ -43,8 +43,8 @@ func init() {
 	SetUpRepository()
 	time.Sleep(2 * time.Second)
 	log.Println("リポジトリキャッシュ作成完了 -> サンプルデータの作成開始")
-	GenerateSampleData(DB)
-	log.Println("サンプルデータの作成に成功しました。")
+	// GenerateSampleData(DB)
+	// log.Println("サンプルデータの作成に成功しました。")
 
 }
 
@@ -91,7 +91,9 @@ func connectDB() *gorm.DB {
 	dns := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
 		dbHost, dbUser, dbPassWord, dbName, dbPort, dbSsl, dbTimeZone)
 
-	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		return nil
 	}

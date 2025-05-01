@@ -1,13 +1,13 @@
 import {FC,useEffect} from "react";
 
-import {
-  Calculator,
+// import {
+//   Calculator,
   
-  CreditCard,
-  Settings,
+//   CreditCard,
+//   Settings,
   
-  User,
-} from "lucide-react";
+//   User,
+// } from "lucide-react";
 
 import {
   CommandDialog,
@@ -16,8 +16,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-  CommandShortcut,
+  // CommandSeparator,
+  // CommandShortcut,
 } from "../../ui/command";
 
 import { FindDialogOpen } from "../../../state/openClose";
@@ -26,14 +26,17 @@ import { TimeRecordWithOtherRecord } from "../../../hooks";
 import { useGetWaitingTimeRecordsWithOtherRecord } from "../../../hooks";
 import TimeCard from "../dasbord/timeCard/timeCard";
 
-import { useSelectedRecordsSelector,useSelectedRecordsDispatch } from "../../../hooks";
+import {useSelectedRecordsDispatch } from "../../../hooks";
 import { CardType } from "../dasbord/timeCard/cardHelper";
+
+// import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';//エラー解決を諦めた。。
+
 
 
 const FindTask:FC =() => {
   
   const [open,setIsOpen] = useRecoilState(FindDialogOpen);
-  const selectedRecords = useSelectedRecordsSelector();
+  // const selectedRecords = useSelectedRecordsSelector();
   const dispatch = useSelectedRecordsDispatch();
   const records:TimeRecordWithOtherRecord[] = useGetWaitingTimeRecordsWithOtherRecord();
 
@@ -58,6 +61,7 @@ const FindTask:FC =() => {
           <span className="text-xs">⌘</span>J
         </kbd>
       </p>
+      
       <CommandDialog open={open} onOpenChange={setIsOpen}>
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
@@ -75,35 +79,11 @@ const FindTask:FC =() => {
               dispatch({type:"SELECTED_RECORDS/UPDATE",payload:null});
               setIsOpen(false);
             }}>
-              <Calculator />
-              <span>Calculator</span>
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Settings">
-            <CommandItem>
-              <User />
-              <span>Profile</span>
-              <CommandShortcut>⌘P</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <CreditCard />
-              <span>Billing</span>
-              <CommandShortcut>⌘B</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <Settings />
-              <span>現在選択中のデータ</span>
-              <CommandShortcut>⌘S</CommandShortcut>
-                {
-                  selectedRecords && (
-                    <TimeCard record={selectedRecords as TimeRecordWithOtherRecord} cardType={CardType.ControlPanel} />
-                  )
-                }
-            </CommandItem>
+                </CommandItem>
           </CommandGroup>
         </CommandList>
       </CommandDialog>
+      
     </>
   )
 };

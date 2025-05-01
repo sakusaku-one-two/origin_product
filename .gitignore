@@ -1,0 +1,12 @@
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+.terraform
+*/terraform.tfstate
+*/terraform.tfstate.backup
+*/.terraform.lock.hcl
+*/.terraform
+*/.ssh
+*/.ssh/demo_key_pair.pem
+*/.ssh/demo_key_pair.pub
+*/.ssh/demo_key_pair.pem.pub

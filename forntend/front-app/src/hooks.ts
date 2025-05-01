@@ -11,6 +11,8 @@ import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE } from "./redux/slices/attend
 import type { PostRecord } from "./redux/recordType";
 import { SET_SELECTED_RECORDS } from "./redux/slices/selectedRecordsSlice";
 
+import { UPDATE as LOGIN_UPDATE,LoginInfo } from "./redux/slices/loginSlice";
+
 
 
 // -----------------------[AttendanceRecordのディスパッチとセレクターのカスタムフック]-----------------------------
@@ -50,8 +52,11 @@ export type TimeRecordWithOtherRecord = {
     timeRecord:TimeRecord,
     employeeRecord:EmployeeRecord | null,
     locationRecord:LocationRecord | null,
+    postRecord :PostRecord | null,//PostRecordが抜けていた。
     isSelected:boolean
 };
+
+
 
 //TimeRecordとEmployeeRecordを結合する
 export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootState):TimeRecordWithOtherRecord[]{
@@ -60,18 +65,25 @@ export function TimeRecordMergeOtherRecord(timeRecords:TimeRecord[],state:RootSt
     const locationRecords = state.LOCATION_RECORDS.locationList as LocationRecord[];
     const postRecords = state.POST_RECORDS.postList as PostRecord[];
 
-    console.log(postRecords);
-    
-    return timeRecords.map((timeRecord)=>{
+      
+    const result:TimeRecordWithOtherRecord[] = timeRecords.map((timeRecord)=>{
         const targetAttendanceRecord = attendanceRecords.find((attendanceRecord)=>attendanceRecord.ManageID === timeRecord.ManageID);
-        console.log(targetAttendanceRecord);
-        console.log(targetAttendanceRecord?.PostID);
-        console.log(postRecords);
         const targetEmployeeRecord = employeeRecords.find((employeeRecord)=>employeeRecord.EmpID === targetAttendanceRecord?.EmpID);
         const targetLocationRecord = locationRecords.find((locationRecord)=>locationRecord.ID === targetAttendanceRecord?.Location.ID);
         const targetPostRecord = postRecords.find((postRecord)=>postRecord.PostID === targetAttendanceRecord?.PostID);
+
+        if (targetEmployeeRecord === undefined || targetLocationRecord === undefined || targetPostRecord === undefined) {
+            console.log("存在しないtargetEmployeeRecord",targetEmployeeRecord);
+            console.log("存在しないtargetLocationRecord",targetLocationRecord);
+            console.log("存在しないtargetPostRecord",targetPostRecord);
+            
+        }
+
         return {timeRecord,employeeRecord:targetEmployeeRecord ?? null,locationRecord:targetLocationRecord ?? null,postRecord:targetPostRecord ?? null,isSelected:true};
     }); 
+
+        return result;
+
 }
 
 export const useGetTimeRecordsWithOtherRecord = ():TimeRecordWithOtherRecord[] => useSelector((state:RootState) => TimeRecordMergeOtherRecord(state.TIME_RECORDS.TimeRecords,state));
@@ -109,3 +121,16 @@ export const usePostDispatch = () => useDispatch<AppDispatch>();
 export const usePostSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export const useGetPostRecords = ():[PostRecord[],boolean] => useSelector((state:RootState) => [state.POST_RECORDS.postList,state.POST_RECORDS.isLoading]);
+
+
+// -----------------------[LoginInfoのディスパッチとセレクターのカスタムフック]-----------------------------
+
+export const useLoginDispatch = () => useDispatch<AppDispatch>();
+export const useLoginSelector: TypedUseSelectorHook<RootState> = useSelector;
+
+export const useGetLoginInfo = ():LoginInfo => useSelector((state:RootState) => state.LOGIN);
+export const useSetLoginInfo = ():{setLoginInfo:(loginInfo:LoginInfo)=>void} => {
+    const dispatch = useLoginDispatch();
+    const setLoginInfo = useCallback((loginInfo:LoginInfo) => dispatch(LOGIN_UPDATE(loginInfo)),[dispatch]);
+    return {setLoginInfo};
+};

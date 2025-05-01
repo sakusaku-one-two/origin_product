@@ -1,6 +1,8 @@
 package models
 
 import (
+	timeModule "backend-app/server/timeModlule"
+	"errors"
 	"log"
 	"time"
 
@@ -24,11 +26,12 @@ import (
 */
 
 var (
-	EMPLOYEE_RECORD_REPOSITORY   *Repository[EmployeeRecord]
-	TIME_RECORD_REPOSITORY       *Repository[TimeRecord]
-	ATTENDANCE_RECORD_REPOSITORY *Repository[AttendanceRecord]
-	LOCATION_RECORD_REPOSITORY   *Repository[LocationRecord]
-	POST_RECORD_REPOSITORY       *Repository[PostRecord]
+	EMPLOYEE_RECORD_REPOSITORY             *Repository[EmployeeRecord]
+	TIME_RECORD_REPOSITORY                 *Repository[TimeRecord]
+	ATTENDANCE_RECORD_REPOSITORY           *Repository[AttendanceRecord]
+	LOCATION_RECORD_REPOSITORY             *Repository[LocationRecord]
+	POST_RECORD_REPOSITORY                 *Repository[PostRecord]
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY *Repository[LocationToEmployeeRecord]
 )
 
 // // 各種設定の呼び出し
@@ -57,6 +60,7 @@ func SetUpRepository() {
 		session := NewQuerySession()
 		employee_records := []EmployeeRecord{}
 		session.Find(&employee_records)
+
 		if len(employee_records) == 0 {
 			log.Println("初期値を設定することができませんでした。employee_recordsの数が0です。")
 			return
@@ -65,9 +69,9 @@ func SetUpRepository() {
 		for _, employee_record := range employee_records {
 			repo.Cache.Map.Store(employee_record.EmpID, &employee_record)
 		}
-
 		log.Printf("初期値を設定しました。employee_recordsの数:%v", len(employee_records))
 	})
+
 	EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[EmployeeRecord]) {
 		//社員キャッシュに関連したバックグランドで動作するごルーチン
 
@@ -104,9 +108,9 @@ func SetUpRepository() {
 		//初期値を設定する。
 		NewQuerySession().Transaction(func(tx *gorm.DB) error {
 			time_records := []*TimeRecord{}
-			before_time := time.Now().Add(-1 * time.Hour)
-			after_time := time.Now().Add(8 * time.Hour)
-			tx.Where("plan_time >= ? AND paln_time <= ?", before_time, after_time).Find(&time_records)
+			before_time := timeModule.GetNowTimeAsJapanese().Add(-1 * time.Hour)
+			after_time := timeModule.GetNowTimeAsJapanese().Add(8 * time.Hour)
+			tx.Where("plan_time >= ? AND plan_time <= ?", before_time, after_time).Find(&time_records)
 			if len(time_records) == 0 {
 				log.Println("初期値を初期化することができませんでした。time_recordsの数が0です")
 				return nil
@@ -163,12 +167,12 @@ func SetUpRepository() {
 
 			temp_time := <-ticker.C // 30秒おきに動作　なので30秒おきにキャッシュの中身を走査するゴルーチン
 			update_records := []*TimeRecord{}
-			currentTime := temp_time.Local()
+			currentTime := timeModule.ToJapaneseTime(temp_time)
 			log.Println("現在の時間", currentTime)
 			log.Println("現在のキャッシュの数（timeRecord）", repo.Cache.Len())
 			repo.Cache.Map.Range(func(key any, value any) bool { //キャッシュの中味を走査するコールバック関数　trueを返すと次の要素でそのコールバックを呼び出す。
 				time_record, ok := value.(*TimeRecord)
-
+				log.Println("time_recordの予定時刻", time_record.PlanTime)
 				if !ok {
 					log.Printf("Failed to convert to *TimeRecord for key %v", key)
 					return true
@@ -176,6 +180,7 @@ func SetUpRepository() {
 
 				//スキップ条件 無視か完了又はアラート対称外のどちらか
 				if time_record.IsComplete || time_record.IsOver {
+					log.Println("無視か完了又はアラート対称外のどちらか", time_record.IsComplete, time_record.IsOver, time_record.PlanTime)
 					return true
 				}
 
@@ -194,20 +199,22 @@ func SetUpRepository() {
 				//予定時刻の5分前より前か判定。
 				if time_record.PlanTime.Add(-5 * time.Minute).After(currentTime) {
 					//予定時刻（5分前）より前に現在時刻が存在するので何もしない。
+					log.Println("予定時刻（5分前）より前に現在時刻が存在するので何もしない。", time_record.PlanTime, currentTime)
 					return true
 				} else if time_record.PlanTime.After(currentTime) && !time_record.PreAlert {
 					//予定時刻の5分前	なので、予備アラートを発報 (無視の場合は除く)
+					log.Println("予定時刻の5分前なので、予備アラートを発報 (無視の場合は除く)", time_record.PlanTime, currentTime)
 					time_record.PreAlert = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 					return true
 				} else if time_record.PlanTime.Before(currentTime) && !time_record.IsAlert {
 					//予定時刻の後に現在時刻が存在するのでアラートを発報
+					log.Println("予定時刻の後に現在時刻が存在するのでアラートを発報", time_record.PlanTime, currentTime)
 					time_record.IsAlert = true
 					update_records = append(update_records, time_record)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/UPDATE", time_record)
 				}
-
 				return true
 			})
 
@@ -227,10 +234,9 @@ func SetUpRepository() {
 
 		//1時間おきに動作するゴルーチン
 		for {
-
 			currentTime := <-ticker.C
-			before_time := currentTime.Local().Add(-1 * time.Hour)
-			after_time := currentTime.Local().Add(8 * time.Hour)
+			before_time := timeModule.ToJapaneseTime(currentTime).Add(-5 * time.Hour)
+			after_time := timeModule.ToJapaneseTime(currentTime).Add(16 * time.Hour)
 
 			repo.Cache.Map.Range(func(key any, value any) bool {
 				time_record, ok := value.(*TimeRecord)
@@ -238,7 +244,7 @@ func SetUpRepository() {
 					log.Printf("Failed to convert to *TimeRecord for key %v", key)
 					return true
 				}
-				//監視範囲外の場合は削除する （予定時刻から1時間を超えている場合は削除する
+				//監視範囲外の場合は削除する
 				if time_record.PlanTime.Before(before_time) || time_record.PlanTime.After(after_time) {
 					repo.Cache.Map.Delete(key)
 					repo.Sender <- CreateActionDTO[TimeRecord]("TIME_RECORD/DELETE", time_record) //実施際にDB内のデータを削除するわけではないが、クライアント側のredux-reducerに削除するというアクションを送信する
@@ -297,6 +303,46 @@ func SetUpRepository() {
 		}
 	})
 
+	ATTENDANCE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[AttendanceRecord]) {
+		//勤怠記録の監視範囲を1時間おきに不用な対象レコードを外す（DBから消すわけではない）
+		ticker := time.NewTicker(20 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			currentTime := <-ticker.C
+			before_time := timeModule.ToJapaneseTime(currentTime).Add(-24 * time.Hour)
+			after_time := timeModule.ToJapaneseTime(currentTime).Add(24 * time.Hour)
+
+			repo.Cache.Map.Range(func(key any, value any) bool {
+				attendance_record, ok := value.(*AttendanceRecord)
+				if !ok {
+					log.Printf("Failed to convert to *AttendanceRecord for key %v", key)
+					return true
+				}
+
+				target_depart_time, ok := GetEntryTime(attendance_record)
+				if !ok {
+					return true
+				}
+
+				target_last_time, ok := GetEndTime(attendance_record)
+				if !ok {
+					return true
+				}
+
+				if target_depart_time.Before(before_time) || target_last_time.After(after_time) {
+					//キャッシュからの削除対象
+					repo.Sender <- CreateActionDTO[AttendanceRecord]("ATTENDANCE_RECORD/DELETE", attendance_record)
+					repo.Cache.Map.Delete(key)
+					for _, time_reocrd := range attendance_record.TimeRecords {
+						TIME_RECORD_REPOSITORY.Cache.Delete(time_reocrd.ID)
+					}
+				}
+				return true
+			})
+		}
+	})
+
 	// --------------------[配置先記録のリポジトリ]--------------------------------
 	LOCATION_RECORD_REPOSITORY = CreateRepositry[LocationRecord]("ACTION_LOCATION_RECORD", 200)
 	LOCATION_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationRecord]) {
@@ -304,7 +350,50 @@ func SetUpRepository() {
 		for locationRecordActionDTO := range repo.Reciver {
 			switch locationRecordActionDTO.Action {
 			case "LOCATION_RECORD/UPDATE":
-				if err := repo.Cache.loadAndSave(locationRecordActionDTO.Payload.ID, locationRecordActionDTO.Payload); err != nil {
+				if err := repo.Cache.MulitPrimaryKeyInsert(locationRecordActionDTO.Payload, func(targetRecord *LocationRecord, tx *gorm.DB, rc *RecordsCache[LocationRecord]) (uint, error) {
+					var return_error error = nil
+					result_flag := false
+					var target_uint_id uint = 0
+					rc.Map.Range(func(key any, value any) bool {
+						//型変換
+						_, id_ok := key.(uint)
+						if !id_ok {
+							return_error = errors.New("ロケーションレコードのMAPのキーのキャストが失敗しました")
+							return false
+						}
+
+						record, rec_ok := value.(LocationRecord)
+						if !rec_ok {
+							return_error = errors.New("ロケーションレコードのMAP内のキャストに失敗しました。")
+							return false
+						}
+
+						if record.ClientID == targetRecord.ClientID && record.LocationID == targetRecord.LocationID {
+							//合致したケース
+							target_uint_id = record.ID
+							result_flag = true
+							return true
+						}
+						return true
+					})
+
+					//何かエラーがあった場合はそのエラーを返す。
+					if return_error != nil {
+						return 0, return_error
+					}
+
+					if result_flag {
+						//既に対象のレコードが存在するので、IDを古いのに入れて内容を更新する。
+						targetRecord.ID = target_uint_id
+						tx.Save(targetRecord).Commit()
+						return targetRecord.ID, nil
+					} else {
+						//対象のレコードがキャッシュに存在しないので、新規登録
+						tx.Save(targetRecord).Commit()
+						return targetRecord.ID, nil
+					}
+
+				}); err != nil {
 					log.Printf("Failed to update cache and DB for LocationRecord ID %v: %v", locationRecordActionDTO.Payload.ID, err)
 					continue
 				}
@@ -344,4 +433,37 @@ func SetUpRepository() {
 		}
 	})
 
+	// --------------------[配置先記録のリポジトリ]--------------------------------
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY := CreateRepositry[LocationToEmployeeRecord]("ACTION_LOCATION_TO_EMPLOYEE_RECORD", 100)
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationToEmployeeRecord]) {
+
+		for locationToEmployeeRecordActionDTO := range repo.Reciver {
+			switch locationToEmployeeRecordActionDTO.Action {
+			case "LOCATION_TO_EMPLOYEE_RECORD/UPDATE":
+				repo.Cache.loadAndSave(locationToEmployeeRecordActionDTO.Payload.LocationID, locationToEmployeeRecordActionDTO.Payload)
+			case "LOCATION_TO_EMPLOYEE_RECORD/DELETE":
+				repo.Cache.Delete(locationToEmployeeRecordActionDTO.Payload.LocationID)
+			default:
+				continue
+			}
+
+			repo.Sender <- locationToEmployeeRecordActionDTO
+		}
+
+	})
+	//初期値のセットアップ
+	LOCATION_TO_EMPLOYEE_RECORD_REPOSITORY.BackgroundKicker(func(repo *Repository[LocationToEmployeeRecord]) {
+		NewQuerySession().Transaction(func(tx *gorm.DB) error {
+			locationToEmployeeRecords := []*LocationToEmployeeRecord{}
+			tx.Find(&locationToEmployeeRecords)
+			if len(locationToEmployeeRecords) == 0 {
+				log.Println("初期値を初期化することができませんでした。locationToEmployeeRecordsの数が0です")
+				return nil
+			}
+			for _, locationToEmployeeRecord := range locationToEmployeeRecords {
+				repo.Cache.Map.Store(locationToEmployeeRecord.LocationID, locationToEmployeeRecord)
+			}
+			return nil
+		})
+	})
 }

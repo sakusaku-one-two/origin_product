@@ -1,59 +1,61 @@
-import React,{useEffect,useState} from "react";
+import React from "react";
 import { EmployeeRecord } from "../../../redux/recordType";
-import { useDispatch } from "react-redux";
-import { UPDATE } from "../../../redux/slices/employeeSlice";
-
-const TODAY = new Date();
-const TODAY_YEAR = TODAY.getFullYear();
-const TODAY_MONTH = TODAY.getMonth();
-const TODAY_DAY = TODAY.getDate();
+import { useDispatch,useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
+import { UPDATE as UPDATE_EMPLOYEE } from "../../../redux/slices/employeeSlice";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableCell,
+    TableHead,
+} from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
 
 //社員データの表示
-const EmployeeTable:React.FC = () => {
-    const [employeeRecords,setEmployeeRecords] = useState<EmployeeRecord[]>([]);//社員データの格納
-    const [startDate,setStartDate] = useState<Date|null>(new Date(TODAY_YEAR,TODAY_MONTH - 1,TODAY_DAY));//開始日(前月から勤務した社員一覧を表示)
-    const [endDate,setEndDate] = useState<Date|null>(new Date(TODAY_YEAR,TODAY_MONTH,TODAY_DAY));//終了日(今月)
+const EmployeeTable: React.FC = () => {
+    
+    const localemps:EmployeeRecord[] = useSelector((state:RootState) => state.EMPLOYEE_RECORDS.employeeList);
+    
     const dispatch = useDispatch();//websocketで更新
 
-    useEffect(()=>{
-        try {
-            const fetchEmp = async () => {
-                await fetch("api/employeeList",{   
-                    method:"POST",
-                    headers:{
-                        "Content-Type":"application/json"
-                    },
-                    body:JSON.stringify({
-                        "startDate":startDate?.toISOString(),
-                        "endDate":endDate?.toISOString()
-                    })
-                })
-                .then((res)=>res.json())
-                .then((data)=>setEmployeeRecords(data));
-            }
-            fetchEmp();
-        } catch (error:unknown) {
-            alert("社員データの取得に失敗しました。");
-            console.error(error);
-        }
-    },[startDate,endDate]);
 
     //更新ハンドラ
-    const UpdateHandler = (record:EmployeeRecord) => {
-        dispatch(UPDATE(record));
+    const UpdateHandler = (record: EmployeeRecord) => {
+        const newRecord = {...record,IsInTerm:!record.IsInTerm};
+        console.log(newRecord);
+        dispatch(UPDATE_EMPLOYEE(newRecord));
     };
 
     return (
-        <div>
-            <h1>EmployeeTable</h1>
-            <input type="date" value={startDate?.toISOString()} onChange={(e)=>setStartDate(new Date(e.target.value))}/>
-            <input type="date" value={endDate?.toISOString()} onChange={(e)=>setEndDate(new Date(e.target.value))}/>
-            {employeeRecords.map((record)=>(
-                <div key={record.EmpID}>
-                    <p>{record.Name}</p>
-                    <button onClick={()=>UpdateHandler(record)}>更新</button>
-                </div>
-            ))}
+        <div className='container mx-auto p-4'>
+            <h1 className='text-2xl font-bold mb-4 text-center'>社員一覧</h1>
+            <div className='overflow-x-auto'>
+                <Table className='min-w-full bg-white border border-gray-200'>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className='py-2 px-4 border-b'>社員ID</TableHead>
+                            <TableHead className='py-2 px-4 border-b'>名前</TableHead>
+                            <TableHead className='py-2 px-4 border-b'>外国人雇用者</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {localemps.map((record) => (
+                            <TableRow key={record.EmpID} className='hover:bg-gray-100'>
+                                <TableCell className='py-2 px-4 border-b text-center'>{record.EmpID}</TableCell>
+                                <TableCell className='py-2 px-4 border-b'>{record.Name}</TableCell>
+                                <TableCell className='py-2 px-4 border-b text-center'>
+                                    <Switch
+                                        defaultChecked={record.IsInTerm}
+                                        onCheckedChange={() => UpdateHandler(record)}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 };

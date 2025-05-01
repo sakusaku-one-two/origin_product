@@ -1,18 +1,42 @@
-import React from 'react';
+import React ,{useState}from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../../ui/card';
 import { TimeRecordWithOtherRecord } from '../../../../hooks';
 import { useSetSelectedRecords } from '../../../../hooks';
 import { useTimeDispatch } from '../../../../hooks';
-import { UPDATE as UPDATE_TIME_RECORD, DELETE as DELETE_TIME_RECORD } from '../../../../redux/slices/timeSlice';
+import { UPDATE as UPDATE_TIME_RECORD} from '../../../../redux/slices/timeSlice';
 import { motion } from 'framer-motion';
 import { PlanNames } from '../helper';
 import { Button } from '../../../ui/button';
 import { SetAlertAnimation } from './cardHelper';
 import { CardType } from './cardHelper';
+import { Input } from '@/components/ui/input';
 
-const PlanName = (planNo: number) => {
+//計画名を取得
+export const PlanName = (planNo: number) => {
     return PlanNames.get(planNo);
 }   
+
+
+//日付の文字列を日付フォーマット文字列に変換
+export const ShowTime = (raw_time:string|Date):string => {
+    const time =  raw_time instanceof Date ? raw_time : new Date(raw_time);
+    const localTime = time.toLocaleTimeString(`ja-JP`,{timeZone:'Asia/Tokyo'});
+    const localDate = time.toLocaleDateString(`ja-JP`,{timeZone:'Asia/Tokyo'});
+
+    return `${localDate} ${localTime}`
+    
+};
+//文字列をINPUTように整形
+const TolocalTimeFormat = (raw_time:string | Date):string => {
+    const date =  raw_time instanceof Date ? raw_time : new Date(raw_time);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
 const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType }> = ({ record,cardType }) => {
     const dispatch = useTimeDispatch(); 
@@ -21,6 +45,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
     const timeRecord = record.timeRecord;
     const employeeRecord = record.employeeRecord;
     const locationRecord = record.locationRecord;
+    const postRecord = record.postRecord;
+    const [targetTime,setTargetTime] = useState<string>(TolocalTimeFormat(new Date()));
     
     const isSelectedSelf = cardType === CardType.ControlPanel;
 
@@ -52,6 +78,8 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
         dispatch(UPDATE_TIME_RECORD(updatedTimeRecord));
     }
 
+    
+
     const handleAlertIgnore = () => {
         if (timeRecord.IsAlert) {
             handleIgnore();
@@ -59,33 +87,24 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             handlePreAlertIgnore();
         }
     };
-    const handleSelect = () => {
-        if (isSelectedSelf) {
-            setSelectedRecords(null);
+    const handleSelect = (e:React.MouseEvent) => {
+        const clickedElement = e.target as HTMLElement;
+        
+        if (['INPUT', 'BUTTON'].includes(clickedElement.tagName) && isSelectedSelf) {
             return;
-        } 
+        }
+        setTargetTime(TolocalTimeFormat(new Date()));
+        if (isSelectedSelf) {
+            setSelectedRecords(null)
+            return ;
+        }
 
         setSelectedRecords(null);
         setTimeout(() => {
             setSelectedRecords(record);
         }, 100);
     }
-    //アラート状態の場合
-    // if (timeRecord.IsAlert && !timeRecord.IsComplete && !timeRecord.IsIgnore) {
-    //     return (
-    //         <motion.div
-    //             layoutId={timeRecord.ID.toString()}
-    //             key={timeRecord.ID.toString()}
-    //             animate={{ scale: 1, opacity: 1 }}
-    //             exit={{ scale: 0.8, opacity: 0 }}
-    //             transition={{ duration: 0.3 }}
-    //             className='h-full'
-    //         >
-
-    //         </motion.div> 
-    //     );
-    // };
-
+    
 
 
 
@@ -104,7 +123,7 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
             >
                 <CardHeader >
                     <CardDescription className="text-sm text-gray-500">
-                        {PlanName(timeRecord?.PlanNo)} {new Date(timeRecord?.PlanTime).toLocaleString()}
+                        {PlanName(timeRecord?.PlanNo)} {ShowTime(timeRecord?.PlanTime)} {postRecord?.PostName}
                     </CardDescription> 
                     <CardTitle className="text-lg font-semibold">
                         {employeeRecord?.Name}
@@ -120,11 +139,24 @@ const TimeCard: React.FC<{ record: TimeRecordWithOtherRecord,cardType: CardType 
                                 定時打刻
                             </Button>
 
+                            <Input
+                                type="datetime-local"
+                                value={targetTime}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setTargetTime(event.target.value)}
+                                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300 text-sm w-full max-w-xs"
+                            />
                             <Button
-                                onClick={() => dispatch(DELETE_TIME_RECORD(timeRecord))}
-                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-300"
+                            onClick={() => {
+                                const newTimeRecord = {
+                                    ...timeRecord,
+                                    ResultTime: new Date( targetTime ),
+                                    IsComplete: true
+                                };
+                                
+                                dispatch(UPDATE_TIME_RECORD(newTimeRecord));
+                            }}
                             >
-                                打刻（指定）
+                                指定時間での打刻
                             </Button>
 
                             <Button

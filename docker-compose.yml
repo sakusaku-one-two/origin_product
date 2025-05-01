@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: SAKUSAKU
       POSTGRES_DB: ORIGINAL_PROJECTS
     volumes:
-      - original-project_db-data:/var/lib/postgresql/data
+      # - original-project_db-data:/var/lib/postgresql/data
       - ./backend/store/postgresql.conf:/etc/postgresql/postgresql.conf
       - ./backend/store/pg_hba.conf:/etc/postgresql/pg_hba.conf
       - ./backend/store/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -22,27 +22,44 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      args:
-        JWT_SECRET_KEY: "SAKUSAKU"
-        DB_HOST: "db-2"
-        DB_PORT: "5432"
-        DB_USER: "MY_USER"
-        DB_PASSWORD: "SAKUSAKU"
-        DB_NAME: "ORIGINAL_PROJECTS"
-        DB_SSL: "disable"
-        DB_TIMEZONE: "Asia/Tokyo"
-        GOPATH: "/go"
-        GOLANG_VERSION: "1.23.0"
-        AllowOrigin: "nginx"
+      # args:
+      #   JWT_SECRET_KEY: "SAKUSAKU"
+      #   DB_HOST: "db-2"
+      #   DB_PORT: "5432"
+      #   DB_USER: "MY_USER"
+      #   DB_PASSWORD: "SAKUSAKU"
+      #   DB_NAME: "ORIGINAL_PROJECTS"
+      #   DB_SSL: "disable"
+      #   DB_TIMEZONE: "Asia/Tokyo"
+      #   GOPATH: "/go"
+      #   GOLANG_VERSION: "1.23.0"
+      #   AllowOrigin: "nginx"
+      
+    environment:
+      
+      - JWT_SECRET_KEY=SAKUSAKU
+      - DB_HOST=db-2
+      - DB_PORT=5432
+      - DB_USER=MY_USER
+      - DB_PASSWORD=SAKUSAKU
+      - DB_NAME=ORIGINAL_PROJECTS
+      - DB_SSL=disable
+      - DB_TIMEZONE=Asia/Tokyo
+      - AllowOrigin=192.168.0.25
+    # entrypoint:
+    #   - ["/bin/bash", "-c", "entrypoint.sh"]
     depends_on:
       - db-2
+      
     networks:
       - backend-network
 
   nginx:
     image: nginx:latest
     ports:
-      - "127.0.0.1:443:443"
+      # - "127.0.0.1:443:443"
+      - "443:443"
+
       # - "127.0.0.1:80:80"
     volumes:
       - ./proxyServer/nginx.conf:/etc/nginx/nginx.conf  
@@ -54,8 +71,8 @@ services:
     networks:
       - backend-network
 
-volumes:
-  original-project_db-data:
+# volumes:
+#   original-project_db-data:
 networks:
   backend-network:
     driver: bridge

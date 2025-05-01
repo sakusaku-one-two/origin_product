@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 /*
@@ -142,14 +143,11 @@ func (ct *CsvTable) checkReqireColmuns() ([]string, bool) {
 	return nil, true
 }
 
-// このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。
+// このメソッドを実行すると,個別に勤怠データーとして登録できる構造体に変換する。　また子テーブルので存在しない値があれば新規作成して付与する。
 func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
-	fmt.Println("To_AttendanceRecordsの呼び出し")
+
 	createToAttendacneRecord := func(row map[string]*Value) *models.AttendanceRecord {
-		time_records, err := CreateTimeRecord(row)
-		if err != nil {
-			return nil
-		}
+		
 		emp, ok := models.EMPLOYEE_RECORD_REPOSITORY.Cache.Get(row["隊員番号"].To_int())
 		if !ok {
 			//社員が存在しないので新しく作成して、キャッシュに登録
@@ -165,6 +163,7 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 		var location *models.LocationRecord
 		target_locationID := row["配置先番号"].To_int()
 		client_ID := row["得意先番号"].To_int()
+		//既に登録してあるレコードか確認。
 		for _, location_record := range models.LOCATION_RECORD_REPOSITORY.Cache.Dump() {
 			if location_record.LocationID == target_locationID && location_record.ClientID == client_ID {
 				location = &location_record
@@ -180,7 +179,34 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 				LocationName: row["配置先正式名称"].To_string(),
 				ClientName:   row["得意先正式名称"].To_string(),
 			}
-			models.LOCATION_RECORD_REPOSITORY.Cache.Insert(location.LocationID, location)
+
+			models.LOCATION_RECORD_REPOSITORY.Cache.MulitPrimaryKeyInsert(location, func(targetRecord *models.LocationRecord, tx *gorm.DB, rc *models.RecordsCache[models.LocationRecord]) (uint, error) {
+
+				//念のため、再度重複確認をおこなう。
+				is_exists := false
+				var target_id uint = 0
+				for _, location_record := range rc.Dump() {
+					if location_record.ClientID == targetRecord.ClientID && location_record.LocationID == targetRecord.LocationID {
+						is_exists = true
+						target_id = location_record.ID
+						break
+					}
+				}
+
+				if is_exists {
+					//重複が存在する 一応ID以外の内容に違いがあった場合は更新する。
+					return target_id, nil
+				}
+
+				save_tx := tx.Save(targetRecord)
+				if save_tx.Error != nil {
+					return 0, save_tx.Error
+				}
+
+				return targetRecord.ID, nil
+
+			})
+
 		}
 
 		//勤務形態を取得 （存在しない場合は新しく作成して、キャッシュに登録）
@@ -194,11 +220,17 @@ func (ct *CsvTable) To_AttendanceRecords() ([]*models.AttendanceRecord, error) {
 			models.POST_RECORD_REPOSITORY.Cache.Insert(post_record.PostID, post_record)
 		}
 
+		//社員や配置先、依頼主が先に存在した上で、時間レコードを作製する。（社員と派遣先の時間指定との兼ね合い）
+		time_records, err := CreateTimeRecord(row)
+		if err != nil {
+			return nil
+		}
 		//ここまでで、必要なデータを全て取得したので、AttendanceRecordを作製
 		return &models.AttendanceRecord{
 			ManageID:   row["管制番号"].To_int(), //これが基本となる値。
 			EmpID:      row["隊員番号"].as_int,   //社員番号
-			LocationID: row["配置先番号"].as_int,  //配置先番号
+			LocationID: location.ID,          //LocationRecordのID
+			PostID:     row["勤務番号"].as_int,   //勤務形態番号
 			Emp:        *emp,
 			Location:   *location,
 			Post:       *post_record,

@@ -12,7 +12,7 @@ import { Button } from '../../ui/button';
 import { useRecoilState } from 'recoil';
 import { LoginDialogOpen } from '../../../state/openClose';
 import { useNavigate } from 'react-router-dom';
-import { useAttendanceDispatch } from '@/hooks';
+import { useAttendanceDispatch, useSetLoginInfo } from '@/hooks';
 import { INSERT_SETUP as INSERT_ATTENDANCE_MESSAGE,UPDATE as ATTENDANCE_UPDATE } from '../../../redux/slices/attendanceSlice';
 import { UPDATE } from '@/redux/slices/timeSlice';
 import { sampleAttendanceRecords } from '@/redux/slices/sampleRecords';
@@ -25,6 +25,9 @@ const Login:React.FC = () => {
     const [openDialog,setOpenDialog] = useRecoilState(LoginDialogOpen);
     const navigate = useNavigate();
     const dispatch = useAttendanceDispatch();
+    
+    const {setLoginInfo} = useSetLoginInfo();
+
 
     const [userName,setUserName] = useState<string>("");
     const [password,setPassword ] = useState<string>("");
@@ -32,8 +35,7 @@ const Login:React.FC = () => {
     const SampleExecute = () => {//サンプルデータでのお試し
       navigate("/dashbord");
       setOpenDialog(false);
-      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {//サンプルデータを更新
-        console.log(value);
+      sampleAttendanceRecords.forEach((value:AttendanceRecord) => {//サンプルデータを更
         dispatch(ATTENDANCE_UPDATE(value));
       });
       setTimeout(()=>{//アラートを表示
@@ -66,33 +68,26 @@ const Login:React.FC = () => {
 
         if (response.ok) {
             const data = await response.json();
-            console.log(data.records.action,data.records.payload);
+            dispatch(INSERT_ATTENDANCE_MESSAGE(
+              [{
+                ManageID:0
+              } as AttendanceRecord]
+            ));
             dispatch(INSERT_ATTENDANCE_MESSAGE(
               data.records.payload
             ));
-
-            try {
-              const response = await fetch(`/api/health`, {
-                method: "GET",
-              });
-              if (response.ok) {
-                alert("サーバーが正常に動作しています");
-              } else {
-                alert("サーバーが正常に動作していません");
-              }
-            } catch (error:unknown) {
-              alert("サーバーが正常に動作していません");
-              console.error(error);
-            }
-
+            
+              setLoginInfo({
+                isLogin:true,
+                userName:data.user.userName
+              })
+           
             // ログイン成功後にダッシュボードに遷移
             navigate("/dashbord");
             setOpenDialog(false);
             dispatch({type:"WEBSOCKET/SETUP",payload:data.records.payload});
         } else {
-            
-            const message = await response.json();
-            alert(message);
+            alert("ログイン不可です。");
         } 
       } catch (error:unknown) {
         alert("ログインに失敗しました。");

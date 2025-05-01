@@ -80,7 +80,7 @@ func GetRangeRecords(min_id uint, max_id uint) ([]*models.AttendanceRecord, bool
 	var result_array []*models.AttendanceRecord
 
 	if err := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.AttendanceRecord{}).Where("manage_id >= ?", min_id).Where("manage_id <= ?", max_id).Find(&result_array).Error; err != nil {
+		if err := tx.Preload("Emp").Preload("TimeRecords").Preload("Location").Preload("Post").Where("manage_id >= ?", min_id).Where("manage_id <= ?", max_id).Find(&result_array).Error; err != nil {
 			return err
 		}
 		return nil
@@ -149,6 +149,12 @@ func TimerecordsEqual(recordArray1, recordArray2 []models.TimeRecord) bool {
 }
 
 func TimeRecordEqual(record1, record2 models.TimeRecord) bool {
+	if record1.PlanTime == nil || record2.PlanTime == nil {
+		return false
+	}
+	if record1.ResultTime == nil || record2.ResultTime == nil {
+		return false
+	}
 	return record1.PlanTime.Equal(*record2.PlanTime) &&
 		record1.ResultTime.Equal(*record2.ResultTime)
 }

@@ -3,12 +3,13 @@ import type { AttendanceRecord,EmployeeRecord,LocationRecord,TimeRecord } from "
 import { RootState } from "./store";
 import { TimeRecordWithOtherRecord } from "@/hooks";
 import { Store } from "@reduxjs/toolkit";
+import { RecordRequest } from './webSocketHelper';
 
 
-type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
-type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
+export type ActionType = {type:string,payload:unknown | RecordType | RecordArrayType | null};
+export type RecordType = TimeRecord | AttendanceRecord | LocationRecord | EmployeeRecord;
 type RecordArrayType = RecordType[];
-let socket:WebSocket;
+let socket:WebSocket|null;
 
 // WebSocketのインスタンスを取得
 function getSocket():WebSocket {
@@ -17,6 +18,10 @@ function getSocket():WebSocket {
     }
     return socket;
 };
+
+function deleteSocket():void {
+    socket = null;
+}
 
 // サーバーリアルタイム接続の初期化 
 function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):void{
@@ -37,40 +42,59 @@ function WebSocketSetup(socket:WebSocket,next:Dispatch,store:Store<RootState>):v
             type:"WEBSOCKET/ERROR",
             payload:"websocketの接続に失敗しました。"
         });
-
+        fetch(`api/logout`,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            }
+        });
+        next({  
+            type:"LOGIN/UPDATE",
+            payload:{
+                userName:"",
+                isLogin:false
+            }
+        });
+        socket.close();
+        
     };  
 
     socket.onclose = () => {
         alert("リアルタイム同期が切断されました。再度ログインしてください。");
+        deleteSocket();
     };
     // サーバーからのメッセージを受信してREDUXのリデューサーに届ける
     socket.onmessage = (event:MessageEvent<string>)=>{
         const state = store.getState();
         const selectedRecord:TimeRecordWithOtherRecord | null = state.SELECTED_RECORDS.selectedRecords;
         const persedEvent = JSON.parse(event.data);
-        const actionObject = {type:persedEvent["Action"],payload:persedEvent["Payload"]} as ActionType;  
-        
+        const actionObject = {type:persedEvent["Action"] as string,payload:persedEvent["Payload"] as RecordType} as ActionType;  
+        RecordRequest(state,actionObject);
         // ミドルウエアのチェーンに受信したアクションオブジェクトを渡す
+        
         next(actionObject);
-
+        
         // 選択中のレコードが更新された場合は、選択中のレコードをクリアする
         if(selectedRecord !== null  && (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE")){
             const  insertRecord:TimeRecord = actionObject.payload as TimeRecord;
             if (insertRecord.ID === selectedRecord.timeRecord.ID){
                 //選択中のレコードをクリアにする。
-                next({  
+               next({  
                     type:"SELECTED_RECORDS/SET_SELECTED_RECORDS",
                     payload:null
                 });
             }
-        }
+        };
+
+        
+        
         
         
     };
 }
 
 const WebSocketMiddleware:Middleware = (store)=> (next)=>{
-    store.getState();//リンターがうるさいので一回呼び出す。
+    
 
     let socket:WebSocket | undefined;
     return (action:unknown)=>{
@@ -85,7 +109,6 @@ const WebSocketMiddleware:Middleware = (store)=> (next)=>{
                 // 選択中のレコードを更新
                 next(actionObject);
                     
-                
                 return;
             default:
                 // サーバーへのメッセージ送信
@@ -97,9 +120,27 @@ const WebSocketMiddleware:Middleware = (store)=> (next)=>{
                     return;
                 } else {
                     // サーバーリアルタイム接続が開始していない場合は、通常のミドルウエアに渡す
+                    
+
+                    const currentSeletedReocrd:TimeRecordWithOtherRecord = store.getState().SELECTED_RECORDS.selectedRecords;
+                
+                    //時間に関わる更新か判定
+                    if (actionObject.type === "TIME_RECORD/UPDATE" || actionObject.type === "TIME_RECORD/DELETE") {
+                        next(actionObject);     
+                        const targetTimeReocrd = actionObject.payload as TimeRecord;
+                        if (currentSeletedReocrd !== null &&(currentSeletedReocrd.timeRecord.ID === targetTimeReocrd.ID)) {
+                                
+                                next({  
+                                    type:"SELECTED_RECORDS/SET_SELECTED_RECORDS",
+                                    payload:null
+                                });
+                            
+                            return;
+                        } 
+                    }
+
                     next(actionObject);
                 }
-            
         };
     };
 };

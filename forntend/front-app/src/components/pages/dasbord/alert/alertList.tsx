@@ -92,13 +92,18 @@ export const AlertList:React.FC = () => {
               className="w-full h-full"
             >
               <CarouselContent>
-              {preAlertRecords.map((preRecord) => {
+              {preAlertRecords.length > 0 && preAlertRecords.map((preRecord) => {
                 return (
                     <CarouselItem key={preRecord.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                     <TimeCard record={preRecord} cardType={CardType.PreAlertIgnore} />
                     </CarouselItem>
                 );
               })}
+              {preAlertRecords.length === 0 && <div className="w-full h-full">
+                <h1 className="text-2xl font-bold text-center">報告5分前はありません。</h1>
+              </div>}
+              
+              
               </CarouselContent>
               <CarouselPrevious />
               <CarouselNext />
@@ -116,13 +121,16 @@ export const AlertList:React.FC = () => {
               className="w-full h-full"
             >
               <CarouselContent>
-              { alertRecords.map((alertRecord) => {
+              { alertRecords.length > 0 && alertRecords.map((alertRecord) => {
                 return (
                   <CarouselItem key={alertRecord.timeRecord.ID} className="md:basis-1/2 lg:basis-1/3">
                   <TimeCard record={alertRecord} cardType={CardType.Alert} />
                   </CarouselItem>
                 );
-                })}
+              })}
+              {alertRecords.length === 0 && <div className="w-full h-full">
+                <h1 className="text-2xl font-bold text-center">報告期限切れはありません。</h1>
+              </div>}
               </CarouselContent>
               <CarouselPrevious />
               <CarouselNext />

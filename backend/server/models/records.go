@@ -38,13 +38,15 @@ func Mingrate() error {
 		&TimeRecord{},
 		&User{},
 		&AttendanceRecord{},
-		&LocationToEmployee{},
+		&LocationToEmployeeRecord{},
 	}
 	for _, model := range mygrate_models {
 		if err := DB.AutoMigrate(model); err != nil {
 			return err
 		}
 	}
+
+	DB.Commit()
 	return nil
 }
 
@@ -74,11 +76,11 @@ func NewEmployeeRecord(
 //--------------------------------[配置先テーブル]-------------------------------------------
 
 type LocationRecord struct { //配置場所のエンティティ
-	ID           uint   `gorm:"primaryKey"`
-	LocationID   uint   `gorm:"not null"` // ロケーションID（主キーの一部）
-	ClientID     uint   `gorm:"not null"` // クライアントID（主キーの一部）
-	LocationName string `gorm:"size:100"` // ロケーションの名前
-	ClientName   string `gorm:"size:100"` //得意先正名称　（会社名）
+	ID           uint   `gorm:"primaryKey"`     //　別途用意した主キー　実際の同定はLocationIDとClientIDの二つの複合主キーとして扱う。
+	LocationID   uint   `gorm:"index;not null"` // ロケーションID（主キーの一部）
+	ClientID     uint   `gorm:"index;not null"` // クライアントID（主キーの一部）
+	LocationName string `gorm:"size:100"`       // ロケーションの名前
+	ClientName   string `gorm:"size:100"`       //得意先正名称　（会社名）
 }
 
 func NewLocationRecord(
@@ -209,21 +211,24 @@ func NewAttendanceRecord(
 
 //--------------------------------[ユーザーテーブル]-------------------------------------------
 
-type LocationToEmployee struct {
+type LocationToEmployeeRecord struct {
 	gorm.Model
 	LocationID uint `gorm:"primaryKey;autoIncrement:false"`
 	ClientID   uint `gorm:"primaryKey;autoIncrement:false"`
 	EmpID      uint `gorm:"primaryKey;autoIncrement:false"`
+	Duration   float64  `gorm:"default:-90"`
 }
 
-func NewLocationToEmployee(
+func NewLocationToEmployeeRecord(
 	Location_ID uint,
 	Client_ID uint,
 	Emp_ID uint,
-) *LocationToEmployee {
-	return &LocationToEmployee{
+	
+) *LocationToEmployeeRecord {
+	return &LocationToEmployeeRecord{
 		LocationID: Location_ID,
 		ClientID:   Client_ID,
 		EmpID:      Emp_ID,
+		
 	}
 }

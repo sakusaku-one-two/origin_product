@@ -149,7 +149,7 @@ export const SelectCardsArea:React.FC = () => {
             className="w-full h-full">
             <CarouselContent>
               
-                {preAlertIgnoreRecords.length >=1 ? <h5>5分前アラート無視状態:{preAlertIgnoreRecords.length}件</h5>: ''}
+                {preAlertIgnoreRecords.length >=1 ? <h5 className="text-center pt-4">5分前アラート無視状態:{preAlertIgnoreRecords.length}件</h5>: ''}
                 {
                     preAlertIgnoreRecords.map((record:TimeRecordWithOtherRecord) => {
                         return (
@@ -160,7 +160,7 @@ export const SelectCardsArea:React.FC = () => {
                     })
                 }
                
-            {ignoreRecords.length >=1 ? <h5>アラート無視状態:{ignoreRecords.length}件</h5>: ''}
+            {ignoreRecords.length >=1 ? <h5 className="text-center pt-4">アラート無視状態:{ignoreRecords.length}件</h5>: ''}
                 {
                     ignoreRecords.map((record:TimeRecordWithOtherRecord) => {
                         return (
@@ -172,7 +172,7 @@ export const SelectCardsArea:React.FC = () => {
                 }
 
                 
-                {records.length >=1 ? <h5>未報告:{records.length}件</h5>: <h1>勤怠データをアップロードしてください。</h1>}
+                {records.length >=1 ? <h5 className="text-center pt-4">未報告:{records.length}件</h5>: <h1 className="text-center pt-4">勤怠データをアップロードしてください。</h1>}
                
                 {records.map((record :TimeRecordWithOtherRecord) => (
 

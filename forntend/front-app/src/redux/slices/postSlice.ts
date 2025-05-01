@@ -2,7 +2,8 @@ import { createSlice,PayloadAction } from "@reduxjs/toolkit";
 import { PostRecord } from "../recordType";
 import { UPDATE as ATTENDANCE_RECORD_UPDATE,
     
-    INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP
+    INSERT_SETUP as ATTENDANCE_RECORD_INSERT_SETUP,
+    ResetChecker
     } from "./attendanceSlice";
 import { AttendanceRecord } from "../recordType";
 //----------------------------[初期値]----------------------------------------
@@ -48,6 +49,10 @@ const postSlice = createSlice({
     },
     extraReducers:(builder)=>{
         builder.addCase(ATTENDANCE_RECORD_INSERT_SETUP,(state,action:PayloadAction<AttendanceRecord []>)=>{
+            if (ResetChecker(action.payload)){
+                state.postList = [];
+                return;
+            }
             const attendanceRecords:AttendanceRecord[] = action.payload;
             const PostsList:PostRecord[] = attendanceRecords.map((attendanceRecord)=>{
                 return attendanceRecord.Post;

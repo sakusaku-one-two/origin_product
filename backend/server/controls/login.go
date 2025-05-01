@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -44,15 +45,26 @@ func LoginHandler(c echo.Context) error {
 	}
 	// 該当するユーザを探す。
 	var user User
-	result := models.GetDB().Where("user_name = ?", requestData.UserName).First(&user) //IDからユーザーレコード構造体（ORM）を取得
-	if result.Error != nil {
+	result := models.NewQuerySession().Transaction(func(tx *gorm.DB) error {
+		result_tx := tx.Where("user_name = ?", requestData.UserName).First(&user) //IDからユーザーレコード構造体（ORM）を取得
+		if result_tx.Error != nil {
+			log.Println("ユーザーが見つからない")
+			return result_tx.Error
+		}
+		log.Println("ユーザーが見つかった")
+		return nil
+	})
+
+	if result != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "not found user"})
 	}
 
 	//パスワードを確認
 	if !user.CheckPassword(requestData.Password) {
+		log.Println("パスワードが違う")
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid password"})
 	}
+	log.Println("パスワードが合っている")
 	//以下はパスワードの確認完了したブロック
 	user.IsLogin = true
 	models.NewQuerySession().Save(&user)
@@ -91,8 +103,9 @@ func LoginHandler(c echo.Context) error {
 
 func GenerateJWT(user User) (string, error) {
 	//クレームを設定
+	userID := strconv.Itoa(int(user.UserID))
 	claims := jwt.MapClaims{
-		"userID":          user.UserID,
+		"userID":          userID,
 		"exp":             time.Now().Add(time.Hour * 72).Unix(), //トークンの有効期限を72時間に設定
 		"permissionLevel": user.PermissionLevel,
 	}
