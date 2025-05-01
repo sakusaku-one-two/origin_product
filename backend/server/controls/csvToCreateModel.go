@@ -2,7 +2,6 @@ package controls
 
 import (
 	"backend-app/server/models"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -47,7 +46,7 @@ func to_hour_minute(time_stirng string) (int, int) {
 }
 
 func CreateDateTime(date_str string, time_string string) time.Time {
-	fmt.Println("CreateDateTimeの呼び出し")
+
 	year := to_year(date_str)
 	month := time.Month(to_month(date_str))
 	day := to_day(date_str)
@@ -56,7 +55,7 @@ func CreateDateTime(date_str string, time_string string) time.Time {
 }
 
 func CreateDepartPlanTime(row map[string]*Value) *time.Time {
-	fmt.Println("CreateDepartPlanTimeの呼び出し")
+
 	duration := time.Duration(time.Minute * -90)
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本開始時間"].To_string()
@@ -67,7 +66,7 @@ func CreateDepartPlanTime(row map[string]*Value) *time.Time {
 
 // 勤務地到着時刻
 func CreateReachPlanTime(row map[string]*Value) *time.Time {
-	fmt.Println("CreateReachPlanTimeの呼び出し")
+
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本開始時間"].To_string()
 	job_start_time := CreateDateTime(date_str, time_str)
@@ -76,7 +75,7 @@ func CreateReachPlanTime(row map[string]*Value) *time.Time {
 }
 
 func CreateStartTime(row map[string]*Value) *time.Time {
-	fmt.Println("CreateStartTimeの呼び出し")
+
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本開始時間"].To_string()
 	result := CreateDateTime(date_str, time_str)
@@ -84,7 +83,7 @@ func CreateStartTime(row map[string]*Value) *time.Time {
 }
 
 func CreateFinalyPlanTime(row map[string]*Value) *time.Time {
-	fmt.Println("CreateFinalyPlanTimeの呼び出し")
+
 	date_str := row["管制日付"].To_string()
 	time_str := row["基本終了時間"].To_string()
 	result := CreateDateTime(date_str, time_str)
@@ -93,7 +92,7 @@ func CreateFinalyPlanTime(row map[string]*Value) *time.Time {
 
 // Timeレコードを作製する。
 func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
-	fmt.Println("CreateTimeRecordの呼び出し")
+
 	mange_id_from_row := row["管制番号"]
 
 	if mange_id_from_row == nil {
@@ -120,18 +119,18 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 			IsComplete:     false,
 		},
 
-		{ //現場到着予定時刻
-			ManageID:       manage_id,
-			PlanNo:         2,
-			PlanTime:       CreateReachPlanTime(row),
-			ResultTime:     nil,
-			IsAlert:        false,
-			PreAlert:       false,
-			IsOver:         false,
-			IsIgnore:       false,
-			PreAlertIgnore: false,
-			IsComplete:     false,
-		},
+		// { //現場到着予定時刻
+		// 	ManageID:       manage_id,
+		// 	PlanNo:         2,
+		// 	PlanTime:       CreateReachPlanTime(row),
+		// 	ResultTime:     nil,
+		// 	IsAlert:        false,
+		// 	PreAlert:       false,
+		// 	IsOver:         false,
+		// 	IsIgnore:       false,
+		// 	PreAlertIgnore: false,
+		// 	IsComplete:     false,
+		// },
 
 		{ //勤務開始予定時刻
 			ManageID:       manage_id,
@@ -146,18 +145,18 @@ func CreateTimeRecord(row map[string]*Value) ([]*models.TimeRecord, error) {
 			IsComplete:     false,
 		},
 
-		{ //勤務終了予定時刻
-			ManageID:       manage_id,
-			PlanNo:         4,
-			PlanTime:       CreateFinalyPlanTime(row),
-			ResultTime:     nil,
-			IsAlert:        false,
-			PreAlert:       false,
-			IsOver:         false,
-			IsIgnore:       false,
-			PreAlertIgnore: false,
-			IsComplete:     false,
-		},
+		// { //勤務終了予定時刻
+		// 	ManageID:       manage_id,
+		// 	PlanNo:         4,
+		// 	PlanTime:       CreateFinalyPlanTime(row),
+		// 	ResultTime:     nil,
+		// 	IsAlert:        false,
+		// 	PreAlert:       false,
+		// 	IsOver:         false,
+		// 	IsIgnore:       false,
+		// 	PreAlertIgnore: false,
+		// 	IsComplete:     false,
+		// },
 	}
 
 	return result, nil
